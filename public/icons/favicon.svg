@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Navy Blue Circular Energy Ring -->
+  <circle cx="32" cy="32" r="28" stroke="#0A1C44" stroke-width="6" fill="#FFFFFF"/>
+  <!-- Vibrant Red Piercing Lightning Bolt from Official Logo -->
+  <path d="M37 6L18 36H31L23 58L46 26H32L37 6Z" fill="#E51A1A"/>
+</svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" fill="none">
+  <defs>
+    <radialGradient id="heroGlow1" cx="70%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#D52B30" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#142B55" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="heroGlow2" cx="30%" cy="80%" r="60%">
+      <stop offset="0%" stop-color="#0284C7" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#0B1528" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gridGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A" stop-opacity="0.4"/>
+      <stop offset="50%" stop-color="#D52B30" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.5"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="800" fill="#0A1424"/>
+  <rect width="1200" height="800" fill="url(#heroGlow1)"/>
+  <rect width="1200" height="800" fill="url(#heroGlow2)"/>
+
+  <!-- Perspective Floor Grid -->
+  <g opacity="0.12" stroke="#60A5FA" stroke-width="1.2">
+    <line x1="0" y1="500" x2="1200" y2="500"/>
+    <line x1="0" y1="560" x2="1200" y2="560"/>
+    <line x1="0" y1="630" x2="1200" y2="630"/>
+    <line x1="0" y1="710" x2="1200" y2="710"/>
+    <line x1="0" y1="800" x2="1200" y2="800"/>
+
+    <line x1="600" y1="450" x2="0" y2="800"/>
+    <line x1="600" y1="450" x2="200" y2="800"/>
+    <line x1="600" y1="450" x2="400" y2="800"/>
+    <line x1="600" y1="450" x2="600" y2="800"/>
+    <line x1="600" y1="450" x2="800" y2="800"/>
+    <line x1="600" y1="450" x2="1000" y2="800"/>
+    <line x1="600" y1="450" x2="1200" y2="800"/>
+  </g>
+
+  <!-- Flowing Sine Waves of Clean Energy -->
+  <path d="M0 380 Q 150 310, 300 380 T 600 380 T 900 380 T 1200 380" fill="none" stroke="#00E5FF" stroke-width="2.5" opacity="0.4"/>
+  <path d="M0 400 Q 150 470, 300 400 T 600 400 T 900 400 T 1200 400" fill="none" stroke="#D52B30" stroke-width="2" opacity="0.35"/>
+  <path d="M0 390 Q 200 350, 400 390 T 800 390 T 1200 390" fill="none" stroke="#3B82F6" stroke-width="1.5" opacity="0.25"/>
+
+  <!-- Subtle Floating Energy Nodes -->
+  <circle cx="300" cy="380" r="4" fill="#00E5FF"/>
+  <circle cx="600" cy="380" r="4" fill="#00E5FF"/>
+  <circle cx="900" cy="380" r="4" fill="#00E5FF"/>
+  <circle cx="450" cy="400" r="3" fill="#D52B30"/>
+  <circle cx="750" cy="400" r="3" fill="#D52B30"/>
+  <circle cx="1050" cy="400" r="3" fill="#D52B30"/>
+</svg>

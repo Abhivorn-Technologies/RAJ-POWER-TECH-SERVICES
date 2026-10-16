@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" fill="none">
+  <rect width="400" height="300" rx="12" fill="#F8FAFC"/>
+  <rect x="1" y="1" width="398" height="298" rx="11" stroke="#E2E8F0"/>
+  <circle cx="200" cy="150" r="100" fill="#142B55" opacity="0.04"/>
+
+  <!-- Online UPS Rack/Tower Double Unit -->
+  <rect x="125" y="55" width="150" height="190" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="2"/>
+  
+  <rect x="135" y="70" width="130" height="65" rx="5" fill="#020617" stroke="#334155"/>
+  <text x="200" y="92" text-anchor="middle" fill="#00E5FF" font-family="monospace" font-size="12" font-weight="bold">ONLINE 2000VA</text>
+  <text x="200" y="108" text-anchor="middle" fill="#10B981" font-family="monospace" font-size="9">0ms ZERO TRANSFER</text>
+  <text x="200" y="122" text-anchor="middle" fill="#94A3B8" font-family="monospace" font-size="8">DOUBLE CONVERSION</text>
+
+  <!-- Heavy Status Bar -->
+  <rect x="140" y="145" width="120" height="6" rx="3" fill="#D52B30"/>
+  
+  <!-- Diagnostic matrix -->
+  <g fill="#334155">
+    <circle cx="160" cy="165" r="4"/>
+    <circle cx="180" cy="165" r="4"/>
+    <circle cx="200" cy="165" r="4"/>
+    <circle cx="220" cy="165" r="4"/>
+    <circle cx="240" cy="165" r="4"/>
+  </g>
+  <g fill="#10B981">
+    <circle cx="160" cy="165" r="2"/>
+    <circle cx="180" cy="165" r="2"/>
+    <circle cx="200" cy="165" r="2"/>
+  </g>
+
+  <!-- Cooling Matrix -->
+  <g fill="#1E293B">
+    <rect x="145" y="185" width="110" height="4" rx="2"/>
+    <rect x="145" y="195" width="110" height="4" rx="2"/>
+    <rect x="145" y="205" width="110" height="4" rx="2"/>
+    <rect x="145" y="215" width="110" height="4" rx="2"/>
+    <rect x="145" y="225" width="110" height="4" rx="2"/>
+  </g>
+
+  <!-- Bottom Tag -->
+  <rect x="130" y="255" width="140" height="24" rx="12" fill="#142B55"/>
+  <text x="200" y="271" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="10" font-weight="bold">ONLINE 2kVA UPS</text>
+</svg>

@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RPS E-Commerce - RAJ POWER TECH SERVICES
 
-## Getting Started
+A high-performance, modern power backup and energy storage e-commerce platform built with **Next.js 16 (Turbopack)**, **React 19**, **Tailwind CSS v4**, and **MongoDB**.
 
-First, run the development server:
+Specializing in **Pure Sine Wave Inverters**, **Tall Tubular Batteries**, and **Enterprise Online/Line-Interactive UPS Systems** with doorstep delivery serviceability checks, guest checkout, multi-vendor portal, and quotation consultation.
 
+---
+
+## 🚀 Features
+
+- **Storefront & Product Catalog**: Dedicated browsing for Inverters, High-Cycle Batteries, and UPS systems with quick specifications and WhatsApp direct consultation.
+- **Serviceability Checker**: Real-time 6-digit Indian PIN code delivery validation and dynamic regional logistics calculation.
+- **Guest Checkout**: Frictionless order placement with no mandatory account creation.
+- **Multi-Vendor Portal**: Secure vendor dashboards for product catalog management, order fulfillment, and quotation response.
+- **Role-Based Admin Panel**: Comprehensive platform management for admins, categories, certifications, orders, vendors, and platform settings.
+- **Security**: JWT-based session security, bcrypt password hashing, and zero client-side credential exposure.
+- **Design & Performance**: Built with rich glassmorphism aesthetics, responsive layouts, Tailwind CSS v4, and framer-motion micro-animations.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Turbopack, Partial Prerendering)
+- **UI & State**: React 19, [Tailwind CSS v4](https://tailwindcss.com/), Framer Motion, Lucide Icons
+- **Database**: [MongoDB](https://www.mongodb.com/) (Native Driver with SRV/Standard Atlas URI fallback resolver)
+- **Authentication**: JWT (`jsonwebtoken`) & `bcryptjs`
+- **Linting & Types**: TypeScript 5, ESLint 9
+
+---
+
+## ⚙️ Getting Started
+
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/<your-username>/rps-ecommerce.git
+cd rps-ecommerce
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Setup Environment Variables
+Copy the example environment file:
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open `.env.local` and configure your credentials:
+```env
+# MongoDB Connection
+MONGODB_URI=your_mongodb_connection_string
+MONGODB_DB_NAME=rps_ecommerce
 
-## Learn More
+# Authentication Secret
+JWT_SECRET=your_secure_random_jwt_secret_key
 
-To learn more about Next.js, take a look at the following resources:
+# Public Site Configuration
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+WHATSAPP_PHONE=919346021289
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 4. Run Development Server
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📦 Building for Production
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To create an optimized production build:
+```bash
+npm run build
+npm run start
+```
+
+---
+
+## 🛡️ License
+
+Private & Proprietary © RAJ POWER TECH SERVICES (RPS). All rights reserved.

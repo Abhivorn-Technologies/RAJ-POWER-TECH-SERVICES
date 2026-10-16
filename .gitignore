@@ -10,32 +10,42 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# testing & coverage
 /coverage
 
-# next.js
+# Next.js build & cache
 /.next/
 /out/
-
-# production
 /build
 
-# misc
-.DS_Store
-*.pem
+# environment files (STRICTLY ignore all real env files, keep only .env.example)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*
+!.env.example
 
-# debug
+# vercel
+.vercel
+
+# typescript & generated types
+*.tsbuildinfo
+next-env.d.ts
+
+# debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# system & OS files
+.DS_Store
+Thumbs.db
+*.pem
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# IDE caches (allow .vscode/settings.json for project-wide tailwind rules)
+.idea/
+*.sublime-project
+*.sublime-workspace
