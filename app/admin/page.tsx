@@ -4673,181 +4673,176 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-            {/* ADD NEW PRODUCT MODAL */}
+      {/* ADD NEW PRODUCT MODAL */}
       {showAddProductModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 space-y-4 shadow-2xl my-8">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-base font-bold text-[#142B55]">Add New Equipment Product</h3>
-                <p className="text-xs text-slate-500">Publish a new pure sine inverter, tubular battery, or UPS to catalog</p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200/80">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-4 shrink-0 bg-white">
+              <h3 className="text-base font-bold text-[#142B55]">Add Product</h3>
               <button
                 onClick={() => {
                   setShowAddProductModal(false);
                   setProductModalError(null);
                   setProductErrors({});
                 }}
-                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer transition-colors"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
-              {productModalError && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded-xl flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{productModalError}</span>
-                </div>
-              )}
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleCreateProduct} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-4 text-xs">
+                {productModalError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded-xl flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{productModalError}</span>
+                  </div>
+                )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Product Title / Model Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Luminous Zelio+ 1100 Pure Sine Wave Inverter"
-                    value={productForm.name}
-                    onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                  {productErrors.name && <p className="text-red-500 text-[11px] mt-0.5">{productErrors.name}</p>}
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Brand *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Luminous, Exide, RPS, Microtek"
-                    value={productForm.brand}
-                    onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                  {productErrors.brand && <p className="text-red-500 text-[11px] mt-0.5">{productErrors.brand}</p>}
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Equipment Category *
-                  </label>
-                  <select
-                    value={productForm.category}
-                    onChange={(e) => {
-                      const cat = e.target.value as 'inverters' | 'batteries' | 'ups';
-                      let img = '/products/inverter-demo-1.jpg';
-                      if (cat === 'batteries') img = '/products/battery-demo-1.jpg';
-                      if (cat === 'ups') img = '/products/ups-demo-1.jpg';
-                      setProductForm({ ...productForm, category: cat, imageUrl: img });
-                    }}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] bg-white capitalize"
-                  >
-                    <option value="inverters">Inverters</option>
-                    <option value="batteries">Batteries</option>
-                    <option value="ups">Online UPS</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Selling Price (₹ INR) *
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={productForm.price || ''}
-                    onChange={(e) => setProductForm({ ...productForm, price: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                  {productErrors.price && <p className="text-red-500 text-[11px] mt-0.5">{productErrors.price}</p>}
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Original / MRP Price (₹)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="Optional original price"
-                    value={productForm.comparePrice || ''}
-                    onChange={(e) => setProductForm({ ...productForm, comparePrice: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Available Stock Units *
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={productForm.stock}
-                    onChange={(e) => setProductForm({ ...productForm, stock: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    SKU / Model Number
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. RPS-INV-1100"
-                    value={productForm.sku}
-                    onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Capacity Rating / Sizing
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 1100VA / 12V or 150Ah"
-                    value={productForm.capacity}
-                    onChange={(e) => setProductForm({ ...productForm, capacity: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Warranty Period
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 36 Months Replacement"
-                    value={productForm.warrantyPeriod}
-                    onChange={(e) => setProductForm({ ...productForm, warrantyPeriod: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                </div>
-
-                {/* RICH PRODUCT IMAGE SELECTOR WITH LIVE PREVIEW */}
-                <div className="sm:col-span-2 space-y-2.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <label className="block font-bold text-slate-800 uppercase tracking-wider text-[11px]">
-                      Product Photo &amp; Image Gallery *
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Product Title *
                     </label>
-                    <span className="text-[10px] text-slate-500">Pick preset photo or enter custom URL</span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. BPE 1kVA Online UPS or Microtek vTURBO 1550"
+                      value={productForm.name}
+                      onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                    {productErrors.name && <p className="text-red-500 text-[11px] mt-0.5">{productErrors.name}</p>}
                   </div>
 
-                  {/* Preset Photos Quick Chips */}
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] font-semibold text-slate-500">Choose from Store Product Photos:</span>
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Brand *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. BPE, Microtek, Exide, Amaron"
+                      value={productForm.brand}
+                      onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                    {productErrors.brand && <p className="text-red-500 text-[11px] mt-0.5">{productErrors.brand}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Category *
+                    </label>
+                    <select
+                      value={productForm.category}
+                      onChange={(e) => {
+                        const cat = e.target.value as 'inverters' | 'batteries' | 'ups';
+                        let img = '/products/inverter-demo-1.jpg';
+                        if (cat === 'batteries') img = '/products/battery-demo-1.jpg';
+                        if (cat === 'ups') img = '/products/ups-demo-1.jpg';
+                        setProductForm({ ...productForm, category: cat, imageUrl: img });
+                      }}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] bg-white capitalize"
+                    >
+                      <option value="inverters">Inverters</option>
+                      <option value="batteries">Batteries</option>
+                      <option value="ups">Online UPS</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Selling Price (₹) *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={productForm.price || ''}
+                      onChange={(e) => setProductForm({ ...productForm, price: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                    {productErrors.price && <p className="text-red-500 text-[11px] mt-0.5">{productErrors.price}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      MRP Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="Optional original price"
+                      value={productForm.comparePrice || ''}
+                      onChange={(e) => setProductForm({ ...productForm, comparePrice: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Stock Units *
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      value={productForm.stock}
+                      onChange={(e) => setProductForm({ ...productForm, stock: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      SKU / Model Code
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. RPS-BPE-1KVA"
+                      value={productForm.sku}
+                      onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Capacity
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1kVA / 1000W or 150Ah"
+                      value={productForm.capacity}
+                      onChange={(e) => setProductForm({ ...productForm, capacity: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Warranty
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 24 Months Manufacturer"
+                      value={productForm.warrantyPeriod}
+                      onChange={(e) => setProductForm({ ...productForm, warrantyPeriod: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
+
+                  {/* PRODUCT IMAGE SELECTOR */}
+                  <div className="sm:col-span-2 space-y-2.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+                    <label className="block font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                      Product Image *
+                    </label>
+
+                    {/* Preset Photos */}
                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                       {[
                         { label: 'Inverter 1', url: '/products/inverter-demo-1.jpg' },
@@ -4876,78 +4871,71 @@ export default function AdminDashboardPage() {
                         </button>
                       ))}
                     </div>
-                  </div>
 
-                  {/* Custom URL Input & Live Preview */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 items-center">
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                        Or Custom Image URL / Path:
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. /products/inverter-demo-1.jpg or https://..."
-                        value={productForm.imageUrl}
-                        onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono text-[11px] focus:outline-none focus:border-[#142B55]"
-                      />
-                    </div>
-
-                    <div className="p-2 bg-white rounded-xl border border-slate-200 flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border border-slate-100">
-                        <img
-                          src={productForm.imageUrl || '/products/inverter-demo-1.jpg'}
-                          alt="Product preview"
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/products/inverter-demo-1.jpg';
-                          }}
+                    {/* Image URL Input & Live Preview */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 items-center">
+                      <div className="sm:col-span-2">
+                        <input
+                          type="text"
+                          placeholder="Image URL or Path (/products/...)"
+                          value={productForm.imageUrl}
+                          onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono text-[11px] focus:outline-none focus:border-[#142B55]"
                         />
                       </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
+
+                      <div className="p-2 bg-white rounded-xl border border-slate-200 flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border border-slate-100">
+                          <img
+                            src={productForm.imageUrl || '/products/inverter-demo-1.jpg'}
+                            alt="Product preview"
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/products/inverter-demo-1.jpg';
+                            }}
+                          />
+                        </div>
+                        <span className="text-[10px] font-semibold text-slate-600 truncate">
                           Preview
-                        </span>
-                        <span className="text-[10px] text-slate-500 truncate block">
-                          Live photo ready
                         </span>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Short Description / Application *
-                  </label>
-                  <textarea
-                    rows={2}
-                    required
-                    placeholder="Brief summary of capacity, backup duration, or target application..."
-                    value={productForm.shortDescription}
-                    onChange={(e) => setProductForm({ ...productForm, shortDescription: e.target.value })}
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                  {productErrors.shortDescription && (
-                    <p className="text-red-500 text-[11px] mt-0.5">{productErrors.shortDescription}</p>
-                  )}
-                </div>
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Short Description *
+                    </label>
+                    <textarea
+                      rows={2}
+                      required
+                      placeholder="Capacity, backup duration, and target application..."
+                      value={productForm.shortDescription}
+                      onChange={(e) => setProductForm({ ...productForm, shortDescription: e.target.value })}
+                      className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                    {productErrors.shortDescription && (
+                      <p className="text-red-500 text-[11px] mt-0.5">{productErrors.shortDescription}</p>
+                    )}
+                  </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Key Features / Bullet Points (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Pure Sine Wave, Fast Charging, Overload Protection"
-                    value={productForm.features}
-                    onChange={(e) => setProductForm({ ...productForm, features: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Key Features
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Pure Sine Wave, Fast Charging, Overload Protection"
+                      value={productForm.features}
+                      onChange={(e) => setProductForm({ ...productForm, features: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              {/* Sticky Footer */}
+              <div className="px-5 sm:px-6 py-3.5 border-t border-slate-100 flex items-center justify-end gap-2.5 shrink-0 bg-slate-50/90">
                 <Button
                   type="button"
                   variant="ghost"
@@ -4962,7 +4950,7 @@ export default function AdminDashboardPage() {
                   size="sm"
                   className="bg-[#D52B30] hover:bg-[#B51E22] text-white"
                 >
-                  Publish Product to Catalog
+                  Publish Product
                 </Button>
               </div>
             </form>
@@ -4972,128 +4960,123 @@ export default function AdminDashboardPage() {
 
       {/* EDIT PRODUCT MODAL */}
       {editingProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 space-y-4 shadow-2xl my-8">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-base font-bold text-[#142B55]">Edit Product Details</h3>
-                <p className="text-xs text-slate-500 truncate max-w-md">{editingProduct.name}</p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200/80">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-4 shrink-0 bg-white">
+              <h3 className="text-base font-bold text-[#142B55]">Edit Product</h3>
               <button
                 onClick={() => setEditingProduct(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer transition-colors"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleUpdateProduct} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Product Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editingProduct.name}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Brand *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editingProduct.brand}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, brand: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Stock Units *
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={editingProduct.stock ?? 0}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Selling Price (₹ INR) *
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={editingProduct.price || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Original / MRP Price (₹)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={editingProduct.comparePrice || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, comparePrice: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    SKU / Model Code
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. RPS-INV-1100"
-                    value={editingProduct.sku || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, sku: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Warranty Term
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 36 Months Replacement"
-                    value={editingProduct.warrantyPeriod || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, warrantyPeriod: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
-                </div>
-
-                {/* RICH PRODUCT IMAGE SELECTOR WITH LIVE PREVIEW */}
-                <div className="sm:col-span-2 space-y-2.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                  <div className="flex items-center justify-between">
-                    <label className="block font-bold text-slate-800 uppercase tracking-wider text-[11px]">
-                      Product Photo &amp; Image Gallery *
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleUpdateProduct} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Product Title *
                     </label>
-                    <span className="text-[10px] text-slate-500">Pick preset photo or enter custom URL</span>
+                    <input
+                      type="text"
+                      required
+                      value={editingProduct.name}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
                   </div>
 
-                  {/* Preset Photos Quick Chips */}
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] font-semibold text-slate-500">Choose from Store Product Photos:</span>
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Brand *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editingProduct.brand}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, brand: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Stock Units *
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      value={editingProduct.stock ?? 0}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Selling Price (₹) *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={editingProduct.price || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      MRP Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editingProduct.comparePrice || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, comparePrice: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      SKU / Model Code
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. RPS-INV-1100"
+                      value={editingProduct.sku || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, sku: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Warranty
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 36 Months Replacement"
+                      value={editingProduct.warrantyPeriod || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, warrantyPeriod: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
+
+                  {/* PRODUCT IMAGE SELECTOR */}
+                  <div className="sm:col-span-2 space-y-2.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+                    <label className="block font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                      Product Image *
+                    </label>
+
+                    {/* Preset Photos */}
                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                       {[
                         { label: 'Inverter 1', url: '/products/inverter-demo-1.jpg' },
@@ -5122,61 +5105,54 @@ export default function AdminDashboardPage() {
                         </button>
                       ))}
                     </div>
-                  </div>
 
-                  {/* Custom URL Input & Live Preview */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 items-center">
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                        Or Custom Image URL / Path:
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. /products/inverter-demo-1.jpg or https://..."
-                        value={editingProduct.imageUrl || ''}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono text-[11px] focus:outline-none focus:border-[#142B55]"
-                      />
-                    </div>
-
-                    <div className="p-2 bg-white rounded-xl border border-slate-200 flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border border-slate-100">
-                        <img
-                          src={editingProduct.imageUrl || '/products/inverter-demo-1.jpg'}
-                          alt="Product preview"
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/products/inverter-demo-1.jpg';
-                          }}
+                    {/* Image URL Input & Live Preview */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 items-center">
+                      <div className="sm:col-span-2">
+                        <input
+                          type="text"
+                          placeholder="Image URL or Path (/products/...)"
+                          value={editingProduct.imageUrl || ''}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono text-[11px] focus:outline-none focus:border-[#142B55]"
                         />
                       </div>
-                      <div className="min-w-0">
-                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
+
+                      <div className="p-2 bg-white rounded-xl border border-slate-200 flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border border-slate-100">
+                          <img
+                            src={editingProduct.imageUrl || '/products/inverter-demo-1.jpg'}
+                            alt="Product preview"
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/products/inverter-demo-1.jpg';
+                            }}
+                          />
+                        </div>
+                        <span className="text-[10px] font-semibold text-slate-600 truncate">
                           Preview
-                        </span>
-                        <span className="text-[10px] text-slate-500 truncate block">
-                          Live photo ready
                         </span>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Description *
-                  </label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={editingProduct.shortDescription}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, shortDescription: e.target.value })}
-                    className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
-                  />
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Description *
+                    </label>
+                    <textarea
+                      rows={3}
+                      required
+                      value={editingProduct.shortDescription}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, shortDescription: e.target.value })}
+                      className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              {/* Sticky Footer */}
+              <div className="px-5 sm:px-6 py-3.5 border-t border-slate-100 flex items-center justify-end gap-2.5 shrink-0 bg-slate-50/90">
                 <Button
                   type="button"
                   variant="ghost"
