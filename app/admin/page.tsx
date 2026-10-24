@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -19,7 +20,6 @@ import {
   Globe,
   LayoutDashboard,
   Sparkles,
-  Users,
   Truck,
   CreditCard,
   Menu,
@@ -50,9 +50,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SessionUser } from '@/types/auth';
-import { Vendor, VendorStatus } from '@/types/vendor';
+import { Vendor } from '@/types/vendor';
 import { Product, SolutionCategoryItem } from '@/types/product';
-import { Order, OverallOrderStatus, OrderPaymentStatus, ItemFulfilmentStatus } from '@/types/order';
+import { Order, OverallOrderStatus, OrderPaymentStatus } from '@/types/order';
 import { QuotationRequest } from '@/types/quotation';
 import { PlatformSettings, EligiblePincodeRule } from '@/types/settings';
 import { Certification } from '@/types/certification';
@@ -80,7 +80,6 @@ export default function AdminDashboardPage() {
   const productsPerPage = 6;
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [productErrors, setProductErrors] = useState<Record<string, string>>({});
   const [productModalError, setProductModalError] = useState<string | null>(null);
   const [productForm, setProductForm] = useState({
@@ -146,24 +145,6 @@ export default function AdminDashboardPage() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryDesc, setNewCategoryDesc] = useState('');
   const [newCategoryError, setNewCategoryError] = useState<string | null>(null);
-
-  // Vendor Credentials Dispatch Modal
-  const [createdCredentials, setCreatedCredentials] = useState<{
-    businessName: string;
-    email: string;
-    temporaryPassword: string;
-    allowedCategories: string[];
-    commissionRate: number;
-    loginUrl: string;
-  } | null>(null);
-  const [copiedCredentials, setCopiedCredentials] = useState(false);
-
-  // Vendor Delete Confirmation Modal
-  const [vendorToDelete, setVendorToDelete] = useState<Vendor | null>(null);
-
-  // Vendor Commission Edit Modal
-  const [editingVendorCommission, setEditingVendorCommission] = useState<Vendor | null>(null);
-  const [editCommissionValue, setEditCommissionValue] = useState<string>('');
 
   // Detailed Order & Vendor Dispatch Sheet Modal & Pagination
   const [selectedOrderForModal, setSelectedOrderForModal] = useState<Order | null>(null);
@@ -435,7 +416,6 @@ export default function AdminDashboardPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to delete product');
 
       setMessage({ type: 'success', text: `Product "${productName}" deleted successfully!` });
-      setProductToDelete(null);
       reloadData();
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to delete product' });
@@ -690,55 +670,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Order item fulfillment update
-  const handleUpdateItemFulfilment = async (orderId: string, itemId: string, vendorId: string, status: ItemFulfilmentStatus) => {
-    try {
-      const res = await fetch('/api/vendor/orders', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, itemId, vendorId, status }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setMessage({ type: 'success', text: `Item fulfillment status set to ${status.toUpperCase()}` });
-      reloadData();
-    } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to update item fulfillment' });
-    }
-  };
 
-  // Vendor status update ('active' | 'inactive' | 'suspended' | 'blocked')
-  const handleUpdateVendorStatus = async (vendorId: string, status: VendorStatus) => {
-    try {
-      const res = await fetch('/api/admin/vendors', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vendorId, status }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setMessage({ type: 'success', text: `Vendor status updated to ${status.toUpperCase()}` });
-      reloadData();
-    } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Action failed' });
-    }
-  };
-
-  // Delete vendor account and credentials
-  const handleDeleteVendor = async (vendorId: string) => {
-    try {
-      const res = await fetch(`/api/admin/vendors?vendorId=${vendorId}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setMessage({ type: 'success', text: 'Vendor account and credentials successfully deleted' });
-      setVendorToDelete(null);
-      reloadData();
-    } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Delete failed' });
-    }
-  };
 
   // Create new solution category
   const handleCreateCategory = async (e: React.FormEvent) => {
@@ -850,14 +782,9 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      setCreatedCredentials({
-        businessName: newVendorData.businessName,
-        email: newVendorData.email,
-        temporaryPassword: newVendorData.password,
-        allowedCategories: newVendorData.allowedCategories,
-        commissionRate: Number(newVendorData.commissionRate),
-        loginUrl: `${origin}/vendor/login`,
+      setMessage({
+        type: 'success',
+        text: `Vendor partner "${newVendorData.businessName}" created successfully!`,
       });
 
       setShowVendorModal(false);
@@ -888,36 +815,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Update existing vendor commission rate
-  const handleUpdateVendorCommission = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingVendorCommission) return;
-    const num = Number(editCommissionValue);
-    if (isNaN(num) || num < 0 || num > 100) {
-      alert('Please enter a valid commission percentage between 0% and 100%');
-      return;
-    }
-    try {
-      const res = await fetch('/api/admin/vendors', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          vendorId: editingVendorCommission.id,
-          commissionRate: num,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setMessage({
-        type: 'success',
-        text: `Commission rate updated to ${num}% for ${editingVendorCommission.businessName}`,
-      });
-      setEditingVendorCommission(null);
-      reloadData();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update commission rate');
-    }
-  };
+
 
   // Update Settings
   const handleSaveSettings = async (e: React.FormEvent) => {
@@ -3645,7 +3543,7 @@ export default function AdminDashboardPage() {
                       {/* Certificate Image Banner */}
                       {cert.imageUrl ? (
                         <div className="mb-3 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center h-32 relative group">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          { }
                           <img
                             src={cert.imageUrl}
                             alt={cert.title}
@@ -4378,7 +4276,7 @@ export default function AdminDashboardPage() {
                 {newCertData.imageUrl && (
                   <div className="mt-2 p-2 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      { }
                       <img
                         src={newCertData.imageUrl}
                         alt="Certificate Preview"
@@ -4706,7 +4604,7 @@ export default function AdminDashboardPage() {
                 {editingCert.imageUrl && (
                   <div className="mt-2 p-2 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      { }
                       <img
                         src={editingCert.imageUrl}
                         alt="Certificate Preview"

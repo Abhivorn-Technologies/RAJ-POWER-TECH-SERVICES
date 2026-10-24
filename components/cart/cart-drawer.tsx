@@ -30,14 +30,13 @@ export function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
 
-  const loadCart = () => {
-    setItems(getGuestCart());
-  };
-
   useEffect(() => {
-    loadCart();
+    // Sync initial cart state after mount
+    queueMicrotask(() => {
+      setItems(getGuestCart());
+    });
 
-    const handleCartUpdate = () => loadCart();
+    const handleCartUpdate = () => setItems(getGuestCart());
     const handleOpenDrawer = () => setIsOpen(true);
 
     window.addEventListener('rps-cart-updated', handleCartUpdate);
@@ -45,7 +44,7 @@ export function CartDrawer() {
 
     return () => {
       window.removeEventListener('rps-cart-updated', handleCartUpdate);
-      window.removeEventListener('rps-open-drawer', handleOpenDrawer);
+      window.removeEventListener('rps-open-cart-drawer', handleOpenDrawer);
     };
   }, []);
 

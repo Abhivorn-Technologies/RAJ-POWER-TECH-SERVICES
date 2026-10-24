@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowRight, ShieldCheck, CheckCircle2, Award, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { fadeUp, cardRevealWithDelay, VIEWPORT_ONCE, CARD_VIEWPORT } from '@/lib/animations';
 
 interface BrandCardItem {

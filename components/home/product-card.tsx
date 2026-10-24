@@ -4,9 +4,8 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
-import { MessageSquare, Eye, CheckCircle, Clock, FileText, ShoppingBag, Check, ShieldCheck } from 'lucide-react';
+import { FileText, ShoppingBag, Check, ShieldCheck } from 'lucide-react';
 import { Product } from '@/types/product';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { addToGuestCart, openCartDrawer } from '@/lib/cart-store';
@@ -47,26 +46,6 @@ export function ProductCard({ product, index, delay }: ProductCardProps) {
     openCartDrawer();
     setTimeout(() => setAdded(false), 2200);
   };
-
-  const availabilityBadges: Record<string, { variant: 'success' | 'warning' | 'default'; label: string; icon: React.ReactNode }> = {
-    'In Stock': {
-      variant: 'success',
-      label: 'In Stock (Secunderabad Hub)',
-      icon: <CheckCircle className="w-3 h-3 text-emerald-600" />,
-    },
-    'Available on Order': {
-      variant: 'warning',
-      label: 'Available on Order (2-3 Days)',
-      icon: <Clock className="w-3 h-3 text-amber-600" />,
-    },
-    'Quotation Required': {
-      variant: 'default',
-      label: 'Custom Product Quotation',
-      icon: <FileText className="w-3 h-3 text-slate-600" />,
-    },
-  };
-
-  const badgeInfo = availabilityBadges[product.availability] || availabilityBadges['Quotation Required'];
 
   return (
     <div className="h-full">

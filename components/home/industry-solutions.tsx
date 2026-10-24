@@ -13,7 +13,6 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
-  Activity,
   Cpu,
   Layers,
   FileText,

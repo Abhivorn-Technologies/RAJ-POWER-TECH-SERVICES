@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, FileText, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PREMIUM_EASE } from '@/lib/animations';
@@ -108,7 +108,6 @@ const BRAND_SPOTLIGHTS: BrandSpotlight[] = [
 ];
 
 export function HeroSection() {
-  const shouldReduceMotion = useReducedMotion();
   const [activeBrandIndex, setActiveBrandIndex] = useState(0);
 
   const currentBrand = BRAND_SPOTLIGHTS[activeBrandIndex];
@@ -123,15 +122,6 @@ export function HeroSection() {
 
   const handleSelectBrand = (idx: number) => {
     setActiveBrandIndex(idx);
-  };
-
-  const itemFade = {
-    hidden: shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: PREMIUM_EASE },
-    },
   };
 
   return (

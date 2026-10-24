@@ -24,7 +24,6 @@ import {
 import { Certification } from '@/types/certification';
 import { AUTHENTIC_CERTIFICATIONS } from '@/lib/certifications-data';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { fadeUp, cardRevealWithDelay, VIEWPORT_ONCE, CARD_VIEWPORT } from '@/lib/animations';
 
@@ -32,8 +31,8 @@ export default function CertificationsPage() {
   const shouldReduceMotion = useReducedMotion();
   // Initialize immediately with authentic certifications for 0ms instant loading
   const [certifications, setCertifications] = useState<Certification[]>(AUTHENTIC_CERTIFICATIONS);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const loading = false;
+  const error: string | null = null;
 
   // Filter & Search state
   const [activeFilter, setActiveFilter] = useState<'all' | 'exide' | 'bpe' | 'inverter'>('all');
