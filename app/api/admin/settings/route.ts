@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { requireAdminPermission, AuthError } from '@/lib/auth/server-guard';
 import { getPlatformSettings, updatePlatformSettings } from '@/lib/db/data-store';
@@ -36,6 +37,7 @@ export async function PUT(request: Request) {
       'customerCancellationWindowMinutes',
       'returnWindowDays',
       'allowItemLevelCancellation',
+      'adminSessionTimeoutMinutes',
       'customProductAttributes',
       'eligiblePincodes',
       'codEnabled',

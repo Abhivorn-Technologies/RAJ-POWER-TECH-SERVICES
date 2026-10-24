@@ -39,8 +39,8 @@ export function Footer() {
                 <Zap className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="font-semibold text-white text-sm">WhatsApp Fast Quotations</h4>
-                <p className="text-xs text-slate-400 mt-0.5">Direct pricing guidance with technical experts</p>
+                <h4 className="font-semibold text-white text-sm">Direct Technical Quotations</h4>
+                <p className="text-xs text-slate-400 mt-0.5">Verified engineering pricing and sizing guidance</p>
               </div>
             </ScrollRevealCard>
           </div>
@@ -60,10 +60,16 @@ export function Footer() {
             </p>
 
             <div className="pt-2 space-y-2.5 text-xs text-slate-300">
-              <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-[#D52B30] shrink-0 mt-0.5" />
+              <a
+                href={BUSINESS_INFO.address.mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-2.5 hover:text-white transition-colors group"
+                title="Open store location in Google Maps"
+              >
+                <MapPin className="w-4 h-4 text-[#D52B30] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
                 <span>{BUSINESS_INFO.address.full}</span>
-              </div>
+              </a>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-[#D52B30] shrink-0" />
                 <a href={`tel:${BUSINESS_INFO.phoneTel}`} className="hover:text-white transition-colors">
@@ -158,31 +164,32 @@ export function Footer() {
               Policies &amp; Legal
             </h3>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Legal documents &amp; privacy controls:
+              Customer protection &amp; commercial terms:
             </p>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
                 <Link href="/policies/privacy" className="hover:text-white transition-colors">
-                  Privacy Policy <span className="text-[10px] text-slate-500">(Draft)</span>
+                  Privacy Policy
                 </Link>
               </li>
               <li>
                 <Link href="/policies/terms" className="hover:text-white transition-colors">
-                  Terms of Service <span className="text-[10px] text-slate-500">(Draft)</span>
+                  Terms of Service
                 </Link>
               </li>
               <li>
                 <Link href="/policies/shipping" className="hover:text-white transition-colors">
-                  Delivery &amp; Shipping Terms <span className="text-[10px] text-slate-500">(Draft)</span>
+                  Delivery &amp; Shipping Terms
                 </Link>
               </li>
               <li>
                 <Link href="/policies/warranty" className="hover:text-white transition-colors">
-                  Manufacturer Warranty Info <span className="text-[10px] text-slate-500">(Draft)</span>
+                  Manufacturer Warranty Info
                 </Link>
               </li>
               <li>
                 <button
+                  suppressHydrationWarning
                   type="button"
                   onClick={() => {
                     if (typeof window !== 'undefined') {

@@ -84,3 +84,9 @@ export function getCartTotalItems(items: CartItem[]): number {
 export function getCartSubtotal(items: CartItem[]): number {
   return items.reduce((acc, it) => acc + it.price * it.quantity, 0);
 }
+
+export function openCartDrawer(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('rps-open-cart-drawer'));
+  }
+}

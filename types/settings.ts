@@ -31,6 +31,9 @@ export interface PlatformSettings {
   customerCancellationWindowMinutes: number; // e.g. 120 mins before dispatch
   returnWindowDays: number; // e.g. 7 days for defective power equipment
   allowItemLevelCancellation: boolean; // True: individual order items can be cancelled
+
+  // Administrative Session & Security Policies
+  adminSessionTimeoutMinutes?: number; // Inactivity / maximum session timeout in minutes (default: 15)
   
   // Custom product attribute definitions configured by Admin
   customProductAttributes: {

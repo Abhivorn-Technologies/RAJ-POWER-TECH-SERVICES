@@ -31,13 +31,19 @@ function getValidatedJwtSecret(): string {
   return secret;
 }
 
+export const DEFAULT_ADMIN_SESSION_MINUTES = 15;
+export const DEFAULT_VENDOR_SESSION_HOURS = 24;
+
 /**
  * Sign a new JWT session token with user identity and authorization claims
  */
-export function signAuthToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
+export function signAuthToken(
+  payload: Omit<JWTPayload, 'iat' | 'exp'>,
+  expiresIn: string | number = TOKEN_EXPIRY
+): string {
   const secret = getValidatedJwtSecret();
   return jwt.sign(payload, secret, {
-    expiresIn: TOKEN_EXPIRY,
+    expiresIn: expiresIn as jwt.SignOptions['expiresIn'],
   });
 }
 

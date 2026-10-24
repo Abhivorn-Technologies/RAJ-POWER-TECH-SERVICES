@@ -53,6 +53,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <motion.button
         ref={ref}
+        suppressHydrationWarning
         whileHover={disabled ? undefined : { scale: 1.02 }}
         whileTap={disabled ? undefined : { scale: 0.98 }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}

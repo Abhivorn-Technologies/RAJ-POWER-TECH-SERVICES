@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -14,22 +14,21 @@ import {
   EyeOff,
   RefreshCw,
   Shield,
-  KeyRound,
   ShieldCheck,
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { scaleIn } from '@/lib/animations';
 
-type PortalRole = 'admin' | 'super_admin';
-
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const shouldReduceMotion = useReducedMotion();
 
-  const [activePortal, setActivePortal] = useState<PortalRole>('super_admin');
-  const [email, setEmail] = useState('admin@rajpowertech.com');
-  const [password, setPassword] = useState('SuperAdmin@2026');
+  const reason = searchParams.get('reason');
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,8 +76,13 @@ export default function AdminLoginPage() {
         throw new Error(data.error || 'Authentication failed. Please verify credentials.');
       }
 
-      if (data.user.role !== 'super_admin' && data.user.role !== 'admin') {
-        throw new Error('Access denied. This portal is strictly for Super Admins and authorized Administrators.');
+      if (data.user.role !== 'admin' && data.user.role !== 'super_admin') {
+        throw new Error('Access denied. Administrator privileges required.');
+      }
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('rps_admin_window_session', data.user.id);
+        sessionStorage.setItem('rps_admin_login_timestamp', Date.now().toString());
       }
 
       router.push('/admin');
@@ -86,18 +90,6 @@ export default function AdminLoginPage() {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handlePortalChange = (portal: PortalRole) => {
-    setActivePortal(portal);
-    setError(null);
-    if (portal === 'super_admin') {
-      setEmail('admin@rajpowertech.com');
-      setPassword('SuperAdmin@2026');
-    } else {
-      setEmail('');
-      setPassword('');
     }
   };
 
@@ -143,42 +135,26 @@ export default function AdminLoginPage() {
             </Link>
 
             <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-[#D52B30] rounded-full text-xs font-bold uppercase tracking-wider mb-1.5">
+                <Shield className="w-3.5 h-3.5" />
+                <span>Store Admin Portal</span>
+              </div>
               <h1 className="text-xl font-extrabold text-[#142B55] tracking-tight">
                 RPS Management Portal
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Centralized platform governance &amp; operational control
+                Direct catalog management, customer orders, quotations &amp; policies
               </p>
             </div>
           </div>
 
-          {/* Compact Role Switcher Pill */}
-          <div className="p-1 bg-slate-100 rounded-xl border border-slate-200 flex text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => handlePortalChange('super_admin')}
-              className={`flex-1 py-1.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
-                activePortal === 'super_admin'
-                  ? 'bg-[#D52B30] text-white shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-[#142B55]'
-              }`}
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span>Super Admin</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handlePortalChange('admin')}
-              className={`flex-1 py-1.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
-                activePortal === 'admin'
-                  ? 'bg-[#142B55] text-white shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-[#142B55]'
-              }`}
-            >
-              <KeyRound className="w-3.5 h-3.5" />
-              <span>Admin Portal</span>
-            </button>
-          </div>
+          {/* Session timeout or reason notification */}
+          {reason === 'session_expired' && !error && (
+            <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <span>Your session expired due to inactivity. Please sign in again.</span>
+            </div>
+          )}
 
           {/* Error Message Alert */}
           {error && (
@@ -188,14 +164,14 @@ export default function AdminLoginPage() {
             </div>
           )}
 
-          {/* Login Form with Compact Layout */}
+          {/* Login Form */}
           <form onSubmit={handleSubmit} noValidate className="space-y-3.5">
             <div>
               <label
                 htmlFor="admin-email"
                 className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1"
               >
-                Account Email
+                Super Admin Email
               </label>
               <div className="relative">
                 <input
@@ -206,11 +182,8 @@ export default function AdminLoginPage() {
                     setEmail(e.target.value);
                     if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: '' }));
                   }}
-                  placeholder={
-                    activePortal === 'super_admin'
-                      ? 'admin@rajpowertech.com'
-                      : 'operations@rajpowertech.com'
-                  }
+                  placeholder="admin@rajpowertech.com"
+                  autoComplete="username"
                   className={`w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100/70 focus:bg-white border text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-colors ${
                     fieldErrors.email
                       ? 'border-red-500 bg-red-50/20 text-red-900 focus:border-red-500'
@@ -244,6 +217,7 @@ export default function AdminLoginPage() {
                     if (fieldErrors.password) setFieldErrors((p) => ({ ...p, password: '' }));
                   }}
                   placeholder="••••••••••••"
+                  autoComplete="current-password"
                   className={`w-full pl-10 pr-11 py-2 rounded-xl bg-slate-50 hover:bg-slate-100/70 focus:bg-white border text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-colors font-mono ${
                     fieldErrors.password
                       ? 'border-red-500 bg-red-50/20 text-red-900 focus:border-red-500'
@@ -279,7 +253,7 @@ export default function AdminLoginPage() {
               size="md"
               fullWidth
               disabled={loading}
-              className="bg-[#D52B30] hover:bg-[#b82226] text-white font-bold py-2.5 rounded-xl shadow-md shadow-[#D52B30]/20 transition-all duration-200 mt-2"
+              className="bg-[#D52B30] hover:bg-[#b82226] text-white font-bold py-2.5 rounded-xl shadow-md shadow-[#D52B30]/20 transition-all duration-200 mt-2 cursor-pointer"
               icon={
                 loading ? (
                   <RefreshCw className="w-4 h-4 ml-1 animate-spin" />
@@ -288,25 +262,19 @@ export default function AdminLoginPage() {
                 )
               }
             >
-              {loading
-                ? 'Verifying Credentials...'
-                : activePortal === 'super_admin'
-                ? 'Sign In to Super Admin'
-                : 'Sign In to Admin Portal'}
+              {loading ? 'Verifying Credentials...' : 'Sign In as Administrator'}
             </Button>
           </form>
-
-          {/* Quick Switch to Vendor Portal */}
-          <div className="pt-3 border-t border-slate-100 text-center">
-            <Link
-              href="/vendor/login"
-              className="text-xs text-slate-500 hover:text-emerald-700 font-semibold transition-colors"
-            >
-              Looking for Vendor Portal? Sign in here &rarr;
-            </Link>
-          </div>
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F3F5F8] flex items-center justify-center">Loading...</div>}>
+      <AdminLoginForm />
+    </Suspense>
   );
 }

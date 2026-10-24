@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/auth/server-guard';
-import { listQuotations, createQuotationRecord, updateQuotationStatus, findProductById } from '@/lib/db/data-store';
+import { listQuotations, createQuotationRecord, updateQuotationStatus, findProductById, saveOrderNotification } from '@/lib/db/data-store';
 import { QuotationRequest, QuotationStatus } from '@/types/quotation';
+import { OrderNotificationEvent } from '@/types/notification';
 
 /**
  * GET: List quotations.
@@ -19,10 +20,8 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Vendor profile not found' }, { status: 400 });
       }
       filter = { vendorId: user.vendorId };
-    } else if (user.role === 'admin') {
-      if (!user.permissions.includes('manage_quotations')) {
-        return NextResponse.json({ error: 'Missing manage_quotations permission' }, { status: 403 });
-      }
+    } else if (user.role !== 'super_admin' && user.role !== 'admin') {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const quotations = await listQuotations(filter);
@@ -45,6 +44,9 @@ export async function POST(request: Request) {
       customerName,
       customerPhone,
       customerEmail,
+      companyName,
+      gstin,
+      quantity,
       cityOrDistrict,
       fullAddress,
       category,
@@ -91,6 +93,9 @@ export async function POST(request: Request) {
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
       customerEmail: customerEmail?.trim(),
+      companyName: companyName?.trim(),
+      gstin: gstin?.trim(),
+      quantity: quantity ? Number(quantity) : 1,
       cityOrDistrict: cityOrDistrict.trim(),
       fullAddress: fullAddress?.trim(),
       category,
@@ -106,7 +111,9 @@ export async function POST(request: Request) {
         {
           status: 'submitted',
           timestamp: now,
-          note: 'Quotation request submitted by customer.',
+          note: companyName
+            ? `Commercial quotation inquiry requested by ${companyName.trim()} (${customerName.trim()}).`
+            : `Product quotation inquiry requested by ${customerName.trim()}.`,
           updatedBy: 'customer',
           updatedByName: customerName.trim(),
         },
@@ -116,6 +123,88 @@ export async function POST(request: Request) {
     };
 
     const created = await createQuotationRecord(newQuotation);
+
+    // Notify assigned vendors of new customer quotation enquiry
+    for (const vId of assignedVendorIds) {
+      try {
+        const notif: OrderNotificationEvent = {
+          id: `notif-qt-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`,
+          orderId: created.id,
+          orderNumber: created.quotationNumber,
+          recipientType: 'vendor',
+          recipientId: vId,
+          recipientName: 'Vendor',
+          recipientPhone: created.customerPhone,
+          recipientEmail: created.customerEmail,
+          eventType: 'quotation_requested',
+          title: `New Quotation Request: ${created.quotationNumber}`,
+          message: `Customer ${created.customerName} in ${created.cityOrDistrict} requested a power backup quote for ${created.category.toUpperCase()}${created.estimatedRunningWatts ? ` (${created.estimatedRunningWatts}W)` : ''}.`,
+          payload: {
+            orderNumber: created.quotationNumber,
+            itemCount: 1,
+            items: [
+              {
+                productId: created.productId || 'custom',
+                productName: created.productName || `${created.category.toUpperCase()} Custom Solution`,
+                quantity: 1,
+                unitPrice: 0,
+                totalPrice: 0,
+              },
+            ],
+            deliveryCity: created.cityOrDistrict,
+            deliveryDistrict: created.cityOrDistrict,
+            deliveryPincode: '',
+            customerName: created.customerName,
+          },
+          channel: 'in_app',
+          status: 'delivered',
+          createdAt: now,
+        };
+        await saveOrderNotification(notif);
+      } catch (err) {
+        console.error('Failed to stage quotation notification for vendor', vId, err);
+      }
+    }
+
+    // Also notify Super Admin so admin dashboard stays synchronized
+    try {
+      const adminNotif: OrderNotificationEvent = {
+        id: `notif-qt-admin-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`,
+        orderId: created.id,
+        orderNumber: created.quotationNumber,
+        recipientType: 'admin',
+        recipientId: 'admin',
+        recipientName: 'Super Admin',
+        recipientPhone: created.customerPhone,
+        recipientEmail: created.customerEmail,
+        eventType: 'quotation_requested',
+        title: `New Quotation Request: ${created.quotationNumber}`,
+        message: `Customer ${created.customerName} in ${created.cityOrDistrict} requested a quotation for ${created.category.toUpperCase()}${created.estimatedRunningWatts ? ` (${created.estimatedRunningWatts}W)` : ''}. Assigned vendors: ${assignedVendorIds.join(', ')}.`,
+        payload: {
+          orderNumber: created.quotationNumber,
+          itemCount: 1,
+          items: [
+            {
+              productId: created.productId || 'custom',
+              productName: created.productName || `${created.category.toUpperCase()} Custom Solution`,
+              quantity: 1,
+              unitPrice: 0,
+              totalPrice: 0,
+            },
+          ],
+          deliveryCity: created.cityOrDistrict,
+          deliveryDistrict: created.cityOrDistrict,
+          deliveryPincode: '',
+          customerName: created.customerName,
+        },
+        channel: 'in_app',
+        status: 'delivered',
+        createdAt: now,
+      };
+      await saveOrderNotification(adminNotif);
+    } catch (err) {
+      console.error('Failed to stage quotation notification for super admin', err);
+    }
 
     return NextResponse.json({
       success: true,
@@ -135,11 +224,42 @@ export async function PATCH(request: Request) {
   try {
     const user = await requireAuth(request);
     const body = await request.json();
-    const { quotationId, status, note, quotedAmount } = body;
+    const {
+      quotationId,
+      status,
+      note,
+      quotedAmount,
+      unitPrice,
+      subtotal,
+      gstPercent,
+      gstAmount,
+      deliveryCharges,
+      installationCharges,
+      paymentTerms,
+      warrantyTerms,
+      deliveryLeadTime,
+      validUntil,
+      validityDays,
+      quotedDetails,
+    } = body;
 
     if (!quotationId || !status) {
       return NextResponse.json({ error: 'quotationId and status are required' }, { status: 400 });
     }
+
+    const commercialDetails: Partial<QuotationRequest> = {};
+    if (unitPrice !== undefined) commercialDetails.unitPrice = Number(unitPrice);
+    if (subtotal !== undefined) commercialDetails.subtotal = Number(subtotal);
+    if (gstPercent !== undefined) commercialDetails.gstPercent = Number(gstPercent);
+    if (gstAmount !== undefined) commercialDetails.gstAmount = Number(gstAmount);
+    if (deliveryCharges !== undefined) commercialDetails.deliveryCharges = Number(deliveryCharges);
+    if (installationCharges !== undefined) commercialDetails.installationCharges = Number(installationCharges);
+    if (paymentTerms) commercialDetails.paymentTerms = paymentTerms.trim();
+    if (warrantyTerms) commercialDetails.warrantyTerms = warrantyTerms.trim();
+    if (deliveryLeadTime) commercialDetails.deliveryLeadTime = deliveryLeadTime.trim();
+    if (validUntil) commercialDetails.validUntil = validUntil;
+    if (validityDays !== undefined) commercialDetails.validityDays = Number(validityDays);
+    if (quotedDetails) commercialDetails.quotedDetails = quotedDetails.trim();
 
     const updated = await updateQuotationStatus(
       quotationId,
@@ -147,11 +267,53 @@ export async function PATCH(request: Request) {
       note || `Status updated to ${status}`,
       user.userId,
       user.name,
-      quotedAmount !== undefined ? Number(quotedAmount) : undefined
+      quotedAmount !== undefined ? Number(quotedAmount) : undefined,
+      commercialDetails
     );
 
     if (!updated) {
       return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
+    }
+
+    // Notify Super Admin of quotation update / vendor quote submission
+    try {
+      const updateNotif: OrderNotificationEvent = {
+        id: `notif-qt-upd-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`,
+        orderId: updated.id,
+        orderNumber: updated.quotationNumber,
+        recipientType: 'admin',
+        recipientId: 'admin',
+        recipientName: 'Super Admin',
+        recipientPhone: updated.customerPhone,
+        recipientEmail: updated.customerEmail,
+        eventType: 'quotation_updated',
+        title: `Quotation ${updated.quotationNumber} Updated: ${status.toUpperCase()}`,
+        message: `${user.name} marked quotation #${updated.quotationNumber} as "${status.toUpperCase()}"${quotedAmount !== undefined ? ` with quote price ₹${Number(quotedAmount).toLocaleString('en-IN')}` : ''}.`,
+        payload: {
+          orderNumber: updated.quotationNumber,
+          itemCount: 1,
+          items: [
+            {
+              productId: updated.productId || 'custom',
+              productName: updated.productName || `${updated.category.toUpperCase()} Custom Solution`,
+              quantity: 1,
+              unitPrice: quotedAmount !== undefined ? Number(quotedAmount) : 0,
+              totalPrice: quotedAmount !== undefined ? Number(quotedAmount) : 0,
+            },
+          ],
+          totalVendorAmount: quotedAmount !== undefined ? Number(quotedAmount) : 0,
+          customerName: updated.customerName,
+          deliveryCity: updated.cityOrDistrict,
+          deliveryDistrict: updated.cityOrDistrict,
+          deliveryPincode: '',
+        },
+        channel: 'in_app',
+        status: 'delivered',
+        createdAt: new Date().toISOString(),
+      };
+      await saveOrderNotification(updateNotif);
+    } catch (err) {
+      console.error('Failed to notify admin on quotation update', err);
     }
 
     return NextResponse.json({

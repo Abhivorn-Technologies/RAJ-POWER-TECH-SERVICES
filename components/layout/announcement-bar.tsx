@@ -42,7 +42,7 @@ export function AnnouncementBar() {
             className="hidden lg:flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
           >
             <MessageSquareQuote className="w-3.5 h-3.5" />
-            <span>WhatsApp Enquiry</span>
+            <span>Direct Technical Help</span>
           </a>
         </div>
       </div>

@@ -1,9 +1,17 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { StorefrontShell } from '@/components/layout/storefront-shell';
 import { CookieBanner } from '@/components/layout/cookie-banner';
 import { BUSINESS_INFO } from '@/lib/constants';
+
+const fontSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-sans',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'RAJ POWER TECH SERVICES (RPS) | Inverters, Batteries & UPS Systems',
@@ -45,12 +53,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full scroll-smooth">
+    <html lang="en" className="h-full scroll-smooth" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/icons/favicon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/icons/favicon-192.png" />
       </head>
-      <body className="min-h-full flex flex-col bg-white text-[#202B3B] antialiased">
+      <body
+        className={`min-h-full flex flex-col bg-white text-[#202B3B] antialiased ${fontSans.className}`}
+        suppressHydrationWarning
+      >
         <StorefrontShell>{children}</StorefrontShell>
         <CookieBanner />
       </body>

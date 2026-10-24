@@ -34,21 +34,21 @@ declare global {
 
 export const DEFAULT_ELIGIBLE_PINCODES: EligiblePincodeRule[] = [
   { pincode: '500009', district: 'Secunderabad', state: 'India', deliveryFeeINR: 0, active: true, notes: 'RPS Headquarters (Secunderabad - Picket / Vijaya Nagar Colony)' },
-  { pincode: '500003', district: 'Secunderabad', state: 'India', deliveryFeeINR: 250, active: true, notes: 'Secunderabad City Center' },
-  { pincode: '500016', district: 'Hyderabad', state: 'India', deliveryFeeINR: 250, active: true, notes: 'Begumpet / Prakash Nagar' },
-  { pincode: '500028', district: 'Hyderabad', state: 'India', deliveryFeeINR: 350, active: true, notes: 'Mehdipatnam / Asif Nagar' },
-  { pincode: '500034', district: 'Hyderabad', state: 'India', deliveryFeeINR: 350, active: true, notes: 'Banjara Hills / Jubilee Hills' },
-  { pincode: '500072', district: 'Medchal-Malkajgiri', state: 'India', deliveryFeeINR: 450, active: true, notes: 'Kukatpally / KPHB Colony' },
-  { pincode: '500081', district: 'Rangareddy', state: 'India', deliveryFeeINR: 450, active: true, notes: 'Madhapur / Hitec City / Cyberabad' },
-  { pincode: '500084', district: 'Rangareddy', state: 'India', deliveryFeeINR: 450, active: true, notes: 'Kondapur / Gachibowli Corridor' },
+  { pincode: '500003', district: 'Secunderabad', state: 'India', deliveryFeeINR: 0, active: true, notes: 'Secunderabad City Center' },
+  { pincode: '500016', district: 'Hyderabad', state: 'India', deliveryFeeINR: 0, active: true, notes: 'Begumpet / Prakash Nagar' },
+  { pincode: '500028', district: 'Hyderabad', state: 'India', deliveryFeeINR: 0, active: true, notes: 'Mehdipatnam / Asif Nagar' },
+  { pincode: '500034', district: 'Hyderabad', state: 'India', deliveryFeeINR: 0, active: true, notes: 'Banjara Hills / Jubilee Hills' },
+  { pincode: '500072', district: 'Medchal-Malkajgiri', state: 'India', deliveryFeeINR: 0, active: true, notes: 'Kukatpally / KPHB Colony' },
+  { pincode: '500081', district: 'Rangareddy', state: 'India', deliveryFeeINR: 0, active: true, notes: 'Madhapur / Hitec City / Cyberabad' },
+  { pincode: '500084', district: 'Rangareddy', state: 'India', deliveryFeeINR: 0, active: true, notes: 'Kondapur / Gachibowli Corridor' },
 ];
 
 const defaultDevSettings: PlatformSettings = {
   id: 'platform_config',
   defaultVendorCommissionPercent: 5.0,
   platformProcessingFeePercent: 1.5,
-  flatDeliveryFeeINR: 450,
-  minimumOrderValueForFreeDeliveryINR: 50000,
+  flatDeliveryFeeINR: 0,
+  minimumOrderValueForFreeDeliveryINR: 0,
   eligiblePincodes: DEFAULT_ELIGIBLE_PINCODES,
   codEnabled: true,
   onlinePaymentEnabled: true,
@@ -58,6 +58,7 @@ const defaultDevSettings: PlatformSettings = {
   customerCancellationWindowMinutes: 120,
   returnWindowDays: 7,
   allowItemLevelCancellation: true,
+  adminSessionTimeoutMinutes: 15,
   customProductAttributes: [
     { name: 'Pure Sine Wave Guarantee', key: 'sine_wave_guarantee', type: 'boolean', category: 'inverters' },
     { name: 'Tubular Plate Height (mm)', key: 'plate_height_mm', type: 'number', category: 'batteries' },
@@ -131,6 +132,91 @@ const devCertifications = devStore.certifications;
 const devPayments = devStore.payments;
 const devNotifications = devStore.notifications;
 
+export const DUMMY_CERT_IDS = [
+  'cert-rps-iso-9001',
+  'cert-rps-bis-16221',
+  'cert-rps-bis-isi-01',
+  'cert-rps-tspcb-lead',
+];
+
+export const AUTHENTIC_CERTIFICATIONS: Certification[] = [
+  {
+    id: 'cert-exide-gold-2025',
+    title: 'Authorised Exide Reserve Power (Industrial) ALL STARS Gold Dealer',
+    issuingAuthority: 'Exide Industries Limited',
+    certificateNumber: 'Dealer Code: 92884',
+    description: 'Officially certified Authorised Exide Reserve Power (Industrial) ALL STARS Gold Dealer awarded to M/s. RAJ POWER TECH SERVICES for excellence in industrial battery solutions and high-demand standby energy backup systems.',
+    categoryScope: 'Industrial Batteries & Reserve Power',
+    validFrom: '2025-04-01',
+    validUntil: '2026-03-31',
+    status: 'active',
+    isPublished: true,
+    imageUrl: '/images/cert-exide-gold-2025.png',
+    notes: 'Conferred by Rajeev Khandelwal, Senior President & Head - Trade, Exide Industries Limited.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'cert-bpe-benchmark-2026',
+    title: 'Best Power Equipments (BPE) - Benchmark Partner',
+    issuingAuthority: 'Best Power Equipments India Pvt. Ltd.',
+    certificateNumber: 'BPE-BMP-2026-HYD',
+    description: 'Presented in recognition and appreciation of dedication and valued contribution as Best Power Equipments Benchmark Partner to RAJPOWER TECH SERVICES, commemorating 26 years of BPE engineering excellence.',
+    categoryScope: 'Enterprise Online UPS & Strategic Power Solutions',
+    validFrom: '2024-07-24',
+    validUntil: '2027-07-23',
+    status: 'active',
+    isPublished: true,
+    imageUrl: '/images/cert-bpe-benchmark.png',
+    notes: 'Conferred by Amitansu Satpathy, Group MD, Best Power Equipments.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'cert-bpe-platinum-2024',
+    title: 'BPE Platinum Partner Certificate of Appreciation (Vision 25)',
+    issuingAuthority: 'Best Power Equipments India Pvt. Ltd.',
+    certificateNumber: 'BPE-VISION25-PLATINUM-2023-24',
+    description: 'Awarded to RAJ POWER TECH SERVICES HYDERABAD for outstanding performance and contribution to BPE growth as Platinum Partner in the year 2023-24.',
+    categoryScope: 'UPS Systems & Critical Power Platinum Distribution',
+    validFrom: '2023-04-01',
+    validUntil: '2025-03-31',
+    status: 'active',
+    isPublished: true,
+    imageUrl: '/images/cert-bpe-platinum-2024.png',
+    notes: 'Conferred by Amitansu Satpathy, Group Managing Director, Best Power Equipments India Pvt. Ltd.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'cert-bpe-platinum-2022',
+    title: 'BPE Platinum Partner Star Award (2021-2022)',
+    issuingAuthority: 'Best Power Equipments (I) Pvt. Ltd.',
+    certificateNumber: 'BPE-PLATINUM-2021-22',
+    description: 'Crystal Star Trophy awarded to RAJPOWER TECH SERVICES (HYDERABAD) for outstanding sales leadership, technical excellence, and contribution to BPE growth as Platinum Partner celebrating 22 years of power solutions.',
+    categoryScope: 'Commercial Power Backup & UPS Distribution',
+    validFrom: '2021-04-01',
+    validUntil: '2023-03-31',
+    status: 'active',
+    isPublished: true,
+    imageUrl: '/images/cert-bpe-platinum-2022.png',
+    notes: 'Conferred by Amitansu Satpathy, Managing Director, Best Power Equipments (I) Pvt. Ltd.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+export function ensureAuthenticCertificationsSeeded() {
+  for (const id of DUMMY_CERT_IDS) {
+    devCertifications.delete(id);
+  }
+  for (const cert of AUTHENTIC_CERTIFICATIONS) {
+    if (!devCertifications.has(cert.id)) {
+      devCertifications.set(cert.id, cert);
+    }
+  }
+}
+
 /**
  * Ensures that if production environment is detected, operations will NOT
  * silently proceed without a configured MongoDB instance.
@@ -146,31 +232,32 @@ function assertStorageMode(operationName: string) {
 // Seed initial Super Admin and sample vendor into dev store for local testing
 function initDevStore() {
   if (devStore.initialized || devUsers.size > 0) return;
-  devStore.initialized = true;
-    // Super Admin: admin@rajpowertech.com | Password: SuperAdmin@2026
-    const superAdminHash = '$2b$10$qNTKgv5idgzIunrHfybz4.6Q0GXYmffv6arQq9ukf.DM5L8RY53Im';
+    // Admin: admin@rajpowertech.com | Password: Admin@2026
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SUPER_ADMIN_EMAIL || 'admin@rajpowertech.com';
+    const adminHash = process.env.ADMIN_PASSWORD_HASH || process.env.SUPER_ADMIN_PASSWORD_HASH || '$2b$10$omtX0t/eYXvJVWgoVX3YWO8ytMxtTlqavymlc0mThdVz1wyx3Q.em';
     
     const superAdmin: UserWithCredentials = {
       id: 'usr-super-admin-01',
-      email: 'admin@rajpowertech.com',
-      name: 'Super Admin (RPS Executive)',
-      role: 'super_admin',
+      email: adminEmail,
+      name: 'Admin (RPS Executive)',
+      role: 'admin',
       status: 'active',
-      passwordHash: superAdminHash,
+      passwordHash: adminHash,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     devUsers.set(superAdmin.id, superAdmin);
 
     // Initial Vendor: vendor@powertech.com | Password: Vendor@2026
-    const vendorHash = '$2b$10$zKXec11IKh3m0zBzXcrnlu53BX7vHwmoqhz6.YXJrraVcaSMf2AbK';
+    const vendorEmail = process.env.VENDOR_EMAIL || 'vendor@powertech.com';
+    const vendorHash = process.env.VENDOR_PASSWORD_HASH || '$2b$10$wExdYZhK9.bSlpOJmvPshODSXc0kkEQYzLo6Cu5uFcCKltCuiPZ4a';
     const sampleVendor: Vendor = {
       id: 'ven-rps-primary',
       businessName: 'RAJ POWER TECH ENTERPRISES',
       tradeName: 'RPS Power Systems',
       registrationNumber: '36ABCDE1234F1Z5',
       contactPerson: 'Mr. B. V. Raja Shekar Reddy',
-      email: 'vendor@powertech.com',
+      email: vendorEmail,
       phone: '9346021289',
       whatsapp: '919346021289',
       address: {
@@ -200,16 +287,16 @@ function initDevStore() {
     };
     devUsers.set(vendorUser.id, vendorUser);
 
-    // Seed initial products for the vendor from Phase 1 demo catalog with stock
-    DEMO_FEATURED_PRODUCTS.forEach((demoItem, index) => {
+    // Seed initial products for the vendor from verified 4-brand catalog with stock
+    DEMO_FEATURED_PRODUCTS.forEach((item, index) => {
       const prod: Product = {
-        ...demoItem,
+        ...item,
         vendorId: sampleVendor.id,
         vendorName: sampleVendor.businessName,
-        stock: 15 + index * 5,
-        price: demoItem.category === 'inverters' ? 8500 + index * 3000 : demoItem.category === 'batteries' ? 14500 + index * 4000 : 7500 + index * 5000,
-        comparePrice: demoItem.category === 'inverters' ? 10500 : 17500,
-        sku: `RPS-${demoItem.category.substring(0, 3).toUpperCase()}-00${index + 1}`,
+        stock: item.stock || (15 + index * 5),
+        price: item.price || (item.category === 'inverters' ? 8500 : item.category === 'batteries' ? 12500 : 9500),
+        comparePrice: item.comparePrice || item.price,
+        sku: item.sku || `RPS-${item.category.substring(0, 3).toUpperCase()}-00${index + 1}`,
         isPublished: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -217,57 +304,8 @@ function initDevStore() {
       devProducts.set(prod.id, prod);
     });
 
-  // Seed sample verified RPS certifications for public gallery
-  if (devCertifications.size === 0) {
-    const cert1: Certification = {
-      id: 'cert-rps-iso-9001',
-      title: 'ISO 9001:2015 Quality Management System',
-      issuingAuthority: 'Bureau of International Quality Certification',
-      certificateNumber: 'BIQC-IND-9001-RPS-2024',
-      description: 'Certified for sales, custom installation, and technical engineering maintenance of commercial Online UPS and pure sine wave inverters.',
-      categoryScope: 'Inverters & UPS Engineering Standards',
-      validFrom: '2024-01-15',
-      validUntil: '2027-01-14',
-      status: 'active',
-      isPublished: true,
-      imageUrl: '/images/cert-iso.jpg',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    const cert2: Certification = {
-      id: 'cert-rps-bis-16221',
-      title: 'Bureau of Indian Standards (BIS) Safety Compliance',
-      issuingAuthority: 'Bureau of Indian Standards (Govt. of India)',
-      certificateNumber: 'CRS-BIS-IS16221-50009',
-      description: 'Compliant with Indian standard IS 16221 for power converters, sine wave controllers, and safe energy storage equipment.',
-      categoryScope: 'Power Inverters & Converter Safety',
-      validFrom: '2023-08-01',
-      validUntil: '2026-07-31',
-      status: 'active',
-      isPublished: true,
-      imageUrl: '/images/cert-bis.jpg',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    const cert3: Certification = {
-      id: 'cert-rps-tspcb-lead',
-      title: 'Pollution Control Board Battery Recycling Authorization',
-      issuingAuthority: 'State Pollution Control Board',
-      certificateNumber: 'SPCB-HAZ-RECYCLE-2024-098',
-      description: 'Authorized collection, handling, and safe recycling of used heavy tubular and lead-acid industrial batteries.',
-      categoryScope: 'Tubular Batteries Environmental Compliance',
-      validFrom: '2024-03-10',
-      validUntil: '2029-03-09',
-      status: 'active',
-      isPublished: true,
-      imageUrl: '/images/cert-tspcb.jpg',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    devCertifications.set(cert1.id, cert1);
-    devCertifications.set(cert2.id, cert2);
-    devCertifications.set(cert3.id, cert3);
-  }
+  // Seed authentic verified RPS certifications for public gallery
+  ensureAuthenticCertificationsSeeded();
 
   // Seed default solution categories
   if (devCategories.size === 0) {
@@ -296,6 +334,91 @@ function initDevStore() {
       createdAt: new Date().toISOString(),
     });
   }
+
+  // Seed sample Business Product Quotations (Commercial RFQs)
+  if (devQuotations.size === 0) {
+    const quote1: QuotationRequest = {
+      id: 'qt-b2b-01',
+      quotationNumber: 'RPS-QT-2026-0104',
+      companyName: 'Sri Balaji Diagnostics & Healthcare Center',
+      gstin: '36AABCS1429B1Z8',
+      customerName: 'Dr. M. S. Rao (Director)',
+      customerPhone: '9849012345',
+      customerEmail: 'purchase@balajidiagnostics.in',
+      cityOrDistrict: 'Secunderabad',
+      fullAddress: 'Building 4, Ranigunj Commercial Complex, Secunderabad - 500003',
+      category: 'batteries',
+      productId: 'prod-tubular-150',
+      productName: 'Exide Inva Tubular 150Ah Heavy Duty Battery (IT500)',
+      quantity: 4,
+      assignedVendorIds: ['ven-rps-primary'],
+      status: 'quoted',
+      unitPrice: 14500,
+      subtotal: 58000,
+      gstPercent: 28,
+      gstAmount: 16240,
+      deliveryCharges: 800,
+      installationCharges: 1200,
+      quotedAmount: 76240,
+      quotedDetails: 'Includes 4x 150Ah Tubular Batteries, heavy interconnect copper cables, site delivery, battery rack installation, and 36-month on-site replacement warranty.',
+      paymentTerms: '50% Advance with Purchase Order, 50% on site installation',
+      warrantyTerms: '36 Months On-site Comprehensive Manufacturer Warranty',
+      deliveryLeadTime: '2 Business Days',
+      validityDays: 15,
+      validUntil: new Date(Date.now() + 15 * 86400000).toISOString(),
+      statusHistory: [
+        {
+          status: 'submitted',
+          timestamp: new Date(Date.now() - 86400000).toISOString(),
+          note: 'Commercial quotation request submitted for diagnostic lab power backup.',
+          updatedBy: 'customer',
+          updatedByName: 'Dr. M. S. Rao',
+        },
+        {
+          status: 'quoted',
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          note: 'Official business quotation of ₹76,240 submitted with GST 28% and installation scope.',
+          updatedBy: 'ven-rps-primary',
+          updatedByName: 'RAJ POWER TECH ENTERPRISES',
+        },
+      ],
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      updatedAt: new Date(Date.now() - 3600000).toISOString(),
+    };
+
+    const quote2: QuotationRequest = {
+      id: 'qt-b2b-02',
+      quotationNumber: 'RPS-QT-2026-0105',
+      companyName: 'TechNova IT Solutions Pvt Ltd',
+      gstin: '36AAECT5512Q1ZX',
+      customerName: 'P. Ramesh Kumar (Facility Head)',
+      customerPhone: '9988776655',
+      customerEmail: 'facilities@technovasolutions.com',
+      cityOrDistrict: 'HITEC City, Hyderabad',
+      fullAddress: 'Tower B, Mindspace IT Park, HITEC City, Hyderabad - 500081',
+      category: 'inverters',
+      productId: 'prod-inverter-2kva',
+      productName: 'Luminous Cruze 2KVA Pure Sine Wave Commercial Inverter',
+      quantity: 2,
+      assignedVendorIds: ['ven-rps-primary'],
+      status: 'submitted',
+      notes: 'Required for server room backup and workstation critical lighting. Need official quotation with GST input tax invoice and delivery schedule.',
+      statusHistory: [
+        {
+          status: 'submitted',
+          timestamp: new Date().toISOString(),
+          note: 'Commercial product quotation inquiry received for 2 units of 2KVA commercial inverters.',
+          updatedBy: 'customer',
+          updatedByName: 'P. Ramesh Kumar',
+        },
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    devQuotations.set(quote1.id, quote1);
+    devQuotations.set(quote2.id, quote2);
+  }
 }
 
 initDevStore();
@@ -305,26 +428,29 @@ registerDatabaseInitHook(async (db) => {
   // 1. Seed Super Admin & Primary Vendor if users collection is empty
   const userCount = await db.collection('users').countDocuments();
   if (userCount === 0) {
-    const superAdminHash = '$2b$10$qNTKgv5idgzIunrHfybz4.6Q0GXYmffv6arQq9ukf.DM5L8RY53Im';
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SUPER_ADMIN_EMAIL || 'admin@rajpowertech.com';
+    const adminHash = process.env.ADMIN_PASSWORD_HASH || process.env.SUPER_ADMIN_PASSWORD_HASH || '$2b$10$omtX0t/eYXvJVWgoVX3YWO8ytMxtTlqavymlc0mThdVz1wyx3Q.em';
     const superAdmin: UserWithCredentials = {
       id: 'usr-super-admin-01',
-      email: 'admin@rajpowertech.com',
+      email: adminEmail,
       name: 'Super Admin (RPS Executive)',
       role: 'super_admin',
       status: 'active',
-      passwordHash: superAdminHash,
+      passwordHash: adminHash,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     await db.collection('users').insertOne(superAdmin);
 
+    const vendorEmail = process.env.VENDOR_EMAIL || 'vendor@powertech.com';
+    const vendorHash = process.env.VENDOR_PASSWORD_HASH || '$2b$10$wExdYZhK9.bSlpOJmvPshODSXc0kkEQYzLo6Cu5uFcCKltCuiPZ4a';
     const sampleVendor: Vendor = {
       id: 'ven-rps-primary',
       businessName: 'RAJ POWER TECH ENTERPRISES',
       tradeName: 'RPS Power Systems',
       registrationNumber: '36ABCDE1234F1Z5',
       contactPerson: 'Mr. B. V. Raja Shekar Reddy',
-      email: 'vendor@powertech.com',
+      email: vendorEmail,
       phone: '9346021289',
       whatsapp: '919346021289',
       address: {
@@ -342,10 +468,9 @@ registerDatabaseInitHook(async (db) => {
     };
     await db.collection('vendors').insertOne(sampleVendor);
 
-    const vendorHash = '$2b$10$zKXec11IKh3m0zBzXcrnlu53BX7vHwmoqhz6.YXJrraVcaSMf2AbK';
     const vendorUser: UserWithCredentials = {
       id: 'usr-vendor-01',
-      email: 'vendor@powertech.com',
+      email: vendorEmail,
       name: 'Mr. B. V. Raja Shekar Reddy (RPS)',
       role: 'vendor',
       status: 'active',
@@ -417,47 +542,66 @@ registerDatabaseInitHook(async (db) => {
   if (certCount === 0) {
     await db.collection('certifications').insertMany([
       {
-        id: 'cert-rps-iso-9001',
-        title: 'ISO 9001:2015 Quality Management System',
-        issuingAuthority: 'Bureau of International Quality Certification',
-        certificateNumber: 'BIQC-IND-9001-RPS-2024',
-        description: 'Certified for sales, custom installation, and technical engineering maintenance of commercial Online UPS and pure sine wave inverters.',
-        categoryScope: 'Inverters & UPS Engineering Standards',
-        validFrom: '2024-01-15',
-        validUntil: '2027-01-14',
+        id: 'cert-exide-gold-2025',
+        title: 'Authorised Exide Reserve Power (Industrial) ALL STARS Gold Dealer',
+        issuingAuthority: 'Exide Industries Limited',
+        certificateNumber: 'Dealer Code: 92884',
+        description: 'Officially certified Authorised Exide Reserve Power (Industrial) ALL STARS Gold Dealer awarded to M/s. RAJ POWER TECH SERVICES for excellence in industrial battery solutions and high-demand standby energy backup systems.',
+        categoryScope: 'Industrial Batteries & Reserve Power',
+        validFrom: '2025-04-01',
+        validUntil: '2026-03-31',
         status: 'active',
         isPublished: true,
-        imageUrl: '/images/cert-iso.jpg',
+        imageUrl: '/images/cert-exide-gold-2025.png',
+        notes: 'Conferred by Rajeev Khandelwal, Senior President & Head - Trade, Exide Industries Limited.',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        id: 'cert-rps-bis-isi-01',
-        title: 'BIS Certification IS 16221 / IS 13314 for Inverter & UPS Systems',
-        issuingAuthority: 'Bureau of Indian Standards (BIS)',
-        certificateNumber: 'BIS/CRS/RPS-INV-2023-8841',
-        description: 'Conformity assessment and safety certification for electronic power converters and uninterruptible power systems.',
-        categoryScope: 'Power Inverters & Converter Safety',
-        validFrom: '2023-06-01',
-        validUntil: '2028-05-31',
+        id: 'cert-bpe-benchmark-2026',
+        title: 'Best Power Equipments (BPE) - Benchmark Partner',
+        issuingAuthority: 'Best Power Equipments India Pvt. Ltd.',
+        certificateNumber: 'BPE-BMP-2026-HYD',
+        description: 'Presented in recognition and appreciation of dedication and valued contribution as Best Power Equipments Benchmark Partner to RAJPOWER TECH SERVICES, commemorating 26 years of BPE engineering excellence.',
+        categoryScope: 'Enterprise Online UPS & Strategic Power Solutions',
+        validFrom: '2024-07-24',
+        validUntil: '2027-07-23',
         status: 'active',
         isPublished: true,
-        imageUrl: '/images/cert-bis.jpg',
+        imageUrl: '/images/cert-bpe-benchmark.png',
+        notes: 'Conferred by Amitansu Satpathy, Group MD, Best Power Equipments.',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
       {
-        id: 'cert-rps-tspcb-lead',
-        title: 'Pollution Control Board Battery Recycling Authorization',
-        issuingAuthority: 'State Pollution Control Board',
-        certificateNumber: 'SPCB-HAZ-RECYCLE-2024-098',
-        description: 'Authorized collection, handling, and safe recycling of used heavy tubular and lead-acid industrial batteries.',
-        categoryScope: 'Tubular Batteries Environmental Compliance',
-        validFrom: '2024-03-10',
-        validUntil: '2029-03-09',
+        id: 'cert-bpe-platinum-2024',
+        title: 'BPE Platinum Partner Certificate of Appreciation (Vision 25)',
+        issuingAuthority: 'Best Power Equipments India Pvt. Ltd.',
+        certificateNumber: 'BPE-VISION25-PLATINUM-2023-24',
+        description: 'Awarded to RAJ POWER TECH SERVICES HYDERABAD for outstanding performance and contribution to BPE growth as Platinum Partner in the year 2023-24.',
+        categoryScope: 'UPS Systems & Critical Power Platinum Distribution',
+        validFrom: '2023-04-01',
+        validUntil: '2025-03-31',
         status: 'active',
         isPublished: true,
-        imageUrl: '/images/cert-tspcb.jpg',
+        imageUrl: '/images/cert-bpe-platinum-2024.png',
+        notes: 'Conferred by Amitansu Satpathy, Group Managing Director, Best Power Equipments India Pvt. Ltd.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: 'cert-bpe-platinum-2022',
+        title: 'BPE Platinum Partner Star Award (2021-2022)',
+        issuingAuthority: 'Best Power Equipments (I) Pvt. Ltd.',
+        certificateNumber: 'BPE-PLATINUM-2021-22',
+        description: 'Crystal Star Trophy awarded to RAJPOWER TECH SERVICES (HYDERABAD) for outstanding sales leadership, technical excellence, and contribution to BPE growth as Platinum Partner celebrating 22 years of power solutions.',
+        categoryScope: 'Commercial Power Backup & UPS Distribution',
+        validFrom: '2021-04-01',
+        validUntil: '2023-03-31',
+        status: 'active',
+        isPublished: true,
+        imageUrl: '/images/cert-bpe-platinum-2022.png',
+        notes: 'Conferred by Amitansu Satpathy, Managing Director, Best Power Equipments (I) Pvt. Ltd.',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -767,6 +911,18 @@ export async function updateProductRecord(id: string, updates: Partial<Product>)
   return updated;
 }
 
+export async function deleteProductRecord(id: string): Promise<boolean> {
+  if (isMongoConfigured()) {
+    const db = await getDatabase();
+    await db.collection('products').deleteOne({ id });
+    return true;
+  }
+
+  assertStorageMode('deleteProductRecord');
+  devProducts.delete(id);
+  return true;
+}
+
 /**
  * Concurrency-safe atomic inventory reservation:
  * Ensures stock >= requestedQuantity before decrementing atomically.
@@ -844,7 +1000,14 @@ export async function listVendorOrderItems(vendorId: string): Promise<OrderItem[
   for (const order of allOrders) {
     for (const item of order.items) {
       if (item.vendorId === vendorId) {
-        vendorItems.push(item);
+        vendorItems.push({
+          ...item,
+          customer: order.customer,
+          paymentMethod: order.paymentMethod,
+          paymentStatus: order.paymentStatus,
+          overallOrderStatus: order.orderStatus,
+          orderNotes: order.notes,
+        });
       }
     }
   }
@@ -904,7 +1067,7 @@ export async function updateOrderItemFulfilment(
   const order = await findOrderById(orderId);
   if (!order) return null;
 
-  const itemIndex = order.items.findIndex((item) => item.id === itemId && item.vendorId === vendorId);
+  const itemIndex = order.items.findIndex((item) => item.id === itemId && (!vendorId || item.vendorId === vendorId));
   if (itemIndex === -1) return null;
 
   const item = order.items[itemIndex];
@@ -986,7 +1149,8 @@ export async function updateQuotationStatus(
   note: string,
   userId: string,
   userName: string,
-  quotedAmount?: number
+  quotedAmount?: number,
+  commercialDetails?: Partial<QuotationRequest>
 ): Promise<QuotationRequest | null> {
   if (isMongoConfigured()) {
     const db = await getDatabase();
@@ -995,6 +1159,9 @@ export async function updateQuotationStatus(
 
     quote.status = status;
     if (quotedAmount !== undefined) quote.quotedAmount = quotedAmount;
+    if (commercialDetails) {
+      Object.assign(quote, commercialDetails);
+    }
     quote.statusHistory.push({
       status,
       timestamp: new Date().toISOString(),
@@ -1014,6 +1181,9 @@ export async function updateQuotationStatus(
 
   quote.status = status;
   if (quotedAmount !== undefined) quote.quotedAmount = quotedAmount;
+  if (commercialDetails) {
+    Object.assign(quote, commercialDetails);
+  }
   quote.statusHistory.push({
     status,
     timestamp: new Date().toISOString(),
@@ -1042,12 +1212,17 @@ function sanitizeCertImage(cert: Certification | null): Certification | null {
 export async function listCertifications(onlyPublished = false): Promise<Certification[]> {
   if (isMongoConfigured()) {
     const db = await getDatabase();
+    await db.collection('certifications').deleteMany({ id: { $in: DUMMY_CERT_IDS } });
+    for (const cert of AUTHENTIC_CERTIFICATIONS) {
+      await db.collection('certifications').updateOne({ id: cert.id }, { $set: cert }, { upsert: true });
+    }
     const query = onlyPublished ? { isPublished: true } : {};
     const docs = await db.collection<Certification>('certifications').find(query).sort({ createdAt: -1 }).toArray();
     return docs.map((d) => sanitizeCertImage(d)!);
   }
 
   assertStorageMode('listCertifications');
+  ensureAuthenticCertificationsSeeded();
   let certs = Array.from(devCertifications.values()).map((d) => sanitizeCertImage(d)!);
   if (onlyPublished) {
     certs = certs.filter((c) => c.isPublished);

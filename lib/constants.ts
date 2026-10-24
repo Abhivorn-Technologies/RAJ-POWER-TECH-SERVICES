@@ -15,9 +15,15 @@ export const BUSINESS_INFO = {
     landmark: 'Picket',
     city: 'Secunderabad',
     pincode: '500009',
-    state: '',
+    state: 'Telangana',
     country: 'India',
-    full: 'Plot No:12A, Vijaya Nagar Colony, Picket, Secunderabad-500009, India.',
+    full: 'Plot No:12A, Vijaya Nagar Colony, Picket, Secunderabad, Telangana - 500009, India.',
+    mapsUrl: 'https://maps.google.com/maps?q=17.4532287%2C78.499837&z=17&hl=en',
+    embedUrl: 'https://maps.google.com/maps?q=17.4532287,78.499837&hl=en&z=17&output=embed',
+    coordinates: {
+      lat: 17.4532287,
+      lng: 78.499837,
+    },
   },
   operatingTerritory: 'All Serviceable Regions, India',
   categories: [

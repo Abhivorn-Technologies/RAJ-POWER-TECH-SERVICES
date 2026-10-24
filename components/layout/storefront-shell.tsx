@@ -5,15 +5,14 @@ import { usePathname } from 'next/navigation';
 import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
+import { CartDrawer } from '@/components/cart/cart-drawer';
 
-export function StorefrontShell({ children }: { children: React.ReactNode }) {
+function StorefrontHeader() {
   const pathname = usePathname();
-
-  // If visiting Admin or Vendor private portal routes, do NOT show customer navbar, announcement bar, or customer footer
-  const isPrivatePortal = pathname.startsWith('/admin') || pathname.startsWith('/vendor');
+  const isPrivatePortal = pathname ? pathname.startsWith('/admin') || pathname.startsWith('/vendor') : false;
 
   if (isPrivatePortal) {
-    return <main className="flex-1 w-full flex flex-col">{children}</main>;
+    return null;
   }
 
   return (
@@ -22,8 +21,32 @@ export function StorefrontShell({ children }: { children: React.ReactNode }) {
       <Suspense fallback={<div className="h-20 bg-white" />}>
         <Header />
       </Suspense>
-      <main className="flex-1 w-full">{children}</main>
-      <Footer />
+    </>
+  );
+}
+
+function StorefrontFooter() {
+  const pathname = usePathname();
+  const isPrivatePortal = pathname ? pathname.startsWith('/admin') || pathname.startsWith('/vendor') : false;
+
+  if (isPrivatePortal) {
+    return null;
+  }
+
+  return <Footer />;
+}
+
+export function StorefrontShell({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <Suspense fallback={<div className="h-20 bg-white" />}>
+        <StorefrontHeader />
+      </Suspense>
+      <main className="flex-1 w-full flex flex-col">{children}</main>
+      <Suspense fallback={null}>
+        <StorefrontFooter />
+      </Suspense>
+      <CartDrawer />
     </>
   );
 }

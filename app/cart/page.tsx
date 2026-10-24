@@ -77,7 +77,7 @@ export default function CartPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   // Serviceability check state
-  const [pincodeQuery, setPincodeQuery] = useState('500009');
+  const [pincodeQuery, setPincodeQuery] = useState('');
   const [checkingServiceability, setCheckingServiceability] = useState(false);
   const [serviceResult, setServiceResult] = useState<ServiceabilityResult | null>(null);
 
@@ -88,8 +88,8 @@ export default function CartPage() {
   const [line1, setLine1] = useState('');
   const [line2, setLine2] = useState('');
   const [landmark, setLandmark] = useState('');
-  const [city, setCity] = useState('Secunderabad');
-  const [pincode, setPincode] = useState('500009');
+  const [city, setCity] = useState('');
+  const [pincode, setPincode] = useState('');
   const [customerState, setCustomerState] = useState('');
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online_gateway'>('cod');
@@ -117,7 +117,7 @@ export default function CartPage() {
 
   // Check PIN serviceability
   const checkPincode = async (codeToCheck?: string) => {
-    const code = (codeToCheck || pincodeQuery).trim();
+    const code = (codeToCheck || pincodeQuery || pincode).trim();
     if (!code || code.length !== 6) return;
 
     try {
@@ -125,6 +125,14 @@ export default function CartPage() {
       const res = await fetch(`/api/serviceability?pincode=${encodeURIComponent(code)}`);
       const data = await res.json();
       setServiceResult(data);
+      if (data.serviceable) {
+        if (!city.trim() && data.district) {
+          setCity(data.district);
+        }
+        if (!customerState.trim() && data.state) {
+          setCustomerState(data.state);
+        }
+      }
     } catch {
       setServiceResult({
         serviceable: false,
@@ -135,28 +143,6 @@ export default function CartPage() {
       setCheckingServiceability(false);
     }
   };
-
-  // Run initial check for RPS default Secunderabad 500009
-  useEffect(() => {
-    if (!isMounted) return;
-    const runCheck = async () => {
-      try {
-        setCheckingServiceability(true);
-        const res = await fetch('/api/serviceability?pincode=500009');
-        const data = await res.json();
-        setServiceResult(data);
-      } catch {
-        setServiceResult({
-          serviceable: false,
-          pincode: '500009',
-          message: 'Could not connect to serviceability network. Please try again.',
-        });
-      } finally {
-        setCheckingServiceability(false);
-      }
-    };
-    runCheck();
-  }, [isMounted]);
 
   // Group items by Vendor (Multi-Vendor cart grouping)
   const itemsByVendor = items.reduce<Record<string, { vendorName: string; items: CartItem[] }>>(
@@ -175,13 +161,13 @@ export default function CartPage() {
   );
 
   const subtotal = getCartSubtotal(items);
-  const isFreeDelivery = subtotal >= (serviceResult?.freeDeliveryThreshold ?? 50000);
+  const isFreeDelivery = subtotal >= (serviceResult?.freeDeliveryThreshold ?? 0);
   const deliveryFee = serviceResult?.serviceable
     ? isFreeDelivery
       ? 0
-      : (serviceResult.deliveryFee ?? 450)
-    : 450;
-  const grandTotal = subtotal + (items.length > 0 ? deliveryFee : 0);
+      : (serviceResult.deliveryFee ?? 0)
+    : 0;
+  const grandTotal = subtotal + (items.length > 0 && serviceResult?.serviceable ? deliveryFee : 0);
 
   // Submit Guest Checkout
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
@@ -230,6 +216,8 @@ export default function CartPage() {
     const cleanPin = pincode.replace(/\D/g, '');
     if (!cleanPin || cleanPin.length !== 6) {
       errs.pincode = 'PIN code must be exactly 6 digits';
+    } else if (serviceResult && !serviceResult.serviceable && serviceResult.pincode === cleanPin) {
+      errs.pincode = serviceResult.message || 'Delivery is currently unavailable for this PIN code.';
     }
 
     if (Object.keys(errs).length > 0) {
@@ -765,28 +753,34 @@ export default function CartPage() {
                     <input
                       type="text"
                       maxLength={6}
-                      placeholder="e.g. 500009"
+                      placeholder="e.g. 500003"
                       value={pincode}
                       onChange={(e) => {
                         const clean = e.target.value.replace(/\D/g, '').slice(0, 6);
                         setPincode(clean);
+                        setPincodeQuery(clean);
                         if (fieldErrors.pincode) setFieldErrors((p) => ({ ...p, pincode: '' }));
                         if (clean.length === 6) {
                           checkPincode(clean);
                         }
                       }}
                       className={`w-full text-xs px-3.5 py-2.5 rounded-lg border transition-colors ${
-                        fieldErrors.pincode
+                        fieldErrors.pincode || (serviceResult && !serviceResult.serviceable && serviceResult.pincode === pincode)
                           ? 'border-red-500 bg-red-50/20 text-red-900 focus:border-red-500'
                           : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-[#142B55]'
                       } focus:outline-none font-mono`}
                     />
-                    {fieldErrors.pincode && (
+                    {fieldErrors.pincode ? (
                       <p className="text-[11px] text-red-600 font-medium mt-1 flex items-center gap-1">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                         <span>{fieldErrors.pincode}</span>
                       </p>
-                    )}
+                    ) : serviceResult && !serviceResult.serviceable && serviceResult.pincode === pincode ? (
+                      <p className="text-[11px] text-red-600 font-medium mt-1 flex items-start gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <span>{serviceResult.message}</span>
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 
@@ -944,7 +938,11 @@ export default function CartPage() {
                 <div className="flex items-center justify-between">
                   <span>Delivery Fee:</span>
                   <span className="font-bold text-slate-900">
-                    {deliveryFee === 0 ? (
+                    {!serviceResult ? (
+                      <span className="text-slate-500 font-normal">Calculated with PIN code</span>
+                    ) : !serviceResult.serviceable ? (
+                      <span className="text-red-600 font-semibold">Unserviceable</span>
+                    ) : deliveryFee === 0 ? (
                       <span className="text-emerald-600 uppercase font-extrabold">FREE</span>
                     ) : (
                       `₹${deliveryFee.toLocaleString('en-IN')}`

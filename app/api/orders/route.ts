@@ -14,6 +14,7 @@ import {
 } from '@/lib/db/data-store';
 import { dispatchOrderNotifications } from '@/lib/notifications/order-events';
 import { Order, OrderItem, CreateOrderInput } from '@/types/order';
+import { resolvePincodeServiceability } from '@/lib/pincodes';
 
 /**
  * GET: List all orders (Admin or Super Admin)
@@ -60,14 +61,14 @@ export async function POST(request: Request) {
 
     // 2. PIN-Code Serviceability Verification
     const formattedPincode = customer.pincode.trim();
-    const matchedPincodeRule = platformSettings.eligiblePincodes?.find(
-      (r) => r.pincode === formattedPincode && r.active
-    );
+    const serviceability = resolvePincodeServiceability(formattedPincode, platformSettings);
 
-    if (!matchedPincodeRule) {
+    if (!serviceability.serviceable) {
       return NextResponse.json(
         {
-          error: `Delivery address with PIN code ${formattedPincode} is not currently serviceable. Please enter an eligible delivery PIN code or contact our support team.`,
+          error:
+            serviceability.message ||
+            `Delivery is currently unavailable for PIN code ${formattedPincode}. Please enter an eligible delivery PIN code or contact our sales & support team.`,
         },
         { status: 400 }
       );
@@ -161,7 +162,7 @@ export async function POST(request: Request) {
     }
 
     // Server-controlled delivery fee calculation
-    let deliveryFee = matchedPincodeRule.deliveryFeeINR ?? platformSettings.flatDeliveryFeeINR;
+    let deliveryFee = serviceability.deliveryFee ?? platformSettings.flatDeliveryFeeINR;
     if (
       platformSettings.minimumOrderValueForFreeDeliveryINR &&
       subtotal >= platformSettings.minimumOrderValueForFreeDeliveryINR
@@ -182,8 +183,8 @@ export async function POST(request: Request) {
         line2: customer.line2?.trim(),
         landmark: customer.landmark?.trim(),
         city: customer.city.trim(),
-        district: matchedPincodeRule.district || customer.district || customer.city.trim(),
-        state: customer.state?.trim() || matchedPincodeRule.state || 'India',
+        district: serviceability.district || customer.district || customer.city.trim(),
+        state: customer.state?.trim() || serviceability.state || 'Telangana',
         pincode: formattedPincode,
       },
       paymentStatus: 'pending', // Distinct payment status (Never marked paid solely because browser requests)
@@ -248,8 +249,8 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { orderId, paymentStatus, orderStatus } = body;
 
-    if (!orderId || !paymentStatus) {
-      return NextResponse.json({ error: 'Order ID and paymentStatus are required' }, { status: 400 });
+    if (!orderId) {
+      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
     }
 
     const order = await findOrderById(orderId);
@@ -258,11 +259,24 @@ export async function PATCH(request: Request) {
     }
 
     const updates: Partial<Order> = {
-      paymentStatus,
       updatedAt: new Date().toISOString(),
     };
+    if (paymentStatus) {
+      updates.paymentStatus = paymentStatus;
+    }
     if (orderStatus) {
       updates.orderStatus = orderStatus;
+      if (order.items && order.items.length > 0) {
+        updates.items = order.items.map((it) => ({
+          ...it,
+          fulfilmentStatus:
+            orderStatus === 'delivered'
+              ? 'delivered'
+              : orderStatus === 'dispatched'
+              ? 'dispatched'
+              : it.fulfilmentStatus,
+        }));
+      }
     }
 
     const updated = await updateOrderRecord(orderId, updates);

@@ -8,6 +8,8 @@ export type OrderPaymentStatus =
 export type OverallOrderStatus =
   | 'placed'
   | 'processing'
+  | 'dispatched'
+  | 'delivered'
   | 'partially_fulfilled'
   | 'fulfilled'
   | 'cancelled';
@@ -62,6 +64,11 @@ export interface OrderItem {
   cancelledAt?: string;
   dispatchedAt?: string;
   deliveredAt?: string;
+  customer?: CustomerShippingAddress;
+  paymentMethod?: string;
+  paymentStatus?: OrderPaymentStatus;
+  overallOrderStatus?: OverallOrderStatus;
+  orderNotes?: string;
   createdAt: string;
   updatedAt: string;
 }

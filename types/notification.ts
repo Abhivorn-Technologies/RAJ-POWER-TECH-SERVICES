@@ -4,7 +4,8 @@ export type NotificationEventType =
   | 'order_placed'
   | 'order_dispatched'
   | 'order_delivered'
-  | 'quotation_requested';
+  | 'quotation_requested'
+  | 'quotation_updated';
 
 export interface OrderNotificationEvent {
   id: string; // notif-xxx

@@ -2,14 +2,16 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { MessageSquare, Eye, CheckCircle, Clock, FileText, ShoppingBag, Check, ShieldCheck } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { buildWhatsAppInquiryUrl, cn } from '@/lib/utils';
-import { addToGuestCart } from '@/lib/cart-store';
+import { cn } from '@/lib/utils';
+import { addToGuestCart, openCartDrawer } from '@/lib/cart-store';
 import { CARD_VIEWPORT, PREMIUM_EASE } from '@/lib/animations';
+import { ProductQuoteModal } from '@/components/quotations/product-quote-modal';
 
 interface ProductCardProps {
   product: Product;
@@ -18,10 +20,10 @@ interface ProductCardProps {
   onQuickView?: (product: Product) => void;
 }
 
-export function ProductCard({ product, index, delay, onQuickView }: ProductCardProps) {
+export function ProductCard({ product, index, delay }: ProductCardProps) {
   const shouldReduceMotion = useReducedMotion();
   const [added, setAdded] = useState(false);
-  const whatsappUrl = buildWhatsAppInquiryUrl(product.name, product.categoryName);
+  const [quoteOpen, setQuoteOpen] = useState(false);
 
   const priceValue = product.price || (product.category === 'inverters' ? 11500 : product.category === 'batteries' ? 15500 : 8500);
 
@@ -42,6 +44,7 @@ export function ProductCard({ product, index, delay, onQuickView }: ProductCardP
       1
     );
     setAdded(true);
+    openCartDrawer();
     setTimeout(() => setAdded(false), 2200);
   };
 
@@ -58,7 +61,7 @@ export function ProductCard({ product, index, delay, onQuickView }: ProductCardP
     },
     'Quotation Required': {
       variant: 'default',
-      label: 'Custom Capacity Quote',
+      label: 'Custom Product Quotation',
       icon: <FileText className="w-3 h-3 text-slate-600" />,
     },
   };
@@ -66,152 +69,153 @@ export function ProductCard({ product, index, delay, onQuickView }: ProductCardP
   const badgeInfo = availabilityBadges[product.availability] || availabilityBadges['Quotation Required'];
 
   return (
-    <motion.div
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
-      whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={CARD_VIEWPORT}
-      transition={{
-        duration: 0.5,
-        delay: calculatedDelay,
-        ease: PREMIUM_EASE,
-      }}
-      whileHover={shouldReduceMotion ? undefined : { y: -6 }}
-      className="group relative flex flex-col rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xl transition-shadow duration-300 overflow-hidden"
-    >
-      {/* Top Demo Notice & Availability Header */}
-      <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
-        {product.isDemo ? (
-          <Badge variant="demo" size="sm" className="shadow-xs backdrop-blur-md">
-            Catalog Sample
-          </Badge>
-        ) : (
-          <Badge variant="navy" size="sm">
-            Verified Model
-          </Badge>
-        )}
-
-        <Badge
-          variant={badgeInfo.variant}
-          size="sm"
-          className="ml-auto bg-white/95 backdrop-blur-md shadow-xs border border-slate-100"
-        >
-          {badgeInfo.icon}
-          <span className="text-[10px] font-semibold">{product.availability}</span>
-        </Badge>
-      </div>
-
-      {/* Product Image Area with Aspect Ratio & Smooth Container Zoom */}
-      <div className="relative aspect-[4/3] w-full bg-gradient-to-b from-slate-50 via-slate-100/50 to-slate-100 flex items-center justify-center p-4 border-b border-slate-100 overflow-hidden">
-        <Image
-          src={product.imageUrl}
-          alt={product.name}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
-          className="object-contain p-3 transition-transform duration-700 ease-out group-hover:scale-108"
-        />
-        {/* Delicate hover shimmer vignette */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-      </div>
-
-      {/* Product Information Body */}
-      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-        <div>
-          {/* Brand & Category */}
-          <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
-            <span className="font-bold uppercase tracking-wider text-[#142B55]">{product.brand}</span>
-            <span className="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border border-slate-200/60">
-              {product.categoryName}
+    <div className="h-full">
+      <motion.div
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
+        whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+        viewport={CARD_VIEWPORT}
+        transition={{
+          duration: 0.4,
+          delay: calculatedDelay,
+          ease: PREMIUM_EASE,
+        }}
+        whileHover={
+          shouldReduceMotion
+            ? undefined
+            : {
+                y: -5,
+                transition: { duration: 0.2, ease: 'easeOut' },
+              }
+        }
+        className="group relative flex flex-col h-full rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 overflow-hidden"
+      >
+        {/* Top Badges: Savings & Stock Availability */}
+        <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
+          {product.comparePrice && product.comparePrice > priceValue ? (
+            <span className="bg-[#D52B30] text-white font-extrabold text-[10px] px-2 py-0.5 rounded-md shadow-xs uppercase tracking-wider">
+              {Math.round(((product.comparePrice - priceValue) / product.comparePrice) * 100)}% OFF
             </span>
-          </div>
+          ) : (
+            <span className="bg-slate-900/80 text-white font-bold text-[10px] px-2 py-0.5 rounded-md backdrop-blur-xs">
+              Official Stock
+            </span>
+          )}
 
-          {/* Product Name */}
-          <h3 className="text-base font-bold text-slate-900 group-hover:text-[#D52B30] transition-colors line-clamp-2 leading-snug">
-            {product.name}
-          </h3>
-
-          {/* Short description */}
-          <p className="mt-1.5 text-xs text-slate-600 line-clamp-2 leading-relaxed">
-            {product.shortDescription}
-          </p>
-
-          {/* Key Specs Matrix */}
-          <div className="mt-3 bg-slate-50/80 rounded-xl p-3 space-y-1.5 text-xs border border-slate-100">
-            {product.keySpecs.map((spec, sIdx) => (
-              <div key={sIdx} className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 font-medium">{spec.label}:</span>
-                <span className="text-slate-900 font-bold">{spec.value}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Price & Guarantee Footnote */}
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-            <div>
-              <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                Ex-Showroom Price
-              </span>
-              <span className="text-lg font-extrabold text-[#142B55] tracking-tight">
-                ₹{priceValue.toLocaleString('en-IN')}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200/60">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Official Warranty</span>
-            </div>
-          </div>
+          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50/95 border border-emerald-200/80 px-2 py-0.5 rounded-md shadow-xs backdrop-blur-xs flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>{product.availability}</span>
+          </span>
         </div>
 
-        {/* Action Controls */}
-        <div className="space-y-2 pt-1">
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            fullWidth
-            onClick={handleAddToCart}
-            className={cn(
-              'text-xs font-bold py-2.5 rounded-xl transition-all duration-300 shadow-sm active:scale-[0.98]',
-              added
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
-                : 'bg-[#142B55] hover:bg-[#0B172F] text-white hover:shadow-md'
-            )}
-            icon={added ? <Check className="w-3.5 h-3.5 text-white animate-bounce" /> : <ShoppingBag className="w-3.5 h-3.5" />}
-          >
-            {added ? 'Added to Bag ✓' : 'Add to Bag'}
-          </Button>
+        {/* Product Image Area with Link */}
+        <Link
+          href={`/products/${product.id}`}
+          className="relative aspect-[4/3] w-full bg-slate-50/70 flex items-center justify-center p-6 border-b border-slate-100 overflow-hidden block"
+        >
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
+            className="object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-105"
+          />
+        </Link>
 
-          <div className="grid grid-cols-2 gap-2">
+        {/* Product Information Body */}
+        <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+          <div>
+            {/* Brand & Category */}
+            <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
+              <span className="font-extrabold uppercase tracking-wider text-[#142B55] text-[11px]">{product.brand}</span>
+              <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold border border-slate-200/60">
+                {product.categoryName}
+              </span>
+            </div>
+
+            {/* Product Name with Link */}
+            <Link href={`/products/${product.id}`}>
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#D52B30] transition-colors line-clamp-2 leading-snug cursor-pointer">
+                {product.name}
+              </h3>
+            </Link>
+
+            {/* Short description */}
+            <p className="mt-1.5 text-xs text-slate-500 line-clamp-2 leading-relaxed">
+              {product.shortDescription}
+            </p>
+
+            {/* Key Specs Matrix */}
+            <div className="mt-3 bg-slate-50 rounded-xl p-2.5 space-y-1 text-xs border border-slate-100">
+              {product.keySpecs.slice(0, 3).map((spec, sIdx) => (
+                <div key={sIdx} className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">{spec.label}:</span>
+                  <span className="text-slate-900 font-semibold truncate max-w-[170px] text-right">{spec.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Price & Warranty Line */}
+            <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-lg font-black text-slate-900 tracking-tight">
+                    ₹{priceValue.toLocaleString('en-IN')}
+                  </span>
+                  {product.comparePrice && product.comparePrice > priceValue && (
+                    <span className="text-xs text-slate-400 line-through">
+                      ₹{product.comparePrice.toLocaleString('en-IN')}
+                    </span>
+                  )}
+                </div>
+                <span className="block text-[10px] text-slate-500 font-medium">
+                  Inclusive of GST
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200/60">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Direct Warranty</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Controls */}
+          <div className="flex items-center gap-2 pt-1">
             <Button
               type="button"
-              variant="outline"
+              variant="primary"
               size="sm"
-              onClick={() => onQuickView?.(product)}
-              className="text-xs font-semibold rounded-xl border-slate-200 hover:border-[#142B55] hover:bg-slate-50 transition-colors"
-              icon={<Eye className="w-3.5 h-3.5 text-slate-500" />}
+              onClick={handleAddToCart}
+              className={cn(
+                'flex-1 text-xs font-bold py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer',
+                added
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  : 'bg-[#142B55] hover:bg-[#0B172F] text-white hover:shadow-md'
+              )}
+              icon={added ? <Check className="w-3.5 h-3.5 text-white" /> : <ShoppingBag className="w-3.5 h-3.5" />}
             >
-              Specs
+              {added ? 'Added to Bag ✓' : 'Add to Bag'}
             </Button>
 
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full inline-block"
+            <button
+              suppressHydrationWarning
+              type="button"
+              onClick={() => setQuoteOpen(true)}
+              title="Request Official Technical Quotation"
+              aria-label="Request Official Technical Quotation"
+              className="p-2.5 text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl transition-colors cursor-pointer shadow-2xs shrink-0 flex items-center justify-center"
             >
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                fullWidth
-                className="text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-semibold rounded-xl transition-colors"
-                icon={<MessageSquare className="w-3.5 h-3.5 text-emerald-600" />}
-              >
-                Quote
-              </Button>
-            </a>
+              <FileText className="w-4 h-4 text-slate-700" />
+            </button>
           </div>
         </div>
-      </div>
+
+      {/* Product Quotation Request Modal (Logs in Admin & Dispatches to WhatsApp) */}
+      <ProductQuoteModal
+        product={product}
+        isOpen={quoteOpen}
+        onClose={() => setQuoteOpen(false)}
+      />
     </motion.div>
+  </div>
   );
 }

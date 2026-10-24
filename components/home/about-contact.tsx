@@ -18,9 +18,7 @@ import { Button } from '@/components/ui/button';
 import { fadeUp, slideFromLeft, slideFromRight, VIEWPORT_ONCE } from '@/lib/animations';
 
 export function AboutContact() {
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    'Plot No 12A Vijaya Nagar Colony Picket Secunderabad 500009 India'
-  )}`;
+  const googleMapsUrl = BUSINESS_INFO.address.mapsUrl;
 
   return (
     <section className="py-20 bg-white overflow-hidden" aria-labelledby="about-contact-heading">
@@ -54,7 +52,7 @@ export function AboutContact() {
             initial="hidden"
             whileInView="visible"
             viewport={VIEWPORT_ONCE}
-            className="lg:col-span-7 bg-[#F3F5F8]/70 rounded-3xl p-8 sm:p-10 border border-slate-200/80 flex flex-col justify-between space-y-6 hover:shadow-lg transition-shadow duration-300"
+            className="lg:col-span-7 bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 flex flex-col justify-between space-y-6 hover:shadow-lg transition-shadow duration-300"
           >
             <div className="space-y-4">
               <div className="flex items-center gap-3">
@@ -206,7 +204,7 @@ export function AboutContact() {
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3"
                   icon={<MessageSquare className="w-4 h-4" />}
                 >
-                  Message On WhatsApp
+                  Chat with Sales Specialist
                 </Button>
               </a>
             </div>

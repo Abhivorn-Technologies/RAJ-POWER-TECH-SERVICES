@@ -89,6 +89,7 @@ export interface Product {
   isPublished?: boolean;
   isFeatured?: boolean;
   warrantyPeriod?: string;
+  capacity?: string;
   isDemo?: boolean;
   
   createdAt?: string;

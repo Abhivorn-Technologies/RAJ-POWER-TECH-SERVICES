@@ -71,7 +71,7 @@ export function PromotionalBanner() {
                   className="bg-[#D52B30] hover:bg-[#B51E22] text-white font-bold shadow-lg shadow-[#D52B30]/30 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                   icon={<MessageSquare className="w-4 h-4" />}
                 >
-                  Direct WhatsApp Consultation
+                  Direct Specialist Consultation
                 </Button>
               </a>
 

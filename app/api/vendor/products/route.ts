@@ -4,6 +4,7 @@ import {
   listProducts,
   createProductRecord,
   updateProductRecord,
+  deleteProductRecord,
   findProductById,
   findVendorById,
   listCategories,
@@ -75,17 +76,10 @@ export async function POST(request: Request) {
       }
       targetVendorName = vendor.businessName;
       targetAllowedCategories = vendor.allowedCategories;
-    } else if (user.role === 'super_admin' || (user.role === 'admin' && user.permissions.includes('manage_products'))) {
-      if (!body.vendorId) {
-        return NextResponse.json({ error: 'Admin must specify target vendorId for product ownership' }, { status: 400 });
-      }
-      targetVendorId = body.vendorId;
-      const vendor = await findVendorById(targetVendorId);
-      if (!vendor) {
-        return NextResponse.json({ error: 'Target vendor does not exist' }, { status: 404 });
-      }
-      targetVendorName = vendor.businessName;
-      targetAllowedCategories = vendor.allowedCategories;
+    } else if (user.role === 'admin' || user.role === 'super_admin') {
+      targetVendorId = body.vendorId || 'ven-rps-primary';
+      targetVendorName = 'RAJ POWER TECH ENTERPRISES';
+      targetAllowedCategories = undefined;
     } else {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
@@ -216,20 +210,8 @@ export async function PATCH(request: Request) {
           { status: 403 }
         );
       }
-    } else if (user.role === 'admin') {
-      if (!user.permissions.includes('manage_products')) {
-        return NextResponse.json({ error: 'Missing manage_products permission' }, { status: 403 });
-      }
-
-      // Check if price is being altered
-      if (updates.price !== undefined && updates.price !== existingProduct.price) {
-        if (!user.permissions.includes('edit_vendor_prices')) {
-          return NextResponse.json(
-            { error: 'Admin is not authorized to edit vendor prices (missing edit_vendor_prices permission)' },
-            { status: 403 }
-          );
-        }
-      }
+    } else if (user.role !== 'super_admin' && user.role !== 'admin') {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     // Validation
@@ -256,5 +238,31 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
     }
     return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE: Delete a product (Admin only)
+ */
+export async function DELETE(request: Request) {
+  try {
+    const user = await requireAuth(request);
+    if (user.role !== 'admin' && user.role !== 'super_admin') {
+      return NextResponse.json({ error: 'Admin privileges required' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const productId = searchParams.get('productId');
+    if (!productId) {
+      return NextResponse.json({ error: 'productId parameter is required' }, { status: 400 });
+    }
+
+    await deleteProductRecord(productId);
+    return NextResponse.json({ success: true, message: 'Product deleted successfully' });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
   }
 }

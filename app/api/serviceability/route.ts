@@ -1,52 +1,39 @@
 import { NextResponse } from 'next/server';
 import { getPlatformSettings } from '@/lib/db/data-store';
+import { resolvePincodeServiceability } from '@/lib/pincodes';
 
 /**
  * GET: Check PIN code delivery serviceability and server-controlled delivery charges.
- * Only configured active PIN codes are serviceable.
+ * Seamlessly accepts all Hyderabad / Secunderabad / GHMC postal codes while returning
+ * a professional, neutral delivery-unavailable error message for unserviceable regions.
  */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const rawPincode = searchParams.get('pincode');
+    const rawPincode = searchParams.get('pincode') || '';
 
-    if (!rawPincode || rawPincode.trim().length !== 6 || !/^\d{6}$/.test(rawPincode.trim())) {
-      return NextResponse.json(
-        {
-          serviceable: false,
-          error: 'Please enter a valid 6-digit Indian PIN code.',
-        },
-        { status: 400 }
-      );
-    }
-
-    const pincode = rawPincode.trim();
     const settings = await getPlatformSettings();
-    const eligibleRules = settings.eligiblePincodes || [];
+    const resolution = resolvePincodeServiceability(rawPincode, settings);
 
-    const matchedRule = eligibleRules.find(
-      (r) => r.pincode === pincode && r.active
-    );
-
-    if (!matchedRule) {
+    if (!resolution.serviceable) {
       return NextResponse.json({
         serviceable: false,
-        pincode,
-        message:
-          'Delivery is currently unavailable for this PIN code. Enter an eligible delivery PIN code or contact our support team for regional transit arrangements.',
+        pincode: resolution.pincode,
+        message: resolution.message,
       });
     }
 
     return NextResponse.json({
       serviceable: true,
-      pincode: matchedRule.pincode,
-      district: matchedRule.district,
-      state: matchedRule.state,
-      deliveryFee: matchedRule.deliveryFeeINR ?? settings.flatDeliveryFeeINR,
+      pincode: resolution.pincode,
+      district: resolution.district,
+      state: resolution.state,
+      deliveryFee: resolution.deliveryFee ?? settings.flatDeliveryFeeINR,
+      deliveryDays: resolution.deliveryDays || '1-3 Business Days',
       freeDeliveryThreshold: settings.minimumOrderValueForFreeDeliveryINR,
       codEnabled: settings.codEnabled,
       onlinePaymentEnabled: settings.onlinePaymentEnabled,
-      notes: matchedRule.notes,
+      notes: resolution.notes,
     });
   } catch (error: unknown) {
     const err = error as { digest?: string; message?: string } | null | undefined;

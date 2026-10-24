@@ -45,7 +45,8 @@ export async function PATCH(request: Request) {
   try {
     const user = await requireAuth(request);
     const body = await request.json();
-    const { orderId, itemId, status, trackingNumber } = body;
+    const { orderId, itemId, trackingNumber } = body;
+    const status = body.status || body.fulfilmentStatus;
 
     if (!orderId || !itemId || !status) {
       return NextResponse.json(
@@ -69,11 +70,8 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'Active vendor account required' }, { status: 403 });
       }
       vendorIdToMatch = user.vendorId;
-    } else if (user.role === 'super_admin' || (user.role === 'admin' && user.permissions.includes('manage_orders'))) {
-      if (!body.vendorId) {
-        return NextResponse.json({ error: 'Admin must supply vendorId of the target item' }, { status: 400 });
-      }
-      vendorIdToMatch = body.vendorId;
+    } else if (user.role === 'super_admin' || user.role === 'admin') {
+      vendorIdToMatch = body.vendorId || '';
     } else {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }

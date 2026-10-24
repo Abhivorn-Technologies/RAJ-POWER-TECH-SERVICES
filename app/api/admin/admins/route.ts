@@ -9,7 +9,7 @@ import { UserWithCredentials, AdminPermission } from '@/types/auth';
  */
 export async function GET(request: Request) {
   try {
-    await requireRole(['super_admin'], request);
+    await requireRole(['admin', 'super_admin'], request);
     const admins = await listAdminUsers();
     return NextResponse.json({ success: true, admins });
   } catch (error) {
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
-    await requireRole(['super_admin'], request);
+    await requireRole(['admin', 'super_admin'], request);
     const body = await request.json();
 
     const { email, name, password, permissions, status } = body;
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
  */
 export async function PATCH(request: Request) {
   try {
-    await requireRole(['super_admin'], request);
+    await requireRole(['admin', 'super_admin'], request);
     const body = await request.json();
     const { userId, permissions, status } = body;
 

@@ -34,7 +34,7 @@ export default function CertificationsPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Filter & Search state
-  const [activeFilter, setActiveFilter] = useState<'all' | 'inverter' | 'battery' | 'ups'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'exide' | 'bpe' | 'inverter'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Interactive Certificate Inspection Modal
@@ -85,23 +85,26 @@ export default function CertificationsPage() {
 
     if (!matchesSearch) return false;
 
+    if (activeFilter === 'exide') {
+      return (
+        cert.title.toLowerCase().includes('exide') ||
+        cert.issuingAuthority.toLowerCase().includes('exide') ||
+        (cert.categoryScope && cert.categoryScope.toLowerCase().includes('batter'))
+      );
+    }
+    if (activeFilter === 'bpe') {
+      return (
+        cert.title.toLowerCase().includes('bpe') ||
+        cert.issuingAuthority.toLowerCase().includes('best power') ||
+        cert.title.toLowerCase().includes('ups') ||
+        (cert.categoryScope && cert.categoryScope.toLowerCase().includes('ups')) ||
+        (cert.categoryScope && cert.categoryScope.toLowerCase().includes('partner'))
+      );
+    }
     if (activeFilter === 'inverter') {
       return (
         cert.title.toLowerCase().includes('inverter') ||
         (cert.categoryScope && cert.categoryScope.toLowerCase().includes('inverter'))
-      );
-    }
-    if (activeFilter === 'battery') {
-      return (
-        cert.title.toLowerCase().includes('battery') ||
-        (cert.categoryScope && cert.categoryScope.toLowerCase().includes('battery')) ||
-        cert.title.toLowerCase().includes('recycling')
-      );
-    }
-    if (activeFilter === 'ups') {
-      return (
-        cert.title.toLowerCase().includes('ups') ||
-        (cert.categoryScope && cert.categoryScope.toLowerCase().includes('ups'))
       );
     }
     return true;
@@ -117,7 +120,7 @@ export default function CertificationsPage() {
             <span>Home</span>
           </Link>
           <span>/</span>
-          <span className="text-slate-800 font-semibold">Technical Certifications &amp; Compliance</span>
+          <span className="text-slate-800 font-semibold">Authorised Dealerships &amp; Certifications</span>
         </div>
 
         {/* Section Header */}
@@ -130,13 +133,13 @@ export default function CertificationsPage() {
         >
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#142B55]/10 text-[#142B55]">
             <ShieldCheck className="w-3.5 h-3.5 text-[#D52B30]" />
-            Accredited Quality &amp; Regulatory Standards
+            Authorised Dealerships &amp; OEM Awards
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#142B55] tracking-tight">
-            Verified Equipment Certifications
+            Official Accreditations &amp; Partner Awards
           </h1>
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-            Every power backup system supplied by RAJ POWER TECH SERVICES is certified by the Bureau of Indian Standards (BIS), ISO 9001 quality frameworks, and statutory environmental authorities.
+            Authorised OEM dealerships, certified Platinum Partner recognition, and prestigious industry awards conferred upon RAJ POWER TECH SERVICES for technical excellence in industrial batteries and enterprise power backup systems.
           </p>
         </motion.div>
 
@@ -154,6 +157,26 @@ export default function CertificationsPage() {
               All Accreditations ({certifications.length})
             </button>
             <button
+              onClick={() => setActiveFilter('exide')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                activeFilter === 'exide'
+                  ? 'bg-[#142B55] text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              Exide Industrial Batteries
+            </button>
+            <button
+              onClick={() => setActiveFilter('bpe')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                activeFilter === 'bpe'
+                  ? 'bg-[#142B55] text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              BPE Enterprise UPS &amp; Power
+            </button>
+            <button
               onClick={() => setActiveFilter('inverter')}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
                 activeFilter === 'inverter'
@@ -161,27 +184,7 @@ export default function CertificationsPage() {
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              Inverters &amp; Sine Wave
-            </button>
-            <button
-              onClick={() => setActiveFilter('battery')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                activeFilter === 'battery'
-                  ? 'bg-[#142B55] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              Batteries &amp; Recycling
-            </button>
-            <button
-              onClick={() => setActiveFilter('ups')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                activeFilter === 'ups'
-                  ? 'bg-[#142B55] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              UPS Systems
+              Inverters &amp; Backup
             </button>
           </div>
 

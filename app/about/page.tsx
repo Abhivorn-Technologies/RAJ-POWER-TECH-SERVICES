@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, MapPin, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowLeft, Award, MapPin, ShieldCheck, Zap } from 'lucide-react';
 import { BUSINESS_INFO } from '@/lib/constants';
 
 import { ScrollRevealCard } from '@/components/ui/scroll-reveal-card';
@@ -75,11 +75,73 @@ export default function AboutPage() {
           </ScrollRevealCard>
         </div>
 
+        {/* Authorised OEM Dealerships & Certifications Card */}
+        <ScrollRevealCard delay={0.09} className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white border border-slate-200 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span className="text-[11px] font-bold text-[#D52B30] uppercase tracking-wider block">
+                Official OEM Credentials
+              </span>
+              <h2 className="text-lg font-bold text-[#142B55]">
+                Authorised Dealerships &amp; Certified Accreditations
+              </h2>
+            </div>
+            <Link
+              href="/certifications"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#142B55] hover:bg-[#0B172F] text-white text-xs font-semibold transition-colors w-fit"
+            >
+              <Award className="w-4 h-4 text-[#D52B30]" />
+              <span>Verify All 4 Certificates</span>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800">
+                  Dealer Code: 92884
+                </span>
+                <span className="text-[11px] text-slate-500 font-medium">Valid 2025–2026</span>
+              </div>
+              <h3 className="text-sm font-bold text-[#142B55]">
+                Exide Reserve Power ALL STARS Gold Dealer
+              </h3>
+              <p className="text-xs text-slate-600 mt-1">
+                Conferred by Exide Industries Limited for excellence in industrial standby power and high-demand energy storage installations.
+              </p>
+            </div>
+            <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-[#142B55]">
+                  Benchmark &amp; Platinum Partner
+                </span>
+                <span className="text-[11px] text-slate-500 font-medium">Vision 25 Milestone</span>
+              </div>
+              <h3 className="text-sm font-bold text-[#142B55]">
+                Best Power Equipments (BPE)
+              </h3>
+              <p className="text-xs text-slate-600 mt-1">
+                Honored with BPE Benchmark Partner plaque &amp; Platinum Partner awards for strategic UPS system distribution and technical leadership.
+              </p>
+            </div>
+          </div>
+        </ScrollRevealCard>
+
         {/* Corporate Address Box */}
         <ScrollRevealCard delay={0.1} className="p-6 rounded-2xl bg-[#0B172F] text-white space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-[#D52B30]">
-            Registered Address &amp; Key Contact
-          </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-[#D52B30]">
+              Registered Address &amp; Key Contact
+            </h3>
+            <a
+              href={BUSINESS_INFO.address.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-[#00E5FF] hover:text-white transition-colors font-medium w-fit"
+            >
+              <MapPin className="w-3.5 h-3.5 text-[#D52B30]" />
+              <span>View on Google Maps &rarr;</span>
+            </a>
+          </div>
           <p className="text-sm text-slate-200">{BUSINESS_INFO.address.full}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 text-xs">
             <div>

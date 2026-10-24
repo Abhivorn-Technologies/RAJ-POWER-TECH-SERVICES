@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       validUntil: validUntil || undefined,
       status: status || 'active',
       isPublished: isPublished !== false,
-      imageUrl: imageUrl?.trim() || '/images/cert-iso.jpg',
+      imageUrl: imageUrl?.trim() || '/images/cert-exide-gold-2025.png',
       notes: notes?.trim() || undefined,
       createdAt: now,
       updatedAt: now,

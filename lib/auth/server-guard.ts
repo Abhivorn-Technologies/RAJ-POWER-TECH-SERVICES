@@ -62,6 +62,69 @@ export async function getAuthenticatedUser(request?: Request): Promise<SessionUs
   };
 }
 
+export async function getSessionDetails(request?: Request): Promise<{
+  user: SessionUser;
+  exp?: number;
+  iat?: number;
+  expiresAt?: string;
+} | null> {
+  let token: string | undefined;
+
+  if (request) {
+    const authHeader = request.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+  }
+
+  if (!token) {
+    try {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get(AUTH_COOKIE_NAME);
+      if (sessionCookie) {
+        token = sessionCookie.value;
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  if (!token) return null;
+
+  const payload = verifyAuthToken(token);
+  if (!payload || !payload.userId) return null;
+
+  const user = await findUserById(payload.userId);
+  if (!user || user.status === 'suspended' || user.status === 'blocked') {
+    return null;
+  }
+
+  if (user.role === 'vendor' && user.vendorId) {
+    const vendor = await findVendorById(user.vendorId);
+    if (!vendor || vendor.status === 'suspended' || vendor.status === 'blocked') {
+      return null;
+    }
+  }
+
+  const sessionUser: SessionUser = {
+    userId: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    status: user.status,
+    permissions: user.permissions || [],
+    vendorId: user.vendorId,
+    requiresPasswordChange: user.requiresPasswordChange,
+  };
+
+  return {
+    user: sessionUser,
+    exp: payload.exp,
+    iat: payload.iat,
+    expiresAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : undefined,
+  };
+}
+
 export class AuthError extends Error {
   statusCode: number;
   constructor(message: string, statusCode = 401) {
@@ -87,44 +150,36 @@ export async function requireAuth(request?: Request): Promise<SessionUser> {
  */
 export async function requireRole(allowedRoles: UserRole[], request?: Request): Promise<SessionUser> {
   const user = await requireAuth(request);
-  if (!allowedRoles.includes(user.role)) {
-    throw new AuthError(`Access denied. Requires one of roles: ${allowedRoles.join(', ')}`, 403);
+  const isReqAdmin = allowedRoles.includes('admin') || allowedRoles.includes('super_admin');
+  const isUserAdmin = user.role === 'admin' || user.role === 'super_admin';
+  if ((isReqAdmin && isUserAdmin) || allowedRoles.includes(user.role)) {
+    return user;
   }
-  return user;
+  throw new AuthError(`Access denied. Requires one of roles: ${allowedRoles.join(', ')}`, 403);
 }
 
 /**
  * Require an Admin permission.
- * Super Admin bypasses and automatically possesses all permissions.
- * Admins must have the explicit permission granted.
+ * Admin and Super Admin possess all platform management permissions.
  */
-export async function requireAdminPermission(permission: AdminPermission, request?: Request): Promise<SessionUser> {
+export async function requireAdminPermission(permission?: AdminPermission, request?: Request): Promise<SessionUser> {
   const user = await requireAuth(request);
   
-  if (user.role === 'super_admin') {
+  if (user.role === 'admin' || user.role === 'super_admin') {
     return user;
   }
 
-  if (user.role === 'admin' && user.permissions.includes(permission)) {
-    return user;
-  }
-
-  throw new AuthError(`Access denied. Missing required permission: ${permission}`, 403);
+  throw new AuthError('Access denied. Administrator privileges required.', 403);
 }
 
 /**
- * Require vendor resource ownership:
- * Ensures the session vendor matches the target vendorId.
- * Super Admin or authorized Admin can also access.
+ * Require resource ownership:
+ * Admins have access to all store resources.
  */
 export async function requireVendorOwnership(targetVendorId: string, request?: Request): Promise<SessionUser> {
   const user = await requireAuth(request);
 
-  if (user.role === 'super_admin') {
-    return user;
-  }
-
-  if (user.role === 'admin' && user.permissions.includes('manage_vendors')) {
+  if (user.role === 'admin' || user.role === 'super_admin') {
     return user;
   }
 
@@ -132,5 +187,5 @@ export async function requireVendorOwnership(targetVendorId: string, request?: R
     return user;
   }
 
-  throw new AuthError('Access denied. You do not own this vendor resource.', 403);
+  throw new AuthError('Access denied. Administrator privileges required.', 403);
 }

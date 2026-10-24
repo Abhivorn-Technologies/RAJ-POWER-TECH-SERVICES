@@ -50,15 +50,41 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate JWT
-    const token = signAuthToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      permissions: user.permissions || [],
-      vendorId: user.vendorId,
-    });
+    // Determine session lifetime based on role (Admin vs Vendor)
+    const isAdmin = user.role === 'admin' || user.role === 'super_admin';
+    const isVendor = user.role === 'vendor';
+    
+    let tokenExpiry = '7d';
+    let cookieMaxAgeSeconds = 60 * 60 * 24 * 7; // 7 days
+    let sessionTimeoutMinutes: number | undefined;
+
+    if (isAdmin) {
+      const { getPlatformSettings } = await import('@/lib/db/data-store');
+      const settings = await getPlatformSettings();
+      sessionTimeoutMinutes =
+        settings.adminSessionTimeoutMinutes && settings.adminSessionTimeoutMinutes > 0
+          ? settings.adminSessionTimeoutMinutes
+          : 15;
+      tokenExpiry = `${sessionTimeoutMinutes}m`;
+      cookieMaxAgeSeconds = sessionTimeoutMinutes * 60;
+    } else if (isVendor) {
+      sessionTimeoutMinutes = 60 * 24; // 24 hours
+      tokenExpiry = '24h';
+      cookieMaxAgeSeconds = 60 * 60 * 24;
+    }
+
+    // Generate JWT with strictly enforced expiration
+    const token = signAuthToken(
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        permissions: user.permissions || [],
+        vendorId: user.vendorId,
+      },
+      tokenExpiry
+    );
 
     // Set secure HTTP-only cookie
     const cookieStore = await cookies();
@@ -67,8 +93,10 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      ...(isAdmin ? {} : { maxAge: cookieMaxAgeSeconds }),
     });
+
+    const expiresAt = new Date(Date.now() + cookieMaxAgeSeconds * 1000).toISOString();
 
     return NextResponse.json({
       success: true,
@@ -80,6 +108,8 @@ export async function POST(request: Request) {
         permissions: user.permissions || [],
         vendorId: user.vendorId,
       },
+      sessionTimeoutMinutes,
+      expiresAt,
       token,
     });
   } catch (error) {
