@@ -170,7 +170,7 @@ function initDevStore() {
   if (devStore.initialized || devUsers.size > 0) return;
     // Admin: admin@rajpowertech.com | Password: Admin@2026
     const adminEmail = process.env.ADMIN_EMAIL || process.env.SUPER_ADMIN_EMAIL || 'admin@rajpowertech.com';
-    const adminHash = process.env.ADMIN_PASSWORD_HASH || process.env.SUPER_ADMIN_PASSWORD_HASH || '$2b$10$omtX0t/eYXvJVWgoVX3YWO8ytMxtTlqavymlc0mThdVz1wyx3Q.em';
+    const adminHash = process.env.ADMIN_PASSWORD_HASH || process.env.SUPER_ADMIN_PASSWORD_HASH || '$2b$10$MdS3Bw0IxgYZa6ZT1g/NIu7/GEwQRSJ0IKmnLSYN53tUtZopqg8uq';
     
     const superAdmin: UserWithCredentials = {
       id: 'usr-super-admin-01',
@@ -186,7 +186,7 @@ function initDevStore() {
 
     // Initial Vendor: vendor@powertech.com | Password: Vendor@2026
     const vendorEmail = process.env.VENDOR_EMAIL || 'vendor@powertech.com';
-    const vendorHash = process.env.VENDOR_PASSWORD_HASH || '$2b$10$wExdYZhK9.bSlpOJmvPshODSXc0kkEQYzLo6Cu5uFcCKltCuiPZ4a';
+    const vendorHash = process.env.VENDOR_PASSWORD_HASH || '$2b$10$Af9PfAHkrR4fmkiK.NXKeOXSc.pzF86g4jG/S3C09m4iNEgEWxf8.';
     const sampleVendor: Vendor = {
       id: 'ven-rps-primary',
       businessName: 'RAJ POWER TECH ENTERPRISES',
@@ -365,7 +365,7 @@ registerDatabaseInitHook(async (db) => {
   const userCount = await db.collection('users').countDocuments();
   if (userCount === 0) {
     const adminEmail = process.env.ADMIN_EMAIL || process.env.SUPER_ADMIN_EMAIL || 'admin@rajpowertech.com';
-    const adminHash = process.env.ADMIN_PASSWORD_HASH || process.env.SUPER_ADMIN_PASSWORD_HASH || '$2b$10$omtX0t/eYXvJVWgoVX3YWO8ytMxtTlqavymlc0mThdVz1wyx3Q.em';
+    const adminHash = process.env.ADMIN_PASSWORD_HASH || process.env.SUPER_ADMIN_PASSWORD_HASH || '$2b$10$MdS3Bw0IxgYZa6ZT1g/NIu7/GEwQRSJ0IKmnLSYN53tUtZopqg8uq';
     const superAdmin: UserWithCredentials = {
       id: 'usr-super-admin-01',
       email: adminEmail,
@@ -379,7 +379,7 @@ registerDatabaseInitHook(async (db) => {
     await db.collection('users').insertOne(superAdmin);
 
     const vendorEmail = process.env.VENDOR_EMAIL || 'vendor@powertech.com';
-    const vendorHash = process.env.VENDOR_PASSWORD_HASH || '$2b$10$wExdYZhK9.bSlpOJmvPshODSXc0kkEQYzLo6Cu5uFcCKltCuiPZ4a';
+    const vendorHash = process.env.VENDOR_PASSWORD_HASH || '$2b$10$Af9PfAHkrR4fmkiK.NXKeOXSc.pzF86g4jG/S3C09m4iNEgEWxf8.';
     const sampleVendor: Vendor = {
       id: 'ven-rps-primary',
       businessName: 'RAJ POWER TECH ENTERPRISES',
