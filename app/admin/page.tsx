@@ -56,6 +56,7 @@ import { Order, OverallOrderStatus, OrderPaymentStatus, ItemFulfilmentStatus } f
 import { QuotationRequest } from '@/types/quotation';
 import { PlatformSettings, EligiblePincodeRule } from '@/types/settings';
 import { Certification } from '@/types/certification';
+import { AdminPagination } from '@/components/admin/admin-pagination';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -73,8 +74,10 @@ export default function AdminDashboardPage() {
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Products Management State
+  // Products Management State & Pagination
   const [productCategoryFilter, setProductCategoryFilter] = useState<string>('all');
+  const [productsPage, setProductsPage] = useState<number>(1);
+  const productsPerPage = 6;
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
@@ -162,18 +165,22 @@ export default function AdminDashboardPage() {
   const [editingVendorCommission, setEditingVendorCommission] = useState<Vendor | null>(null);
   const [editCommissionValue, setEditCommissionValue] = useState<string>('');
 
-  // Detailed Order & Vendor Dispatch Sheet Modal
+  // Detailed Order & Vendor Dispatch Sheet Modal & Pagination
   const [selectedOrderForModal, setSelectedOrderForModal] = useState<Order | null>(null);
   const [copiedOrderDetails, setCopiedOrderDetails] = useState(false);
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'dispatched' | 'delivered' | 'paid'>('all');
   const [expandedOrderIds, setExpandedOrderIds] = useState<Record<string, boolean>>({});
+  const [ordersPage, setOrdersPage] = useState<number>(1);
+  const ordersPerPage = 6;
 
-  // Quotations Routing View States
+  // Quotations Routing View States & Pagination
   const [selectedQuoteForPrint, setSelectedQuoteForPrint] = useState<QuotationRequest | null>(null);
   const [quoteSearchQuery, setQuoteSearchQuery] = useState('');
   const [quoteStatusFilter, setQuoteStatusFilter] = useState<'all' | 'submitted' | 'under_review' | 'quoted' | 'accepted'>('all');
   const [expandedQuoteIds, setExpandedQuoteIds] = useState<Record<string, boolean>>({});
+  const [quotesPage, setQuotesPage] = useState<number>(1);
+  const quotesPerPage = 6;
 
   const [newVendorData, setNewVendorData] = useState({
     businessName: '',
@@ -619,7 +626,7 @@ export default function AdminDashboardPage() {
       sessionStorage.removeItem('rps_admin_login_timestamp');
     }
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/admin/login');
+    router.push('/admin/login?reason=logged_out');
   };
 
   const handleSessionExpired = useCallback(async (reason = 'session_expired') => {
@@ -634,6 +641,36 @@ export default function AdminDashboardPage() {
     }
     router.push(`/admin/login?reason=${reason}`);
   }, [router]);
+
+  // Idle Activity Session Timeout Enforcement (15 minutes default)
+  useEffect(() => {
+    if (!currentUser) return;
+
+    let timeoutId: NodeJS.Timeout;
+    const timeoutMs = (sessionTimeoutMinutes || 15) * 60 * 1000;
+
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        handleSessionExpired('session_expired');
+      }, timeoutMs);
+    };
+
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, resetTimer, { passive: true });
+    });
+
+    // Start timer on initial mount
+    resetTimer();
+
+    return () => {
+      clearTimeout(timeoutId);
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [currentUser, sessionTimeoutMinutes, handleSessionExpired]);
 
 
   // Order status & payment update
@@ -991,13 +1028,23 @@ export default function AdminDashboardPage() {
             </span>
           </div>
         </div>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer transition-colors"
-          aria-label="Toggle menu"
-        >
-          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 cursor-pointer transition-colors"
+            title="Sign Out of Admin"
+            aria-label="Sign out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer transition-colors"
+            aria-label="Toggle menu"
+          >
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Backdrop Overlay */}
@@ -1226,7 +1273,16 @@ export default function AdminDashboardPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 flex-wrap sm:flex-nowrap">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap sm:flex-nowrap">
+            {/* Session Timeout Indicator */}
+            <div
+              className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-500"
+              title={`Security policy: Session automatically terminates after ${sessionTimeoutMinutes} minutes of inactivity.`}
+            >
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
+              <span>{sessionTimeoutMinutes}m Inactivity Timeout</span>
+            </div>
+
             <button
               onClick={reloadData}
               className="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -1241,8 +1297,18 @@ export default function AdminDashboardPage() {
               className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#142B55] hover:bg-[#0B172F] text-white flex items-center gap-1.5 transition-colors shadow-xs"
             >
               <Globe className="w-3.5 h-3.5" />
-              <span>Storefront</span>
+              <span className="hidden sm:inline">Storefront</span>
             </Link>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 text-[#D52B30] hover:text-red-700 border border-red-200/80 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+              title="Sign Out of Admin"
+            >
+              <LogOut className="w-3.5 h-3.5 text-[#D52B30]" />
+              <span>Sign Out</span>
+            </button>
           </div>
         </header>
 
@@ -1660,7 +1726,10 @@ export default function AdminDashboardPage() {
                     <button
                       key={cat}
                       type="button"
-                      onClick={() => setProductCategoryFilter(cat)}
+                      onClick={() => {
+                        setProductCategoryFilter(cat);
+                        setProductsPage(1);
+                      }}
                       className={`px-3 py-1 rounded-lg capitalize transition-colors cursor-pointer ${
                         productCategoryFilter === cat
                           ? 'bg-white text-[#142B55] shadow-2xs font-bold'
@@ -1712,92 +1781,108 @@ export default function AdminDashboardPage() {
                 );
               }
 
+              const paginatedProducts = filtered.slice(
+                (productsPage - 1) * productsPerPage,
+                productsPage * productsPerPage
+              );
+
               return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filtered.map((p) => (
-                    <div
-                      key={p.id}
-                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
-                    >
-                      {/* Product Image Header */}
-                      <div className="h-44 w-full bg-slate-50 border-b border-slate-100 flex items-center justify-center p-3 relative group">
-                        <img
-                          src={p.imageUrl || '/products/inverter-demo-1.jpg'}
-                          alt={p.name}
-                          className="h-full w-full object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/products/inverter-demo-1.jpg';
-                          }}
-                        />
-                        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
-                          <Badge variant={p.stock && p.stock > 0 ? 'success' : 'warning'}>
-                            {p.stock && p.stock > 0 ? `Stock: ${p.stock}` : 'Out of Stock'}
-                          </Badge>
-                        </div>
-                        <div className="absolute top-2.5 left-2.5">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#142B55] text-white uppercase tracking-wider">
-                            {p.category}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Content & Specs */}
-                      <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="font-semibold text-slate-400 uppercase tracking-wider">{p.brand}</span>
-                            {p.sku && <span className="font-mono text-[10px] text-slate-400">SKU: {p.sku}</span>}
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {paginatedProducts.map((p) => (
+                      <div
+                        key={p.id}
+                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                      >
+                        {/* Product Image Header */}
+                        <div className="h-44 w-full bg-slate-50 border-b border-slate-100 flex items-center justify-center p-3 relative group">
+                          <img
+                            src={p.imageUrl || '/products/inverter-demo-1.jpg'}
+                            alt={p.name}
+                            className="h-full w-full object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/products/inverter-demo-1.jpg';
+                            }}
+                          />
+                          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                            <Badge variant={p.stock && p.stock > 0 ? 'success' : 'warning'}>
+                              {p.stock && p.stock > 0 ? `Stock: ${p.stock}` : 'Out of Stock'}
+                            </Badge>
                           </div>
+                          <div className="absolute top-2.5 left-2.5">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#142B55] text-white uppercase tracking-wider">
+                              {p.category}
+                            </span>
+                          </div>
+                        </div>
 
-                          <h3 className="font-bold text-slate-900 text-sm line-clamp-2 leading-snug">{p.name}</h3>
-                          <p className="text-xs text-slate-500 line-clamp-2 mt-1">{p.shortDescription}</p>
+                        {/* Content & Specs */}
+                        <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <span className="font-semibold text-slate-400 uppercase tracking-wider">{p.brand}</span>
+                              {p.sku && <span className="font-mono text-[10px] text-slate-400">SKU: {p.sku}</span>}
+                            </div>
 
-                          <div className="bg-slate-50 p-2.5 rounded-xl text-xs space-y-1.5 mt-3 border border-slate-100">
-                            <div className="flex justify-between items-baseline">
-                              <span className="text-slate-500">Selling Price:</span>
-                              <div className="flex items-baseline gap-1.5">
-                                {p.comparePrice && p.comparePrice > (p.price || 0) && (
-                                  <span className="text-slate-400 line-through text-[11px]">
-                                    ₹{p.comparePrice.toLocaleString('en-IN')}
+                            <h3 className="font-bold text-slate-900 text-sm line-clamp-2 leading-snug">{p.name}</h3>
+                            <p className="text-xs text-slate-500 line-clamp-2 mt-1">{p.shortDescription}</p>
+
+                            <div className="bg-slate-50 p-2.5 rounded-xl text-xs space-y-1.5 mt-3 border border-slate-100">
+                              <div className="flex justify-between items-baseline">
+                                <span className="text-slate-500">Selling Price:</span>
+                                <div className="flex items-baseline gap-1.5">
+                                  {p.comparePrice && p.comparePrice > (p.price || 0) && (
+                                    <span className="text-slate-400 line-through text-[11px]">
+                                      ₹{p.comparePrice.toLocaleString('en-IN')}
+                                    </span>
+                                  )}
+                                  <span className="font-extrabold text-[#D52B30] text-sm">
+                                    ₹{p.price?.toLocaleString('en-IN')}
                                   </span>
-                                )}
-                                <span className="font-extrabold text-[#D52B30] text-sm">
-                                  ₹{p.price?.toLocaleString('en-IN')}
+                                </div>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-500">Inventory Status:</span>
+                                <span className="font-semibold text-slate-800">
+                                  {p.availability || (p.stock && p.stock > 0 ? 'In Stock' : 'Available on Order')}
                                 </span>
                               </div>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-slate-500">Inventory Status:</span>
-                              <span className="font-semibold text-slate-800">
-                                {p.availability || (p.stock && p.stock > 0 ? 'In Stock' : 'Available on Order')}
-                              </span>
-                            </div>
+                          </div>
+
+                          {/* Action buttons */}
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setEditingProduct(p)}
+                              className="flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5 text-[#142B55]" />
+                              <span>Edit Details</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteProduct(p.id, p.name)}
+                              title="Delete Product"
+                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-100"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
-
-                        {/* Action buttons */}
-                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setEditingProduct(p)}
-                            className="flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <Edit3 className="w-3.5 h-3.5 text-[#142B55]" />
-                            <span>Edit Details</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteProduct(p.id, p.name)}
-                            title="Delete Product"
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-100"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+
+                  {/* Products Pagination */}
+                  <AdminPagination
+                    currentPage={productsPage}
+                    totalItems={filtered.length}
+                    itemsPerPage={productsPerPage}
+                    onPageChange={setProductsPage}
+                    itemLabel="products"
+                  />
                 </div>
               );
             })()}
@@ -1908,14 +1993,20 @@ export default function AdminDashboardPage() {
                   <input
                     type="text"
                     value={orderSearchQuery}
-                    onChange={(e) => setOrderSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setOrderSearchQuery(e.target.value);
+                      setOrdersPage(1);
+                    }}
                     placeholder="Search by Order #, Customer Name, Phone, City, or Product..."
                     className="w-full pl-10 pr-4 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#142B55] transition-all"
                   />
                   {orderSearchQuery && (
                     <button
                       type="button"
-                      onClick={() => setOrderSearchQuery('')}
+                      onClick={() => {
+                        setOrderSearchQuery('');
+                        setOrdersPage(1);
+                      }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold p-1 cursor-pointer"
                     >
                       ✕
@@ -1927,7 +2018,10 @@ export default function AdminDashboardPage() {
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      onClick={() => setOrderStatusFilter('all')}
+                      onClick={() => {
+                        setOrderStatusFilter('all');
+                        setOrdersPage(1);
+                      }}
                       className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                         orderStatusFilter === 'all'
                           ? 'bg-[#142B55] text-white shadow-xs font-bold'
@@ -1938,7 +2032,10 @@ export default function AdminDashboardPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setOrderStatusFilter('pending')}
+                      onClick={() => {
+                        setOrderStatusFilter('pending');
+                        setOrdersPage(1);
+                      }}
                       className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                         orderStatusFilter === 'pending'
                           ? 'bg-amber-600 text-white shadow-xs font-bold'
@@ -1949,7 +2046,10 @@ export default function AdminDashboardPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setOrderStatusFilter('dispatched')}
+                      onClick={() => {
+                        setOrderStatusFilter('dispatched');
+                        setOrdersPage(1);
+                      }}
                       className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                         orderStatusFilter === 'dispatched'
                           ? 'bg-indigo-600 text-white shadow-xs font-bold'
@@ -1960,7 +2060,10 @@ export default function AdminDashboardPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setOrderStatusFilter('delivered')}
+                      onClick={() => {
+                        setOrderStatusFilter('delivered');
+                        setOrdersPage(1);
+                      }}
                       className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                         orderStatusFilter === 'delivered'
                           ? 'bg-emerald-600 text-white shadow-xs font-bold'
@@ -1971,7 +2074,10 @@ export default function AdminDashboardPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setOrderStatusFilter('paid')}
+                      onClick={() => {
+                        setOrderStatusFilter('paid');
+                        setOrdersPage(1);
+                      }}
                       className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                         orderStatusFilter === 'paid'
                           ? 'bg-slate-900 text-white shadow-xs font-bold'
@@ -2015,31 +2121,43 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* Order Listing */}
-              {filteredOrders.length === 0 ? (
-                <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-3">
-                  <Package className="w-10 h-10 text-slate-300 mx-auto" />
-                  <p className="text-sm font-bold text-slate-700">No matching orders found</p>
-                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                    {orderSearchQuery
-                      ? `No orders matching query "${orderSearchQuery}". Try clearing filters or searching another field.`
-                      : 'No orders recorded in this development session yet. Place a test order via the public storefront or /api/orders.'}
-                  </p>
-                  {orderSearchQuery && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setOrderSearchQuery('');
-                        setOrderStatusFilter('all');
-                      }}
-                    >
-                      Clear Search &amp; Filters
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {filteredOrders.map((ord) => {
+              {(() => {
+                const paginatedOrders = filteredOrders.slice(
+                  (ordersPage - 1) * ordersPerPage,
+                  ordersPage * ordersPerPage
+                );
+
+                if (filteredOrders.length === 0) {
+                  return (
+                    <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-3">
+                      <Package className="w-10 h-10 text-slate-300 mx-auto" />
+                      <p className="text-sm font-bold text-slate-700">No matching orders found</p>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                        {orderSearchQuery
+                          ? `No orders matching query "${orderSearchQuery}". Try clearing filters or searching another field.`
+                          : 'No orders recorded in this development session yet. Place a test order via the public storefront or /api/orders.'}
+                      </p>
+                      {orderSearchQuery && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setOrderSearchQuery('');
+                            setOrderStatusFilter('all');
+                            setOrdersPage(1);
+                          }}
+                        >
+                          Clear Search &amp; Filters
+                        </Button>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      {paginatedOrders.map((ord) => {
                     const isExpanded = !!expandedOrderIds[ord.id];
                     const isFullyDelivered = ord.items.every((i) => i.fulfilmentStatus === 'delivered');
                     const hasDispatched = ord.items.some((i) => i.fulfilmentStatus === 'dispatched');
@@ -2559,10 +2677,21 @@ export default function AdminDashboardPage() {
                     );
                   })}
                 </div>
-              )}
-            </div>
-          );
-        })()}
+
+                  {/* Orders Pagination */}
+                  <AdminPagination
+                    currentPage={ordersPage}
+                    totalItems={filteredOrders.length}
+                    itemsPerPage={ordersPerPage}
+                    onPageChange={setOrdersPage}
+                    itemLabel="orders"
+                  />
+                </div>
+              );
+            })()}
+          </div>
+        );
+      })()}
 
         {/* TAB 4: QUOTATIONS ROUTING */}
         {activeTab === 'quotations' && (() => {
@@ -2639,14 +2768,20 @@ export default function AdminDashboardPage() {
                   <input
                     type="text"
                     value={quoteSearchQuery}
-                    onChange={(e) => setQuoteSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setQuoteSearchQuery(e.target.value);
+                      setQuotesPage(1);
+                    }}
                     placeholder="Search by Quote #, Customer Name, Phone, City, Category, or Product..."
                     className="w-full pl-10 pr-4 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#142B55] transition-all"
                   />
                   {quoteSearchQuery && (
                     <button
                       type="button"
-                      onClick={() => setQuoteSearchQuery('')}
+                      onClick={() => {
+                        setQuoteSearchQuery('');
+                        setQuotesPage(1);
+                      }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold p-1 cursor-pointer"
                     >
                       ✕
@@ -2658,7 +2793,10 @@ export default function AdminDashboardPage() {
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      onClick={() => setQuoteStatusFilter('all')}
+                      onClick={() => {
+                        setQuoteStatusFilter('all');
+                        setQuotesPage(1);
+                      }}
                       className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                         quoteStatusFilter === 'all'
                           ? 'bg-[#142B55] text-white shadow-xs font-bold'
@@ -2669,7 +2807,10 @@ export default function AdminDashboardPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setQuoteStatusFilter('submitted')}
+                      onClick={() => {
+                        setQuoteStatusFilter('submitted');
+                        setQuotesPage(1);
+                      }}
                       className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                         quoteStatusFilter === 'submitted'
                           ? 'bg-amber-600 text-white shadow-xs font-bold'
@@ -2680,7 +2821,10 @@ export default function AdminDashboardPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setQuoteStatusFilter('quoted')}
+                      onClick={() => {
+                        setQuoteStatusFilter('quoted');
+                        setQuotesPage(1);
+                      }}
                       className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                         quoteStatusFilter === 'quoted'
                           ? 'bg-blue-600 text-white shadow-xs font-bold'
@@ -2691,7 +2835,10 @@ export default function AdminDashboardPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setQuoteStatusFilter('accepted')}
+                      onClick={() => {
+                        setQuoteStatusFilter('accepted');
+                        setQuotesPage(1);
+                      }}
                       className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                         quoteStatusFilter === 'accepted'
                           ? 'bg-emerald-600 text-white shadow-xs font-bold'
@@ -2735,31 +2882,43 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* Quotation Listings */}
-              {filteredQuotes.length === 0 ? (
-                <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-3">
-                  <FileText className="w-10 h-10 text-slate-300 mx-auto" />
-                  <p className="text-sm font-bold text-slate-700">No quotation requests found</p>
-                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                    {quoteSearchQuery
-                      ? `No quotations matching query "${quoteSearchQuery}". Try clearing filters.`
-                      : 'Customer sizing consultations and WhatsApp inquiries will be logged here and routed to branch engineers.'}
-                  </p>
-                  {quoteSearchQuery && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setQuoteSearchQuery('');
-                        setQuoteStatusFilter('all');
-                      }}
-                    >
-                      Clear Search &amp; Filters
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {filteredQuotes.map((q) => {
+              {(() => {
+                const paginatedQuotes = filteredQuotes.slice(
+                  (quotesPage - 1) * quotesPerPage,
+                  quotesPage * quotesPerPage
+                );
+
+                if (filteredQuotes.length === 0) {
+                  return (
+                    <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-3">
+                      <FileText className="w-10 h-10 text-slate-300 mx-auto" />
+                      <p className="text-sm font-bold text-slate-700">No quotation requests found</p>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                        {quoteSearchQuery
+                          ? `No quotations matching query "${quoteSearchQuery}". Try clearing filters.`
+                          : 'Customer sizing consultations and WhatsApp inquiries will be logged here and routed to branch engineers.'}
+                      </p>
+                      {quoteSearchQuery && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setQuoteSearchQuery('');
+                            setQuoteStatusFilter('all');
+                            setQuotesPage(1);
+                          }}
+                        >
+                          Clear Search &amp; Filters
+                        </Button>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      {paginatedQuotes.map((q) => {
                     const isExpanded = !!expandedQuoteIds[q.id];
                     const assignedVendorsList = vendors.filter((v) => q.assignedVendorIds.includes(v.id));
 
@@ -3140,10 +3299,21 @@ export default function AdminDashboardPage() {
                     );
                   })}
                 </div>
-              )}
-            </div>
-          );
-        })()}
+
+                {/* Quotations / Leads Pagination */}
+                <AdminPagination
+                  currentPage={quotesPage}
+                  totalItems={filteredQuotes.length}
+                  itemsPerPage={quotesPerPage}
+                  onPageChange={setQuotesPage}
+                  itemLabel="leads & inquiries"
+                />
+              </div>
+            );
+          })()}
+        </div>
+      );
+    })()}
 
         {/* TAB 5: PLATFORM POLICIES */}
         {activeTab === 'settings' && settings && (

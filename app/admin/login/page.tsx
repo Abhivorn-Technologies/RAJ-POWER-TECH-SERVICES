@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Shield,
   ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -153,6 +154,13 @@ function AdminLoginForm() {
             <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <span>Your session expired due to inactivity. Please sign in again.</span>
+            </div>
+          )}
+
+          {reason === 'logged_out' && !error && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-start gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <span>You have been signed out successfully.</span>
             </div>
           )}
 
