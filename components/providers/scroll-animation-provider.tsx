@@ -55,23 +55,29 @@ export function ScrollAnimationProvider() {
     };
 
     const initScrollElements = () => {
-      const container = document.querySelector('body');
-      if (!container) return;
+      const main = document.querySelector('main');
+      if (!main) return;
 
       const windowHeight = window.innerHeight;
 
-      // 1. Process Sections & Major Layout Blocks
-      const sections = container.querySelectorAll<HTMLElement>(
-        'main > section, main > div > section, main section, main > div > div[class*="space-y"], main > div > div[class*="pt-"], main > div > div[class*="pb-"], main > div > div[class*="p-"], footer'
+      const isFramerOrLayout = (el: HTMLElement) => {
+        return (
+          el.closest('footer') ||
+          el.closest('header') ||
+          el.closest('nav') ||
+          el.closest('[role="dialog"]') ||
+          el.hasAttribute('data-projection-id') ||
+          el.closest('[data-projection-id]')
+        );
+      };
+
+      // 1. Process Sections & Major Layout Blocks inside main
+      const sections = main.querySelectorAll<HTMLElement>(
+        'section, div[class*="space-y-"], div[class*="pt-"], div[class*="pb-"]'
       );
 
       sections.forEach((sec) => {
-        if (
-          sec.closest('header') ||
-          sec.closest('nav') ||
-          sec.closest('[role="dialog"]') ||
-          sec.hasAttribute('data-scroll-section')
-        ) {
+        if (isFramerOrLayout(sec) || sec.hasAttribute('data-scroll-section')) {
           return;
         }
 
@@ -79,16 +85,14 @@ export function ScrollAnimationProvider() {
         observeOrStagger(sec, windowHeight);
       });
 
-      // 2. Process Images & Media Frames
-      const images = container.querySelectorAll<HTMLElement>(
-        'main img, main [class*="aspect-"], main figure'
+      // 2. Process Images & Media Frames inside main
+      const images = main.querySelectorAll<HTMLElement>(
+        'img, [class*="aspect-"], figure'
       );
 
       images.forEach((img) => {
         if (
-          img.closest('header') ||
-          img.closest('nav') ||
-          img.closest('[role="dialog"]') ||
+          isFramerOrLayout(img) ||
           img.hasAttribute('data-scroll-image') ||
           (img.tagName === 'IMG' && img.parentElement?.hasAttribute('data-scroll-image'))
         ) {
@@ -99,16 +103,14 @@ export function ScrollAnimationProvider() {
         observeOrStagger(img, windowHeight);
       });
 
-      // 3. Process Cards & Grid items
-      const cards = container.querySelectorAll<HTMLElement>(
-        'main .grid > *, footer .grid > *, main [class*="rounded-2xl"], main [class*="rounded-3xl"]'
+      // 3. Process Cards & Grid items inside main
+      const cards = main.querySelectorAll<HTMLElement>(
+        '.grid > *, [class*="rounded-2xl"], [class*="rounded-3xl"]'
       );
 
       cards.forEach((card) => {
         if (
-          card.closest('header') ||
-          card.closest('nav') ||
-          card.closest('[role="dialog"]') ||
+          isFramerOrLayout(card) ||
           card.hasAttribute('data-scroll-section') ||
           card.hasAttribute('data-scroll-image') ||
           card.hasAttribute('data-scroll-card')
@@ -120,19 +122,17 @@ export function ScrollAnimationProvider() {
         observeOrStagger(card, windowHeight);
       });
 
-      // 4. Process Headings, Text Lines, Badges & Lists
-      const textElements = container.querySelectorAll<HTMLElement>(
-        'main h1, main h2, main h3, main h4, main h5, main p, main li, main blockquote, main [class*="rounded-full"][class*="text-xs"], main [class*="rounded-full"][class*="text-[10px]"]'
+      // 4. Process Headings, Text Lines, Badges & Lists inside main
+      const textElements = main.querySelectorAll<HTMLElement>(
+        'h1, h2, h3, h4, h5, p, li, blockquote, [class*="rounded-full"][class*="text-xs"], [class*="rounded-full"][class*="text-[10px]"]'
       );
 
       textElements.forEach((txt) => {
         if (
-          txt.closest('header') ||
-          txt.closest('nav') ||
+          isFramerOrLayout(txt) ||
           txt.closest('button') ||
           txt.closest('input') ||
           txt.closest('select') ||
-          txt.closest('[role="dialog"]') ||
           txt.hasAttribute('data-scroll-text') ||
           txt.hasAttribute('data-scroll-card') ||
           txt.hasAttribute('data-scroll-image')
@@ -148,21 +148,21 @@ export function ScrollAnimationProvider() {
       });
     };
 
-    // Defer initial scan slightly so React finishes hydration cleanly
-    const timer = setTimeout(initScrollElements, 120);
+    // Defer initial scan until hydration is 100% completed
+    const timer = setTimeout(initScrollElements, 350);
 
     // Watch for dynamic page elements and client-side page transitions
     const mutationObserver = new MutationObserver(() => {
       initScrollElements();
     });
 
-    const targetNode = document.querySelector('main') || document.body;
+    const targetNode = document.querySelector('main');
     if (targetNode) {
       mutationObserver.observe(targetNode, { childList: true, subtree: true });
     }
 
     const handlePopState = () => {
-      setTimeout(initScrollElements, 60);
+      setTimeout(initScrollElements, 100);
     };
     window.addEventListener('popstate', handlePopState);
 
