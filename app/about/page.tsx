@@ -178,29 +178,37 @@ export default function AboutPage() {
 
             {/* Right Column: Stage Ceremony Award Photo */}
             <div className="lg:col-span-5">
-              <div className="rounded-3xl overflow-hidden border border-slate-200/90 bg-[#0B172F] shadow-2xl relative group">
-                <div className="relative aspect-[3/4] w-full max-h-[460px] overflow-hidden">
+              <div className="rounded-3xl overflow-hidden border border-slate-200/90 bg-[#0B172F] shadow-2xl p-3 sm:p-4 space-y-3.5 group">
+                {/* Photo Frame with clear focus on faces and award */}
+                <div className="relative aspect-[9/12] sm:aspect-[9/13] w-full rounded-2xl overflow-hidden bg-[#070E1E] border border-white/10 shadow-inner">
                   <Image
                     src="/images/about-award-ceremony.png"
                     alt="BPE Strategic Power Stage Award Ceremony presented to RAJPOWER TECH SERVICES HYDERABAD"
                     fill
                     sizes="(max-width: 1024px) 100vw, 40vw"
-                    className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                    className="object-cover object-[center_56%] group-hover:scale-105 transition-transform duration-700"
                     priority
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B172F] via-transparent to-transparent opacity-80" />
+                  {/* Subtle top vignette only */}
+                  <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
+                  <div className="absolute top-3 left-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-amber-300 border border-amber-400/30 shadow-sm">
+                      <Award className="w-3.5 h-3.5" />
+                      <span>Official OEM Award Ceremony</span>
+                    </span>
+                  </div>
                 </div>
 
-                <div className="p-4 sm:p-5 relative -mt-16 bg-[#0B172F]/95 backdrop-blur-md border-t border-white/10 text-white space-y-1.5">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    <Award className="w-3 h-3" />
-                    <span>Official OEM Stage Recognition</span>
+                {/* Plaque Caption Details Below Photo (Zero overlap on people) */}
+                <div className="p-3 sm:p-4 bg-white/5 rounded-2xl border border-white/10 text-white space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-sm font-bold text-white">
+                      BPE Strategic Power National Conclave
+                    </h4>
+                    <span className="text-[10px] font-semibold text-slate-400">Hyderabad</span>
                   </div>
-                  <h4 className="text-sm font-bold text-white">
-                    BPE Strategic Power National Conclave
-                  </h4>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    Senior leadership conferring the Benchmark Partner recognition upon Raj Power Tech Services, Hyderabad for two decades of regional power excellence.
+                    Senior leadership conferring the Benchmark Partner recognition upon <strong className="text-white">Raj Power Tech Services, Hyderabad</strong> for two decades of regional power engineering excellence.
                   </p>
                 </div>
               </div>

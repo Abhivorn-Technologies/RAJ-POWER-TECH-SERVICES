@@ -125,13 +125,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/shop" className="hover:text-white transition-colors">
-                  Our Solutions
+                <Link href="/about" className="hover:text-white transition-colors">
+                  About RPS
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-white transition-colors">
-                  About RPS
+                <Link href="/shop" className="hover:text-white transition-colors">
+                  Our Solutions
                 </Link>
               </li>
               <li>

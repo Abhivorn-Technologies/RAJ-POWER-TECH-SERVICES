@@ -83,9 +83,9 @@ export const SOLUTIONS_LINKS = [
 
 export const NAV_LINKS = [
   { label: 'Home', href: '/' },
+  { label: 'About Us', href: '/about' },
   { label: 'Our Solutions', href: '/shop', hasDropdown: true },
   { label: 'Certifications', href: '/certifications' },
-  { label: 'About Us', href: '/about' },
   { label: 'Contact Us', href: '/contact' },
 ] as const;
 
