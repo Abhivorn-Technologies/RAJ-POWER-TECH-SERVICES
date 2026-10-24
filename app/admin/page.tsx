@@ -4104,7 +4104,7 @@ export default function AdminDashboardPage() {
                 {/* Preset Fast Selectors */}
                 <div>
                   <span className="text-[10px] text-slate-500 block mb-1.5 font-medium">Quick Standards Presets:</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
                     <button
                       type="button"
                       onClick={() => setNewCertData({ ...newCertData, imageUrl: '/images/cert-exide-gold-2025.png' })}
@@ -4126,6 +4126,17 @@ export default function AdminDashboardPage() {
                       }`}
                     >
                       BPE Benchmark
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewCertData({ ...newCertData, imageUrl: '/images/cert-bpe-benchmark-2025.jpg' })}
+                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
+                        newCertData.imageUrl === '/images/cert-bpe-benchmark-2025.jpg'
+                          ? 'bg-[#142B55] text-white border-[#142B55]'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      BPE 25Y Trophy
                     </button>
                     <button
                       type="button"
@@ -4421,7 +4432,7 @@ export default function AdminDashboardPage() {
                 {/* Preset Fast Selectors */}
                 <div>
                   <span className="text-[10px] text-slate-500 block mb-1.5 font-medium">Quick Standards Presets:</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
                     <button
                       type="button"
                       onClick={() => setEditingCert({ ...editingCert, imageUrl: '/images/cert-exide-gold-2025.png' })}
@@ -4443,6 +4454,17 @@ export default function AdminDashboardPage() {
                       }`}
                     >
                       BPE Benchmark
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingCert({ ...editingCert, imageUrl: '/images/cert-bpe-benchmark-2025.jpg' })}
+                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
+                        editingCert.imageUrl === '/images/cert-bpe-benchmark-2025.jpg'
+                          ? 'bg-[#142B55] text-white border-[#142B55]'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      BPE 25Y Trophy
                     </button>
                     <button
                       type="button"

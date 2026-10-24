@@ -69,4 +69,21 @@ export const AUTHENTIC_CERTIFICATIONS: Certification[] = [
     createdAt: '2021-04-01T00:00:00.000Z',
     updatedAt: '2021-04-01T00:00:00.000Z',
   },
+  {
+    id: 'cert-bpe-benchmark-2025',
+    title: 'Best Power Equipments (BPE) - Benchmark Partners Trophy (25th Anniversary)',
+    issuingAuthority: 'Best Power Equipments India Pvt. Ltd.',
+    certificateNumber: 'BPE-BMP-25Y-HYD',
+    description:
+      'Presented in recognition and appreciation of dedication and valued contribution as Best Power Equipments Benchmark Partners to Raj Power Tech Services, Hyderabad, commemorating 25 years of BPE engineering excellence.',
+    categoryScope: 'Enterprise Online UPS & Strategic Power Solutions',
+    validFrom: '2025-07-18',
+    validUntil: '2028-07-17',
+    status: 'active',
+    isPublished: true,
+    imageUrl: '/images/cert-bpe-benchmark-2025.jpg',
+    notes: 'Conferred by Amitansu Satpathy (Group MD) and Sushil Virmani (MD), Best Power Equipments.',
+    createdAt: '2025-07-18T00:00:00.000Z',
+    updatedAt: '2025-07-18T00:00:00.000Z',
+  },
 ];
