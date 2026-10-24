@@ -1,0 +1,174 @@
+'use client';
+
+import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+
+/**
+ * Universal Scroll Animation Provider
+ * Automatically detects sections, headings, text lines, cards, and footer elements
+ * across every page in the website and orchestrates smooth, hardware-accelerated scroll reveals.
+ */
+export function ScrollAnimationProvider() {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Respect reduced motion preference
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    // Signal that JS scroll reveals are active
+    document.documentElement.classList.add('js-scroll-reveals-ready');
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement;
+            el.setAttribute('data-revealed', 'true');
+            obs.unobserve(el);
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.05,
+      }
+    );
+
+    const initScrollElements = () => {
+      const container = document.querySelector('body');
+      if (!container) return;
+
+      const windowHeight = window.innerHeight;
+
+      // 1. Process Sections
+      const sections = container.querySelectorAll<HTMLElement>(
+        'main > section, main > div > section, main > div > div[class*="py-"], main > div > div[class*="space-y"], footer'
+      );
+
+      sections.forEach((sec) => {
+        if (
+          sec.closest('header') ||
+          sec.closest('nav') ||
+          sec.closest('[role="dialog"]') ||
+          sec.hasAttribute('data-scroll-section')
+        ) {
+          return;
+        }
+
+        sec.setAttribute('data-scroll-section', 'true');
+
+        const rect = sec.getBoundingClientRect();
+        if (rect.top < windowHeight * 0.9 && rect.bottom > 0) {
+          sec.setAttribute('data-revealed', 'true');
+        } else {
+          observer.observe(sec);
+        }
+      });
+
+      // 2. Process Cards & Grid items
+      const cards = container.querySelectorAll<HTMLElement>(
+        'main .grid > *, footer .grid > *'
+      );
+
+      cards.forEach((card) => {
+        if (
+          card.closest('header') ||
+          card.closest('nav') ||
+          card.closest('[role="dialog"]') ||
+          card.hasAttribute('data-scroll-card')
+        ) {
+          return;
+        }
+
+        card.setAttribute('data-scroll-card', 'true');
+
+        // Stagger cards in the same grid row
+        const parent = card.parentElement;
+        if (parent) {
+          const siblings = Array.from(parent.children);
+          const index = siblings.indexOf(card);
+          if (index >= 0) {
+            const delay = Math.min((index % 4) * 75, 300);
+            card.style.setProperty('--reveal-delay', `${delay}ms`);
+          }
+        }
+
+        const rect = card.getBoundingClientRect();
+        if (rect.top < windowHeight * 0.9 && rect.bottom > 0) {
+          card.setAttribute('data-revealed', 'true');
+        } else {
+          observer.observe(card);
+        }
+      });
+
+      // 3. Process Standalone Headings & Lines of Text
+      const textElements = container.querySelectorAll<HTMLElement>(
+        'main h1, main h2, main h3, main h4, main h5, main p, main blockquote'
+      );
+
+      textElements.forEach((txt) => {
+        if (
+          txt.closest('header') ||
+          txt.closest('nav') ||
+          txt.closest('button') ||
+          txt.closest('[role="dialog"]') ||
+          txt.closest('[data-scroll-card]') ||
+          txt.hasAttribute('data-scroll-text')
+        ) {
+          return;
+        }
+
+        const content = txt.textContent?.trim();
+        if (!content || content.length === 0) return;
+
+        txt.setAttribute('data-scroll-text', 'true');
+
+        // Cascade stagger for sibling text blocks (e.g. badge -> h2 -> p)
+        const parent = txt.parentElement;
+        if (parent) {
+          const siblings = Array.from(
+            parent.querySelectorAll(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > p, :scope > span')
+          );
+          const index = siblings.indexOf(txt);
+          if (index > 0) {
+            const delay = Math.min(index * 60, 240);
+            txt.style.setProperty('--reveal-delay', `${delay}ms`);
+          }
+        }
+
+        const rect = txt.getBoundingClientRect();
+        if (rect.top < windowHeight * 0.9 && rect.bottom > 0) {
+          txt.setAttribute('data-revealed', 'true');
+        } else {
+          observer.observe(txt);
+        }
+      });
+    };
+
+    // Initial scan with microtask tick to let DOM settle
+    const timer = setTimeout(initScrollElements, 60);
+
+    // Watch for dynamic page elements (filtering, async data)
+    const mutationObserver = new MutationObserver(() => {
+      initScrollElements();
+    });
+
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mutationObserver.observe(mainEl, { childList: true, subtree: true });
+    }
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [pathname]);
+
+  return null;
+}

@@ -6,6 +6,7 @@ import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CartDrawer } from '@/components/cart/cart-drawer';
+import { ScrollAnimationProvider } from '@/components/providers/scroll-animation-provider';
 
 function StorefrontHeader() {
   const pathname = usePathname();
@@ -39,6 +40,7 @@ function StorefrontFooter() {
 export function StorefrontShell({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <ScrollAnimationProvider />
       <Suspense fallback={<div className="h-20 bg-white" />}>
         <StorefrontHeader />
       </Suspense>

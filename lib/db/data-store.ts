@@ -139,72 +139,8 @@ export const DUMMY_CERT_IDS = [
   'cert-rps-tspcb-lead',
 ];
 
-export const AUTHENTIC_CERTIFICATIONS: Certification[] = [
-  {
-    id: 'cert-exide-gold-2025',
-    title: 'Authorised Exide Reserve Power (Industrial) ALL STARS Gold Dealer',
-    issuingAuthority: 'Exide Industries Limited',
-    certificateNumber: 'Dealer Code: 92884',
-    description: 'Officially certified Authorised Exide Reserve Power (Industrial) ALL STARS Gold Dealer awarded to M/s. RAJ POWER TECH SERVICES for excellence in industrial battery solutions and high-demand standby energy backup systems.',
-    categoryScope: 'Industrial Batteries & Reserve Power',
-    validFrom: '2025-04-01',
-    validUntil: '2026-03-31',
-    status: 'active',
-    isPublished: true,
-    imageUrl: '/images/cert-exide-gold-2025.png',
-    notes: 'Conferred by Rajeev Khandelwal, Senior President & Head - Trade, Exide Industries Limited.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'cert-bpe-benchmark-2026',
-    title: 'Best Power Equipments (BPE) - Benchmark Partner',
-    issuingAuthority: 'Best Power Equipments India Pvt. Ltd.',
-    certificateNumber: 'BPE-BMP-2026-HYD',
-    description: 'Presented in recognition and appreciation of dedication and valued contribution as Best Power Equipments Benchmark Partner to RAJPOWER TECH SERVICES, commemorating 26 years of BPE engineering excellence.',
-    categoryScope: 'Enterprise Online UPS & Strategic Power Solutions',
-    validFrom: '2024-07-24',
-    validUntil: '2027-07-23',
-    status: 'active',
-    isPublished: true,
-    imageUrl: '/images/cert-bpe-benchmark.png',
-    notes: 'Conferred by Amitansu Satpathy, Group MD, Best Power Equipments.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'cert-bpe-platinum-2024',
-    title: 'BPE Platinum Partner Certificate of Appreciation (Vision 25)',
-    issuingAuthority: 'Best Power Equipments India Pvt. Ltd.',
-    certificateNumber: 'BPE-VISION25-PLATINUM-2023-24',
-    description: 'Awarded to RAJ POWER TECH SERVICES HYDERABAD for outstanding performance and contribution to BPE growth as Platinum Partner in the year 2023-24.',
-    categoryScope: 'UPS Systems & Critical Power Platinum Distribution',
-    validFrom: '2023-04-01',
-    validUntil: '2025-03-31',
-    status: 'active',
-    isPublished: true,
-    imageUrl: '/images/cert-bpe-platinum-2024.png',
-    notes: 'Conferred by Amitansu Satpathy, Group Managing Director, Best Power Equipments India Pvt. Ltd.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'cert-bpe-platinum-2022',
-    title: 'BPE Platinum Partner Star Award (2021-2022)',
-    issuingAuthority: 'Best Power Equipments (I) Pvt. Ltd.',
-    certificateNumber: 'BPE-PLATINUM-2021-22',
-    description: 'Crystal Star Trophy awarded to RAJPOWER TECH SERVICES (HYDERABAD) for outstanding sales leadership, technical excellence, and contribution to BPE growth as Platinum Partner celebrating 22 years of power solutions.',
-    categoryScope: 'Commercial Power Backup & UPS Distribution',
-    validFrom: '2021-04-01',
-    validUntil: '2023-03-31',
-    status: 'active',
-    isPublished: true,
-    imageUrl: '/images/cert-bpe-platinum-2022.png',
-    notes: 'Conferred by Amitansu Satpathy, Managing Director, Best Power Equipments (I) Pvt. Ltd.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+import { AUTHENTIC_CERTIFICATIONS } from '@/lib/certifications-data';
+export { AUTHENTIC_CERTIFICATIONS };
 
 export function ensureAuthenticCertificationsSeeded() {
   for (const id of DUMMY_CERT_IDS) {
@@ -1209,12 +1145,21 @@ function sanitizeCertImage(cert: Certification | null): Certification | null {
   return cert;
 }
 
+let _certificationsSeededInMongo = false;
+
 export async function listCertifications(onlyPublished = false): Promise<Certification[]> {
   if (isMongoConfigured()) {
     const db = await getDatabase();
-    await db.collection('certifications').deleteMany({ id: { $in: DUMMY_CERT_IDS } });
-    for (const cert of AUTHENTIC_CERTIFICATIONS) {
-      await db.collection('certifications').updateOne({ id: cert.id }, { $set: cert }, { upsert: true });
+    if (!_certificationsSeededInMongo) {
+      _certificationsSeededInMongo = true;
+      try {
+        await db.collection('certifications').deleteMany({ id: { $in: DUMMY_CERT_IDS } });
+        for (const cert of AUTHENTIC_CERTIFICATIONS) {
+          await db.collection('certifications').updateOne({ id: cert.id }, { $set: cert }, { upsert: true });
+        }
+      } catch (seedErr) {
+        console.warn('Non-fatal error seeding certs to mongo:', seedErr);
+      }
     }
     const query = onlyPublished ? { isPublished: true } : {};
     const docs = await db.collection<Certification>('certifications').find(query).sort({ createdAt: -1 }).toArray();

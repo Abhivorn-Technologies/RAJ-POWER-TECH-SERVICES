@@ -1,4 +1,4 @@
-import { MongoClient, Db } from 'mongodb';
+import { MongoClient, Db, MongoClientOptions } from 'mongodb';
 import dns from 'dns';
 import fs from 'fs';
 import path from 'path';
@@ -96,16 +96,23 @@ async function resolveMongoUri(uri: string): Promise<string> {
   return uri;
 }
 
+const MONGO_CLIENT_OPTIONS: MongoClientOptions = {
+  serverSelectionTimeoutMS: 5000,
+  connectTimeoutMS: 5000,
+  socketTimeoutMS: 10000,
+  maxPoolSize: 10,
+};
+
 async function connectClient(rawUri: string): Promise<MongoClient> {
   try {
     const resolvedUri = await resolveMongoUri(rawUri);
-    const clientInstance = new MongoClient(resolvedUri);
+    const clientInstance = new MongoClient(resolvedUri, MONGO_CLIENT_OPTIONS);
     await clientInstance.connect();
     return clientInstance;
   } catch (primaryErr) {
     // If custom resolution failed, retry with direct raw URI
     try {
-      const fallbackClient = new MongoClient(rawUri);
+      const fallbackClient = new MongoClient(rawUri, MONGO_CLIENT_OPTIONS);
       await fallbackClient.connect();
       return fallbackClient;
     } catch {

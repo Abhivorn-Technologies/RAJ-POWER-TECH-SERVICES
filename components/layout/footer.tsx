@@ -208,14 +208,43 @@ export function Footer() {
 
       {/* Bottom Sub-footer */}
       <div className="border-t border-slate-800/80 bg-[#070E1E] py-6 text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-center md:text-left">
-            &copy; 2026 {BUSINESS_INFO.name}. All rights reserved. Sells and operates across serviceable regions in India.
-          </p>
-          <div className="flex items-center gap-6">
-            <span>Contact: {BUSINESS_INFO.contactPerson}</span>
-            <span className="text-slate-600">|</span>
-            <span>Secunderabad - 500009</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-center md:text-left">
+              &copy; 2026 {BUSINESS_INFO.name}. All rights reserved. Sells and operates across serviceable regions in India.
+            </p>
+            <div className="flex items-center gap-6">
+              <span>Contact: {BUSINESS_INFO.contactPerson}</span>
+              <span className="text-slate-600">|</span>
+              <span>Secunderabad - 500009</span>
+            </div>
+          </div>
+          <div className="pt-3 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left text-[11px] text-slate-400">
+            <p>
+              Developed by{' '}
+              <a
+                href="https://www.abhivorn.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-200 hover:text-white font-medium inline-flex items-center gap-0.5 underline underline-offset-4 decoration-slate-600 hover:decoration-white transition-colors"
+              >
+                <span>ABHIVORN TECHNOLOGIES</span>
+                <ArrowUpRight className="w-3 h-3 text-slate-400" />
+              </a>{' '}
+              and{' '}
+              <a
+                href="https://www.digilevelup.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-200 hover:text-white font-medium inline-flex items-center gap-0.5 underline underline-offset-4 decoration-slate-600 hover:decoration-white transition-colors"
+              >
+                <span>DIGILEVELUP</span>
+                <ArrowUpRight className="w-3 h-3 text-slate-400" />
+              </a>
+            </p>
+            <p className="text-slate-500">
+              Reliable Energy &amp; Power Tech Solutions
+            </p>
           </div>
         </div>
       </div>
