@@ -86,17 +86,6 @@ export function ScrollAnimationProvider() {
 
         card.setAttribute('data-scroll-card', 'true');
 
-        // Stagger cards in the same grid row
-        const parent = card.parentElement;
-        if (parent) {
-          const siblings = Array.from(parent.children);
-          const index = siblings.indexOf(card);
-          if (index >= 0) {
-            const delay = Math.min((index % 4) * 75, 300);
-            card.style.setProperty('--reveal-delay', `${delay}ms`);
-          }
-        }
-
         const rect = card.getBoundingClientRect();
         if (rect.top < windowHeight * 0.9 && rect.bottom > 0) {
           card.setAttribute('data-revealed', 'true');
@@ -127,19 +116,6 @@ export function ScrollAnimationProvider() {
 
         txt.setAttribute('data-scroll-text', 'true');
 
-        // Cascade stagger for sibling text blocks
-        const parent = txt.parentElement;
-        if (parent) {
-          const siblings = Array.from(
-            parent.querySelectorAll(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > p, :scope > span')
-          );
-          const index = siblings.indexOf(txt);
-          if (index > 0) {
-            const delay = Math.min(index * 60, 240);
-            txt.style.setProperty('--reveal-delay', `${delay}ms`);
-          }
-        }
-
         const rect = txt.getBoundingClientRect();
         if (rect.top < windowHeight * 0.9 && rect.bottom > 0) {
           txt.setAttribute('data-revealed', 'true');
@@ -149,8 +125,8 @@ export function ScrollAnimationProvider() {
       });
     };
 
-    // Initial scan with small tick to let DOM mount
-    const timer = setTimeout(initScrollElements, 60);
+    // Defer initial scan so React finishes hydration cleanly
+    const timer = setTimeout(initScrollElements, 150);
 
     // Watch for dynamic page elements and client-side page transitions
     const mutationObserver = new MutationObserver(() => {
