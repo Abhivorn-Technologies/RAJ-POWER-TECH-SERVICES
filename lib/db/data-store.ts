@@ -168,7 +168,6 @@ function assertStorageMode(operationName: string) {
 // Seed initial Super Admin and sample vendor into dev store for local testing
 function initDevStore() {
   if (devStore.initialized || devUsers.size > 0) return;
-    // Admin: admin@rajpowertech.com | Password: Admin@2026
     const adminEmail = process.env.ADMIN_EMAIL || process.env.SUPER_ADMIN_EMAIL || 'admin@rajpowertech.com';
     const adminHash = process.env.ADMIN_PASSWORD_HASH || process.env.SUPER_ADMIN_PASSWORD_HASH || '$2b$10$MdS3Bw0IxgYZa6ZT1g/NIu7/GEwQRSJ0IKmnLSYN53tUtZopqg8uq';
     
