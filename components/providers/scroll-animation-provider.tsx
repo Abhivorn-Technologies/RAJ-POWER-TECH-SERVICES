@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 
 /**
  * Universal Scroll Animation Provider
- * Automatically detects sections, headings, text lines, cards, and footer elements
+ * Automatically detects sections, headings, text lines, cards, images, and footer elements
  * across every page in the website and orchestrates smooth, hardware-accelerated scroll reveals.
  * Uses pure IntersectionObserver and DOM MutationObserver with zero dynamic URL hooks
  * to ensure 100% static prerendering compatibility in Next.js builds.
@@ -33,10 +33,26 @@ export function ScrollAnimationProvider() {
       },
       {
         root: null,
-        rootMargin: '0px 0px -40px 0px',
-        threshold: 0.05,
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.08,
       }
     );
+
+    let initialAboveFoldIndex = 0;
+
+    const observeOrStagger = (el: HTMLElement, windowHeight: number) => {
+      const rect = el.getBoundingClientRect();
+      // If element is already in the viewport upon mount / navigation, animate it in with a fast stagger!
+      if (rect.top < windowHeight * 0.85 && rect.bottom > 0) {
+        const delay = Math.min(initialAboveFoldIndex * 40, 350);
+        initialAboveFoldIndex++;
+        setTimeout(() => {
+          el.setAttribute('data-revealed', 'true');
+        }, delay);
+      } else {
+        observer.observe(el);
+      }
+    };
 
     const initScrollElements = () => {
       const container = document.querySelector('body');
@@ -44,9 +60,9 @@ export function ScrollAnimationProvider() {
 
       const windowHeight = window.innerHeight;
 
-      // 1. Process Sections
+      // 1. Process Sections & Major Layout Blocks
       const sections = container.querySelectorAll<HTMLElement>(
-        'main > section, main > div > section, main > div > div[class*="py-"], main > div > div[class*="space-y"], footer'
+        'main > section, main > div > section, main section, main > div > div[class*="space-y"], main > div > div[class*="pt-"], main > div > div[class*="pb-"], main > div > div[class*="p-"], footer'
       );
 
       sections.forEach((sec) => {
@@ -60,18 +76,32 @@ export function ScrollAnimationProvider() {
         }
 
         sec.setAttribute('data-scroll-section', 'true');
-
-        const rect = sec.getBoundingClientRect();
-        if (rect.top < windowHeight * 0.9 && rect.bottom > 0) {
-          sec.setAttribute('data-revealed', 'true');
-        } else {
-          observer.observe(sec);
-        }
+        observeOrStagger(sec, windowHeight);
       });
 
-      // 2. Process Cards & Grid items
+      // 2. Process Images & Media Frames
+      const images = container.querySelectorAll<HTMLElement>(
+        'main img, main [class*="aspect-"], main figure'
+      );
+
+      images.forEach((img) => {
+        if (
+          img.closest('header') ||
+          img.closest('nav') ||
+          img.closest('[role="dialog"]') ||
+          img.hasAttribute('data-scroll-image') ||
+          (img.tagName === 'IMG' && img.parentElement?.hasAttribute('data-scroll-image'))
+        ) {
+          return;
+        }
+
+        img.setAttribute('data-scroll-image', 'true');
+        observeOrStagger(img, windowHeight);
+      });
+
+      // 3. Process Cards & Grid items
       const cards = container.querySelectorAll<HTMLElement>(
-        'main .grid > *, footer .grid > *'
+        'main .grid > *, footer .grid > *, main [class*="rounded-2xl"], main [class*="rounded-3xl"]'
       );
 
       cards.forEach((card) => {
@@ -79,24 +109,20 @@ export function ScrollAnimationProvider() {
           card.closest('header') ||
           card.closest('nav') ||
           card.closest('[role="dialog"]') ||
+          card.hasAttribute('data-scroll-section') ||
+          card.hasAttribute('data-scroll-image') ||
           card.hasAttribute('data-scroll-card')
         ) {
           return;
         }
 
         card.setAttribute('data-scroll-card', 'true');
-
-        const rect = card.getBoundingClientRect();
-        if (rect.top < windowHeight * 0.9 && rect.bottom > 0) {
-          card.setAttribute('data-revealed', 'true');
-        } else {
-          observer.observe(card);
-        }
+        observeOrStagger(card, windowHeight);
       });
 
-      // 3. Process Standalone Headings & Lines of Text
+      // 4. Process Headings, Text Lines, Badges & Lists
       const textElements = container.querySelectorAll<HTMLElement>(
-        'main h1, main h2, main h3, main h4, main h5, main p, main blockquote'
+        'main h1, main h2, main h3, main h4, main h5, main p, main li, main blockquote, main [class*="rounded-full"][class*="text-xs"], main [class*="rounded-full"][class*="text-[10px]"]'
       );
 
       textElements.forEach((txt) => {
@@ -104,9 +130,12 @@ export function ScrollAnimationProvider() {
           txt.closest('header') ||
           txt.closest('nav') ||
           txt.closest('button') ||
+          txt.closest('input') ||
+          txt.closest('select') ||
           txt.closest('[role="dialog"]') ||
-          txt.closest('[data-scroll-card]') ||
-          txt.hasAttribute('data-scroll-text')
+          txt.hasAttribute('data-scroll-text') ||
+          txt.hasAttribute('data-scroll-card') ||
+          txt.hasAttribute('data-scroll-image')
         ) {
           return;
         }
@@ -115,18 +144,12 @@ export function ScrollAnimationProvider() {
         if (!content || content.length === 0) return;
 
         txt.setAttribute('data-scroll-text', 'true');
-
-        const rect = txt.getBoundingClientRect();
-        if (rect.top < windowHeight * 0.9 && rect.bottom > 0) {
-          txt.setAttribute('data-revealed', 'true');
-        } else {
-          observer.observe(txt);
-        }
+        observeOrStagger(txt, windowHeight);
       });
     };
 
-    // Defer initial scan so React finishes hydration cleanly
-    const timer = setTimeout(initScrollElements, 150);
+    // Defer initial scan slightly so React finishes hydration cleanly
+    const timer = setTimeout(initScrollElements, 120);
 
     // Watch for dynamic page elements and client-side page transitions
     const mutationObserver = new MutationObserver(() => {
