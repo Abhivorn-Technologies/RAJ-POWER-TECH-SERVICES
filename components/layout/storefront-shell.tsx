@@ -40,7 +40,9 @@ function StorefrontFooter() {
 export function StorefrontShell({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <ScrollAnimationProvider />
+      <Suspense fallback={null}>
+        <ScrollAnimationProvider />
+      </Suspense>
       <Suspense fallback={<div className="h-20 bg-white" />}>
         <StorefrontHeader />
       </Suspense>

@@ -1,16 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
 
 /**
  * Universal Scroll Animation Provider
  * Automatically detects sections, headings, text lines, cards, and footer elements
  * across every page in the website and orchestrates smooth, hardware-accelerated scroll reveals.
+ * Uses pure IntersectionObserver and DOM MutationObserver with zero dynamic URL hooks
+ * to ensure 100% static prerendering compatibility in Next.js builds.
  */
 export function ScrollAnimationProvider() {
-  const pathname = usePathname();
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -128,7 +127,7 @@ export function ScrollAnimationProvider() {
 
         txt.setAttribute('data-scroll-text', 'true');
 
-        // Cascade stagger for sibling text blocks (e.g. badge -> h2 -> p)
+        // Cascade stagger for sibling text blocks
         const parent = txt.parentElement;
         if (parent) {
           const siblings = Array.from(
@@ -150,25 +149,31 @@ export function ScrollAnimationProvider() {
       });
     };
 
-    // Initial scan with microtask tick to let DOM settle
+    // Initial scan with small tick to let DOM mount
     const timer = setTimeout(initScrollElements, 60);
 
-    // Watch for dynamic page elements (filtering, async data)
+    // Watch for dynamic page elements and client-side page transitions
     const mutationObserver = new MutationObserver(() => {
       initScrollElements();
     });
 
-    const mainEl = document.querySelector('main');
-    if (mainEl) {
-      mutationObserver.observe(mainEl, { childList: true, subtree: true });
+    const targetNode = document.querySelector('main') || document.body;
+    if (targetNode) {
+      mutationObserver.observe(targetNode, { childList: true, subtree: true });
     }
+
+    const handlePopState = () => {
+      setTimeout(initScrollElements, 60);
+    };
+    window.addEventListener('popstate', handlePopState);
 
     return () => {
       clearTimeout(timer);
       observer.disconnect();
       mutationObserver.disconnect();
+      window.removeEventListener('popstate', handlePopState);
     };
-  }, [pathname]);
+  }, []);
 
   return null;
 }
