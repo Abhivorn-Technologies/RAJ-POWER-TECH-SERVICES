@@ -82,6 +82,7 @@ export interface Product {
   
   // Specifications
   keySpecs: ProductSpecification[];
+  features?: string[];
   technicalSpecs?: CategorySpecificSpecs;
   customAttributes?: Record<string, string | number | boolean>;
   
@@ -118,6 +119,7 @@ export interface CreateProductInput {
   fullDescription?: string;
   imageUrl: string;
   additionalImages?: string[];
+  features?: string[];
   keySpecs?: ProductSpecification[];
   technicalSpecs?: CategorySpecificSpecs;
   customAttributes?: Record<string, string | number | boolean>;

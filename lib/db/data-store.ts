@@ -748,6 +748,16 @@ export async function deleteVendorRecord(vendorId: string): Promise<boolean> {
   return true;
 }
 
+/**
+ * Strips MongoDB _id and normalizes any non-plain BSON types / Dates into standard JSON primitives.
+ * This is critical for Next.js Server Components passing props across the RSC -> Client Component boundary.
+ */
+export function toPlainObject<T>(doc: unknown): T {
+  if (!doc || typeof doc !== 'object') return doc as T;
+  const { _id: _unusedId, ...rest } = doc as Record<string, unknown>;
+  return JSON.parse(JSON.stringify(rest)) as T;
+}
+
 // ==========================================
 // CATEGORIES / SOLUTIONS REPOSITORY
 // ==========================================
@@ -755,7 +765,8 @@ export async function deleteVendorRecord(vendorId: string): Promise<boolean> {
 export async function listCategories(): Promise<SolutionCategoryItem[]> {
   if (isMongoConfigured()) {
     const db = await getDatabase();
-    return await db.collection<SolutionCategoryItem>('categories').find().sort({ createdAt: 1 }).toArray();
+    const docs = await db.collection<SolutionCategoryItem>('categories').find().sort({ createdAt: 1 }).toArray();
+    return docs.map((doc) => toPlainObject<SolutionCategoryItem>(doc));
   }
 
   assertStorageMode('listCategories');
@@ -792,7 +803,8 @@ export async function listProducts(filter?: { vendorId?: string; category?: stri
     if (filter?.vendorId) query.vendorId = filter.vendorId;
     if (filter?.category) query.category = filter.category;
     if (filter?.isPublished !== undefined) query.isPublished = filter.isPublished;
-    return await db.collection<Product>('products').find(query).sort({ createdAt: -1 }).toArray();
+    const docs = await db.collection<Product>('products').find(query).sort({ createdAt: -1 }).toArray();
+    return docs.map((doc) => toPlainObject<Product>(doc));
   }
 
   assertStorageMode('listProducts');
@@ -812,7 +824,8 @@ export async function listProducts(filter?: { vendorId?: string; category?: stri
 export async function findProductById(id: string): Promise<Product | null> {
   if (isMongoConfigured()) {
     const db = await getDatabase();
-    return await db.collection<Product>('products').findOne({ id });
+    const doc = await db.collection<Product>('products').findOne({ id });
+    return doc ? toPlainObject<Product>(doc) : null;
   }
 
   assertStorageMode('findProductById');
@@ -917,7 +930,8 @@ export async function atomicRestoreStock(productId: string, quantity: number): P
 export async function listOrders(): Promise<Order[]> {
   if (isMongoConfigured()) {
     const db = await getDatabase();
-    return await db.collection<Order>('orders').find().sort({ createdAt: -1 }).toArray();
+    const docs = await db.collection<Order>('orders').find().sort({ createdAt: -1 }).toArray();
+    return docs.map((doc) => toPlainObject<Order>(doc));
   }
 
   assertStorageMode('listOrders');
@@ -952,7 +966,8 @@ export async function listVendorOrderItems(vendorId: string): Promise<OrderItem[
 export async function findOrderById(id: string): Promise<Order | null> {
   if (isMongoConfigured()) {
     const db = await getDatabase();
-    return await db.collection<Order>('orders').findOne({ id });
+    const doc = await db.collection<Order>('orders').findOne({ id });
+    return doc ? toPlainObject<Order>(doc) : null;
   }
 
   assertStorageMode('findOrderById');
@@ -1055,7 +1070,8 @@ export async function listQuotations(filter?: { vendorId?: string }): Promise<Qu
     if (filter?.vendorId) {
       query.assignedVendorIds = filter.vendorId;
     }
-    return await db.collection<QuotationRequest>('quotations').find(query).sort({ createdAt: -1 }).toArray();
+    const docs = await db.collection<QuotationRequest>('quotations').find(query).sort({ createdAt: -1 }).toArray();
+    return docs.map((doc) => toPlainObject<QuotationRequest>(doc));
   }
 
   assertStorageMode('listQuotations');
@@ -1300,7 +1316,8 @@ export async function listOrderNotifications(filter?: { orderId?: string; vendor
     if (filter?.orderId) query.orderId = filter.orderId;
     if (filter?.vendorId) query.recipientId = filter.vendorId;
     if (filter?.recipientType) query.recipientType = filter.recipientType;
-    return await db.collection<OrderNotificationEvent>('order_notifications').find(query).sort({ createdAt: -1 }).toArray();
+    const docs = await db.collection<OrderNotificationEvent>('order_notifications').find(query).sort({ createdAt: -1 }).toArray();
+    return docs.map((doc) => toPlainObject<OrderNotificationEvent>(doc));
   }
 
   assertStorageMode('listOrderNotifications');
@@ -1319,7 +1336,7 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
   if (isMongoConfigured()) {
     const db = await getDatabase();
     const doc = await db.collection<PlatformSettings>('settings').findOne({ id: 'platform_config' });
-    if (doc) return doc;
+    if (doc) return toPlainObject<PlatformSettings>(doc);
   }
 
   assertStorageMode('getPlatformSettings');

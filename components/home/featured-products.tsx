@@ -26,7 +26,7 @@ export function FeaturedProducts() {
         const res = await fetch('/api/products?featured=latest-by-brand');
         if (res.ok) {
           const data = await res.json();
-          if (isMounted && data.products && data.products.length > 0) {
+          if (isMounted && Array.isArray(data.products)) {
             setProducts(data.products);
           }
         }

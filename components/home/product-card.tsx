@@ -68,22 +68,17 @@ export function ProductCard({ product, index, delay }: ProductCardProps) {
         }
         className="group relative flex flex-col h-full rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 overflow-hidden"
       >
-        {/* Top Badges: Savings & Stock Availability */}
-        <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
+        {/* Top Badges: Savings */}
+        <div className="absolute top-3 left-3 z-10 pointer-events-none">
           {product.comparePrice && product.comparePrice > priceValue ? (
-            <span className="bg-[#D52B30] text-white font-extrabold text-[10px] px-2 py-0.5 rounded-md shadow-xs uppercase tracking-wider">
+            <span className="bg-[#D52B30] text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-md shadow-xs uppercase tracking-wider">
               {Math.round(((product.comparePrice - priceValue) / product.comparePrice) * 100)}% OFF
             </span>
           ) : (
-            <span className="bg-slate-900/80 text-white font-bold text-[10px] px-2 py-0.5 rounded-md backdrop-blur-xs">
+            <span className="bg-slate-900/80 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-md backdrop-blur-xs">
               Official Stock
             </span>
           )}
-
-          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50/95 border border-emerald-200/80 px-2 py-0.5 rounded-md shadow-xs backdrop-blur-xs flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>{product.availability}</span>
-          </span>
         </div>
 
         {/* Product Image Area with Link */}

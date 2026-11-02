@@ -11,38 +11,51 @@ export async function GET(request: Request) {
     const category = searchParams.get('category') || undefined;
     const brand = searchParams.get('brand') || undefined;
 
-    // Fetch from database repository
-    let dbProducts: Product[] = [];
+    // Fetch all products from database repository
+    let rawProducts: Product[] = [];
     try {
-      dbProducts = await listProducts({ category });
+      rawProducts = await listProducts();
     } catch (e) {
-      console.warn('[Products API] listProducts database error, falling back:', e);
+      console.warn('[Products API] listProducts database error, falling back to demo catalog:', e);
+      rawProducts = DEMO_FEATURED_PRODUCTS;
     }
 
-    // Merge database products with default catalog so all brands are available
-    const productMap = new Map<string, Product>();
+    if (!rawProducts || rawProducts.length === 0) {
+      rawProducts = DEMO_FEATURED_PRODUCTS;
+    }
 
-    // 1. Seed demo products first
-    DEMO_FEATURED_PRODUCTS.forEach((p) => {
-      productMap.set(p.id, p);
+    // Dynamic brand extraction across all available products
+    const brandSet = new Set<string>();
+    rawProducts.forEach((p) => {
+      if (p.brand && p.brand.trim()) {
+        brandSet.add(p.brand.trim());
+      }
     });
+    const availableBrands = Array.from(brandSet).sort();
 
-    // 2. Overwrite with database products (admin-uploaded or modified products)
-    dbProducts.forEach((p) => {
-      productMap.set(p.id, p);
+    // Dynamic category extraction across all available products
+    const categoryMap = new Map<string, { id: string; name: string; count: number }>();
+    rawProducts.forEach((p) => {
+      const catId = p.category || 'other';
+      const catName = p.categoryName || catId.charAt(0).toUpperCase() + catId.slice(1);
+      const existing = categoryMap.get(catId) || { id: catId, name: catName, count: 0 };
+      existing.count += 1;
+      categoryMap.set(catId, existing);
     });
+    const availableCategories = Array.from(categoryMap.values());
 
-    let allProducts = Array.from(productMap.values());
+    let allProducts = [...rawProducts];
 
     // Filter by brand if requested
     if (brand && brand !== 'all') {
       const bLower = brand.toLowerCase();
-      allProducts = allProducts.filter((p) => (p.brand || '').toLowerCase().includes(bLower));
+      allProducts = allProducts.filter((p) => (p.brand || '').toLowerCase() === bLower || (p.brand || '').toLowerCase().includes(bLower));
     }
 
     // Filter by category if requested
     if (category && category !== 'all') {
-      allProducts = allProducts.filter((p) => p.category === category);
+      const cLower = category.toLowerCase();
+      allProducts = allProducts.filter((p) => (p.category || '').toLowerCase() === cLower);
     }
 
     // If featured=latest-by-brand requested, return exactly 1 product per brand
@@ -52,6 +65,8 @@ export async function GET(request: Request) {
         success: true,
         count: latestByBrand.length,
         products: latestByBrand,
+        availableBrands,
+        availableCategories,
       });
     }
 
@@ -59,6 +74,8 @@ export async function GET(request: Request) {
       success: true,
       count: allProducts.length,
       products: allProducts,
+      availableBrands,
+      availableCategories,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to retrieve products';

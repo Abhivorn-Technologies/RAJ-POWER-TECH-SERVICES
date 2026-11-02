@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireAuth, AuthError } from '@/lib/auth/server-guard';
 import {
   listProducts,
@@ -167,6 +168,14 @@ export async function POST(request: Request) {
 
     const created = await createProductRecord(newProduct);
 
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/shop');
+      revalidatePath('/categories', 'layout');
+    } catch (e) {
+      console.warn('Revalidation note:', e);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Product created and published immediately',
@@ -226,7 +235,31 @@ export async function PATCH(request: Request) {
       updates.availability = updates.stock > 0 ? 'In Stock' : 'Available on Order';
     }
 
+    if (updates.category) {
+      try {
+        const allCategories = await listCategories();
+        const matched = allCategories.find(
+          (c) => c.id.toLowerCase() === updates.category!.toLowerCase() || c.slug.toLowerCase() === updates.category!.toLowerCase()
+        );
+        if (matched) {
+          updates.category = matched.id;
+          updates.categoryName = matched.name;
+        }
+      } catch (err) {
+        console.warn('Category resolution warning on product update:', err);
+      }
+    }
+
     const updated = await updateProductRecord(productId, updates);
+
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/shop');
+      revalidatePath('/categories', 'layout');
+      revalidatePath(`/products/${productId}`);
+    } catch (e) {
+      console.warn('Revalidation note:', e);
+    }
 
     return NextResponse.json({
       success: true,
@@ -258,6 +291,16 @@ export async function DELETE(request: Request) {
     }
 
     await deleteProductRecord(productId);
+
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/shop');
+      revalidatePath('/categories', 'layout');
+      revalidatePath(`/products/${productId}`);
+    } catch (e) {
+      console.warn('Revalidation note:', e);
+    }
+
     return NextResponse.json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {
     if (error instanceof AuthError) {

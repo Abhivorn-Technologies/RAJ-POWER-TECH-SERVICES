@@ -2,31 +2,56 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { connection } from 'next/server';
 import { BUSINESS_INFO } from '@/lib/constants';
-import { DEMO_FEATURED_PRODUCTS } from '@/lib/demo-data';
+import { listProducts, listCategories } from '@/lib/db/data-store';
 import { ProductCard } from '@/components/home/product-card';
+import { Product } from '@/types/product';
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return BUSINESS_INFO.categories.map((c) => ({
-    slug: c.slug,
-  }));
-}
-
 export const instant = false;
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
+  await connection();
   const { slug } = await params;
-  const category = BUSINESS_INFO.categories.find((c) => c.slug === slug);
+  let category: { id: string; name: string; slug: string; description: string; features?: readonly string[] | string[] } | undefined =
+    BUSINESS_INFO.categories.find((c) => c.slug === slug || c.id === slug);
+
+  if (!category) {
+    try {
+      const dbCategories = await listCategories();
+      const found = dbCategories.find((c) => c.slug === slug || c.id === slug);
+      if (found) {
+        category = {
+          id: found.id,
+          name: found.name,
+          slug: found.slug,
+          description: found.description || `Industrial-grade ${found.name} equipment and energy storage solutions.`,
+          features: ['Authorized Original Equipment', 'Comprehensive Warranty', 'Professional Installation'],
+        };
+      }
+    } catch (err) {
+      console.warn('DB category lookup warning:', err);
+    }
+  }
 
   if (!category) {
     notFound();
   }
 
-  const categoryProducts = DEMO_FEATURED_PRODUCTS.filter((p) => p.category === category.id);
+  let categoryProducts: Product[] = [];
+  try {
+    const rawProducts = await listProducts({ category: category.id });
+    categoryProducts = rawProducts.map((p) => {
+      const { _id: _unusedId, ...rest } = p as unknown as Record<string, unknown>;
+      return JSON.parse(JSON.stringify(rest)) as Product;
+    });
+  } catch (err) {
+    console.error('Failed to load category products:', err);
+  }
 
   return (
     <div className="py-12 bg-[#F3F5F8]/70 min-h-screen">
@@ -58,7 +83,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               {category.description}
             </p>
             <div className="flex flex-wrap gap-2 pt-2">
-              {category.features.map((feature, idx) => (
+              {(category.features || []).map((feature: string, idx: number) => (
                 <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-200 bg-white/10 px-3 py-1 rounded-md">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                   <span>{feature}</span>
@@ -93,11 +118,26 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {categoryProducts.map((product, idx) => (
-            <ProductCard key={product.id} product={product} index={idx} />
-          ))}
-        </div>
+        {categoryProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {categoryProducts.map((product, idx) => (
+              <ProductCard key={product.id} product={product} index={idx} />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 space-y-4">
+            <h3 className="text-base font-bold text-slate-800">No equipment currently available</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              There are currently no active models listed in {category.name}. Check back soon or request a custom quotation.
+            </p>
+            <Link
+              href="/shop"
+              className="inline-block px-4 py-2 rounded-xl bg-[#142B55] text-white text-xs font-bold hover:bg-[#0B172F]"
+            >
+              Browse All Solutions
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

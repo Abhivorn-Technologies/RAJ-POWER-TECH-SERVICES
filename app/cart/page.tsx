@@ -441,7 +441,7 @@ export default function CartPage() {
               Shopping Bag &amp; Doorstep Delivery
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 mt-1">
-              Multi-vendor power backup equipment with server-validated pricing and stock reservations.
+              Official authorized power backup equipment with doorstep delivery &amp; certified installation across Hyderabad &amp; Secunderabad.
             </p>
           </div>
           <button
@@ -454,92 +454,107 @@ export default function CartPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Multi-Vendor Item Groups & Checkout Form */}
+          {/* Left Column: Unified Equipment Order Bag & Checkout Form */}
           <div className="lg:col-span-7 space-y-6">
-            {/* Items Grouped by Vendor */}
-            {Object.entries(itemsByVendor).map(([vendorId, vendorGroup]) => (
-              <div
-                key={vendorId}
-                className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden"
-              >
-                {/* Vendor Header */}
-                <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Store className="w-4 h-4 text-[#142B55]" />
-                    <span className="text-xs font-bold text-slate-800">
-                      Fulfilled by: <strong className="text-[#142B55]">{vendorGroup.vendorName}</strong>
-                    </span>
-                  </div>
-                  <Badge variant="navy" size="sm">
-                    {vendorGroup.items.length} {vendorGroup.items.length === 1 ? 'Item' : 'Items'}
-                  </Badge>
+            {/* Unified Equipment Bag Items Card */}
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+              {/* Bag Header */}
+              <div className="bg-slate-50/90 px-5 sm:px-6 py-3.5 border-b border-slate-200/80 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <ShoppingBag className="w-4 h-4 text-[#142B55]" />
+                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Equipment Order Items ({items.reduce((s, i) => s + i.quantity, 0)})
+                  </span>
                 </div>
+                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  Official RPS Warranty
+                </span>
+              </div>
 
-                {/* Vendor Items */}
-                <div className="divide-y divide-slate-100 p-4 sm:p-5">
-                  {vendorGroup.items.map((item) => (
-                    <div key={item.productId} className="py-4 first:pt-0 last:pb-0 flex items-center gap-4">
+              {/* Items List */}
+              <div className="divide-y divide-slate-100 p-4 sm:p-6">
+                {items.map((item) => (
+                  <div key={item.productId} className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 min-w-0 flex-1">
                       {/* Product Image */}
-                      <div className="relative w-20 h-20 rounded-xl bg-slate-50 border border-slate-100 shrink-0 overflow-hidden flex items-center justify-center p-2">
+                      <Link
+                        href={`/products/${item.productId}`}
+                        className="relative w-20 h-20 rounded-xl bg-slate-50 border border-slate-100 shrink-0 overflow-hidden flex items-center justify-center p-2 hover:border-[#142B55] transition-colors"
+                      >
                         <Image
-                          src={item.image}
+                          src={item.image || '/products/inverter-demo-1.jpg'}
                           alt={item.name}
                           width={64}
                           height={64}
-                          className="object-contain"
+                          className="object-contain max-h-full max-w-full"
                         />
-                      </div>
+                      </Link>
 
                       {/* Details */}
                       <div className="flex-1 min-w-0">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#D52B30] block">
                           {item.category}
                         </span>
-                        <h2 className="text-sm font-bold text-slate-900 truncate">{item.name}</h2>
+                        <Link
+                          href={`/products/${item.productId}`}
+                          className="text-sm font-bold text-slate-900 hover:text-[#142B55] transition-colors block truncate"
+                          title={item.name}
+                        >
+                          {item.name}
+                        </Link>
                         <div className="mt-1 flex items-baseline gap-2">
                           <span className="text-sm font-extrabold text-[#142B55]">
                             ₹{item.price.toLocaleString('en-IN')}
                           </span>
-                          <span className="text-[11px] text-slate-500">per unit</span>
+                          <span className="text-[11px] text-slate-500 font-medium">per unit</span>
                         </div>
-                      </div>
-
-                      {/* Quantity Controls */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
-                          <button
-                            type="button"
-                            onClick={() => updateGuestCartQuantity(item.productId, item.quantity - 1)}
-                            className="p-1.5 hover:bg-slate-200 text-slate-700 transition-colors"
-                            aria-label="Decrease quantity"
-                          >
-                            <Minus className="w-3.5 h-3.5" />
-                          </button>
-                          <span className="px-3 text-xs font-bold text-slate-900">{item.quantity}</span>
-                          <button
-                            type="button"
-                            onClick={() => updateGuestCartQuantity(item.productId, item.quantity + 1)}
-                            className="p-1.5 hover:bg-slate-200 text-slate-700 transition-colors"
-                            aria-label="Increase quantity"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => removeFromGuestCart(item.productId)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 rounded-md transition-colors"
-                          aria-label="Remove item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+
+                    {/* Quantity Controls & Line Total */}
+                    <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                      <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                        <button
+                          type="button"
+                          onClick={() => updateGuestCartQuantity(item.productId, item.quantity - 1)}
+                          className="p-2 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                          aria-label="Decrease quantity"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="px-3 text-xs font-bold text-slate-900 font-mono">{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => updateGuestCartQuantity(item.productId, item.quantity + 1)}
+                          className="p-2 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div className="text-right min-w-[90px]">
+                        <span className="text-sm font-black text-[#142B55] block">
+                          ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-[10px] text-slate-400">Total</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeFromGuestCart(item.productId)}
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+                        title="Remove from bag"
+                        aria-label="Remove item"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
 
             {/* Guest Shipping Address & Checkout Form */}
             <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-6">
@@ -987,7 +1002,7 @@ export default function CartPage() {
               <div className="pt-2 border-t border-slate-100 space-y-2 text-[11px] text-slate-500">
                 <div className="flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Concurrency-safe atomic inventory reservation guaranteed.</span>
+                  <span>100% Genuine Authorized Equipment &amp; Factory Warranty.</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-[#142B55]" />

@@ -45,11 +45,27 @@ export const BUSINESS_INFO = {
     },
     {
       id: 'ups',
-      name: 'UPS Systems',
+      name: 'Online UPS',
       slug: 'ups',
       description: 'Zero-transfer line-interactive & online UPS systems safeguarding critical computers, servers, and medical equipment.',
       features: ['Zero Transfer Switching Time', 'Voltage Spike Suppression', 'Generator Compatibility'],
       href: '/categories/ups',
+    },
+    {
+      id: 'lithium',
+      name: 'Lithium Products',
+      slug: 'lithium',
+      description: 'Next-generation LiFePO4 lithium batteries and integrated wall-mount power systems offering 3500+ cycles and ultra-fast charging.',
+      features: ['LiFePO4 Safe Chemistry', '3500+ Deep Cycles', 'Zero Water Maintenance', 'Integrated Smart BMS'],
+      href: '/categories/lithium',
+    },
+    {
+      id: 'high-capacity-ups',
+      name: 'High Capacity UPS',
+      slug: 'high-capacity-ups',
+      description: 'Heavy-duty Jumbo pure sine wave commercial inverters (2.5kVA to 8kVA) engineered for villas, commercial offices, and multi-appliance loads.',
+      features: ['Heavy Duty DSC Technology', 'Runs Air Conditioners & Motors', 'Multi-Battery Bank 24V-96V', 'Rugged Commercial Reliability'],
+      href: '/categories/high-capacity-ups',
     },
   ],
 } as const;
@@ -62,6 +78,24 @@ export const SOLUTIONS_LINKS = [
     description: 'Complete equipment lineup, combos, and custom capacity sizing',
   },
   {
+    label: 'Online UPS',
+    slug: 'ups',
+    href: '/categories/ups',
+    description: 'Zero-transfer line-interactive & online UPS for critical devices',
+  },
+  {
+    label: 'Lithium Products',
+    slug: 'lithium',
+    href: '/categories/lithium',
+    description: 'High-cycle LiFePO4 batteries & all-in-one wall systems',
+  },
+  {
+    label: 'High Capacity UPS',
+    slug: 'high-capacity-ups',
+    href: '/categories/high-capacity-ups',
+    description: 'Jumbo heavy-duty pure sine wave inverters up to 8kVA',
+  },
+  {
     label: 'Inverters',
     slug: 'inverters',
     href: '/categories/inverters',
@@ -72,12 +106,6 @@ export const SOLUTIONS_LINKS = [
     slug: 'batteries',
     href: '/categories/batteries',
     description: 'High-cycle tubular & SMF batteries for deep discharge longevity',
-  },
-  {
-    label: 'UPS Systems',
-    slug: 'ups',
-    href: '/categories/ups',
-    description: 'Zero-transfer line-interactive & online UPS for critical devices',
   },
 ] as const;
 

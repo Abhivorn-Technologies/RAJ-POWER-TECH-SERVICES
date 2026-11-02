@@ -18,6 +18,7 @@ export async function GET(
 
     // 1. Try finding in MongoDB by id
     let product: Product | null = null;
+    let dbSuccess = false;
     
     try {
       if (isMongoConfigured()) {
@@ -25,15 +26,17 @@ export async function GET(
         product = await db.collection<Product>('products').findOne({
           $or: [{ id: decodedId }, { slug: decodedId }],
         });
+        dbSuccess = true;
       } else {
         product = await findProductById(decodedId);
+        dbSuccess = true;
       }
     } catch (dbError) {
       console.warn('[Products API] Database lookup fallback to catalogue:', dbError);
     }
 
-    // 2. If not found in DB, check demo products
-    if (!product) {
+    // 2. Only fall back to demo data if the database connection threw an error
+    if (!product && !dbSuccess) {
       const demoMatch = DEMO_FEATURED_PRODUCTS.find(
         (p) => p.id === decodedId || p.slug === decodedId
       );

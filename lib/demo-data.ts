@@ -1,13 +1,14 @@
 import { Product } from '@/types/product';
+import { SATYAJAN_PRODUCTS } from './satyajan-products-data';
 
 /**
- * Official 4-Brand Product Catalog:
+ * Official Brand Product Catalog:
  * 1. Exide (Powersafe Plus SMF VRLA Range)
  * 2. Amaron Quanta (Amara Raja SMF VRLA UPS Range)
- * 3. Microtek (Pure Sine Wave Inverters & Home UPS via Satyajan Energy Solutions)
+ * 3. Microtek (Pure Sine Wave Inverters, High Capacity UPS, & Lithium Range via Satyajan Energy Solutions)
  * 4. BPE (Best Power Equipments - Online UPS & Line Interactive Systems)
  */
-export const DEMO_FEATURED_PRODUCTS: Product[] = [
+const BASE_FEATURED_PRODUCTS: Product[] = [
   // --- BRAND 1: EXIDE ---
   {
     id: 'exd-ep-2612',
@@ -474,4 +475,9 @@ export const DEMO_FEATURED_PRODUCTS: Product[] = [
     isFeatured: true,
     isDemo: false,
   },
+];
+
+export const DEMO_FEATURED_PRODUCTS: Product[] = [
+  ...BASE_FEATURED_PRODUCTS,
+  ...SATYAJAN_PRODUCTS,
 ];

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -46,6 +46,8 @@ import {
   TrendingUp,
   CheckCircle2,
   Building2,
+  ShieldCheck,
+  KeyRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,12 +59,14 @@ import { QuotationRequest } from '@/types/quotation';
 import { PlatformSettings, EligiblePincodeRule } from '@/types/settings';
 import { Certification } from '@/types/certification';
 import { AdminPagination } from '@/components/admin/admin-pagination';
+import { ImageUploader } from '@/components/admin/image-uploader';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'quotations' | 'certifications' | 'settings'>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Data states
@@ -79,22 +83,31 @@ export default function AdminDashboardPage() {
   const [productsPage, setProductsPage] = useState<number>(1);
   const productsPerPage = 6;
   const [showAddProductModal, setShowAddProductModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<(Product & { featuresText?: string }) | null>(null);
   const [productErrors, setProductErrors] = useState<Record<string, string>>({});
   const [productModalError, setProductModalError] = useState<string | null>(null);
+  const existingBrands = useMemo(() => {
+    return Array.from(new Set(products.map((p) => p.brand).filter(Boolean))).sort();
+  }, [products]);
   const [productForm, setProductForm] = useState({
     name: '',
     brand: '',
-    category: 'inverters' as 'inverters' | 'batteries' | 'ups',
+    category: 'inverters' as string,
     price: 15000,
     comparePrice: 18000,
     stock: 10,
     shortDescription: '',
     imageUrl: '/products/inverter-demo-1.jpg',
     sku: '',
-    capacity: '1100VA / 12V',
+    capacity: '1100VA / 900W',
     warrantyPeriod: '36 Months',
     features: 'Pure Sine Wave Output, Heavy Duty Inverter Support, Smart Battery Charging',
+    keySpecs: [
+      { label: 'Capacity', value: '1100VA / 900W' },
+      { label: 'Technology', value: 'Pure Sine Wave' },
+      { label: 'Nominal Voltage', value: '12V DC' },
+      { label: 'Warranty', value: '36 Months' },
+    ] as { label: string; value: string }[],
   });
 
   const [sessionTimeoutMinutes, setSessionTimeoutMinutes] = useState<number>(15);
@@ -138,6 +151,17 @@ export default function AdminDashboardPage() {
 
   // Settings Errors
   const [settingsErrors, setSettingsErrors] = useState<Record<string, string>>({});
+
+  // Super Admin Password Management
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordFeedback, setPasswordFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Categories / Solutions state
   const [categories, setCategories] = useState<SolutionCategoryItem[]>([]);
@@ -201,7 +225,7 @@ export default function AdminDashboardPage() {
             } catch {
               // Ignore
             }
-            router.push('/admin/login');
+            router.replace('/admin/login');
             return;
           }
         }
@@ -210,20 +234,17 @@ export default function AdminDashboardPage() {
         const data = await res.json();
         if (ignore) return;
         if (!res.ok || !data.authenticated || (data.user.role !== 'admin' && data.user.role !== 'super_admin')) {
-          router.push('/admin/login');
+          router.replace('/admin/login');
           return;
         }
         setCurrentUser(data.user);
         if (data.sessionTimeoutMinutes) {
           setSessionTimeoutMinutes(data.sessionTimeoutMinutes);
         }
+        setLoading(false);
       } catch {
         if (!ignore) {
-          router.push('/admin/login');
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
+          router.replace('/admin/login');
         }
       }
     }
@@ -303,6 +324,22 @@ export default function AdminDashboardPage() {
     };
   }, [currentUser, activeTab, refreshKey]);
 
+  // Close User Profile menu on click outside
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('#admin-user-menu-container')) {
+        setUserMenuOpen(false);
+      }
+    };
+    if (userMenuOpen) {
+      document.addEventListener('click', handleGlobalClick);
+    }
+    return () => {
+      document.removeEventListener('click', handleGlobalClick);
+    };
+  }, [userMenuOpen]);
+
   // Products CRUD Handlers
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -322,11 +359,27 @@ export default function AdminDashboardPage() {
     }
 
     try {
+      const featureList = productForm.features
+        ? productForm.features.split(',').map((f) => f.trim()).filter(Boolean)
+        : [];
+
+      // Combine user specs with category and brand
+      const userSpecs = (productForm.keySpecs || []).filter((s) => s.label.trim() && s.value.trim());
+      const specsList = [...userSpecs];
+      if (!specsList.some((s) => s.label.toLowerCase() === 'category')) {
+        specsList.unshift({ label: 'Category', value: productForm.category.toUpperCase() });
+      }
+      if (!specsList.some((s) => s.label.toLowerCase() === 'brand')) {
+        specsList.splice(1, 0, { label: 'Brand', value: productForm.brand });
+      }
+
       const res = await fetch('/api/vendor/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...productForm,
+          features: featureList,
+          keySpecs: specsList,
           technicalSpecs: {
             category: productForm.category,
             specs:
@@ -336,10 +389,6 @@ export default function AdminDashboardPage() {
                 ? { capacityAh: 150, nominalVoltage: '12V', plateTechnology: 'Tall Tubular', warrantyMonths: 36 }
                 : { topology: 'Online Double Conversion', capacityVa: 1000, capacityWatts: 800, transferTimeMs: 0, powerFactor: 0.9 },
           },
-          keySpecs: [
-            { label: 'Category', value: productForm.category.toUpperCase() },
-            { label: 'Brand', value: productForm.brand },
-          ],
         }),
       });
 
@@ -360,9 +409,15 @@ export default function AdminDashboardPage() {
         shortDescription: '',
         imageUrl: '/products/inverter-demo-1.jpg',
         sku: '',
-        capacity: '',
+        capacity: '1100VA / 900W',
         warrantyPeriod: '36 Months',
-        features: '',
+        features: 'Pure Sine Wave Output, Heavy Duty Inverter Support, Smart Battery Charging',
+        keySpecs: [
+          { label: 'Capacity', value: '1100VA / 900W' },
+          { label: 'Technology', value: 'Pure Sine Wave' },
+          { label: 'Nominal Voltage', value: '12V DC' },
+          { label: 'Warranty', value: '36 Months' },
+        ],
       });
       reloadData();
     } catch (err) {
@@ -376,6 +431,9 @@ export default function AdminDashboardPage() {
     setProductModalError(null);
 
     try {
+      const featureList = editingProduct.features || [];
+      const userSpecs = (editingProduct.keySpecs || []).filter((s) => s.label.trim() && s.value.trim());
+
       const res = await fetch('/api/vendor/products', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -383,11 +441,17 @@ export default function AdminDashboardPage() {
           productId: editingProduct.id,
           name: editingProduct.name,
           brand: editingProduct.brand,
+          category: editingProduct.category,
           price: Number(editingProduct.price),
           comparePrice: editingProduct.comparePrice ? Number(editingProduct.comparePrice) : undefined,
           stock: Number(editingProduct.stock),
+          sku: editingProduct.sku,
+          capacity: editingProduct.capacity,
+          warrantyPeriod: editingProduct.warrantyPeriod,
           shortDescription: editingProduct.shortDescription,
           imageUrl: editingProduct.imageUrl,
+          features: featureList,
+          keySpecs: userSpecs,
         }),
       });
 
@@ -860,45 +924,83 @@ export default function AdminDashboardPage() {
     }
   };
 
-  if (loading) {
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordFeedback(null);
+
+    if (!passwordForm.newPassword || passwordForm.newPassword.length < 8) {
+      setPasswordFeedback({ type: 'error', text: 'New password must be at least 8 characters long.' });
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordFeedback({ type: 'error', text: 'New password and confirm password do not match.' });
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      const res = await fetch('/api/admin/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(passwordForm),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update password');
+      }
+
+      setPasswordFeedback({ type: 'success', text: 'Super Admin password updated successfully!' });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      setPasswordFeedback({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to update password',
+      });
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  if (loading || !currentUser) {
     return (
-      <div className="py-20 text-center text-slate-500">
-        <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[#142B55] mb-2" />
-        <p className="text-sm font-semibold">Loading Admin Dashboard...</p>
+      <div className="min-h-screen bg-[#0B172F] flex flex-col items-center justify-center text-white">
+        <RefreshCw className="w-8 h-8 animate-spin text-[#D52B30] mb-3" />
+        <p className="text-xs uppercase tracking-widest font-bold text-slate-300">Verifying Admin Access...</p>
       </div>
     );
   }
 
   const pageMeta: Record<string, { title: string; subtitle: string; category: string }> = {
     overview: {
-      title: 'Store Operations Overview',
-      subtitle: 'Executive dashboard, active customer contact leads, orders summary, and inventory vitals.',
+      title: 'Store Overview',
+      subtitle: 'Real-time overview of store performance, orders, and inquiries.',
       category: 'Overview',
     },
     products: {
-      title: 'Store Product Catalog & Inventory',
-      subtitle: 'Manage power equipment catalog, pure sine inverters, tubular batteries, and live stock allocations.',
+      title: 'Products & Inventory',
+      subtitle: 'Manage equipment catalog, selling prices, and live stock.',
       category: 'Store & Catalog',
     },
     orders: {
-      title: 'Customer Orders Management',
-      subtitle: 'Track customer orders, delivery fees, payment states, and order fulfillment.',
+      title: 'Customer Orders',
+      subtitle: 'Review customer orders, payment status, and dispatch fulfillment.',
       category: 'Operations',
     },
     quotations: {
-      title: 'Customer Inquiries & Contact Leads',
-      subtitle: 'Manage all leads submitted through the Contact Us form, sizing calculators, and quotation requests.',
-      category: 'Contact Leads',
+      title: 'Customer Inquiries & Quotes',
+      subtitle: 'Review contact inquiries, price quotes, and consultation requests.',
+      category: 'Quotes',
     },
     certifications: {
-      title: 'Technical Compliance & OEM Dealerships',
-      subtitle: 'Publish, manage, and verify official Exide, BPE OEM Authorised Dealerships, and technical partner awards.',
+      title: 'Brand Certifications',
+      subtitle: 'Manage official manufacturer dealer certificates and quality credentials.',
       category: 'Compliance',
     },
     settings: {
-      title: 'Platform Policies & Delivery PINs',
-      subtitle: 'Configure regional delivery serviceability, district dispatch fees, and platform-wide inventory thresholds.',
-      category: 'Governance',
+      title: 'Settings & Security',
+      subtitle: 'Update superadmin password, delivery PIN codes, and store rules.',
+      category: 'Settings',
     },
   };
 
@@ -993,21 +1095,14 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={() => { setActiveTab('overview'); setSidebarOpen(false); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
                 activeTab === 'overview'
-                  ? 'bg-[#D52B30] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white/10 text-white font-semibold border-l-3 border-[#D52B30]'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
               }`}
             >
-              <div className="flex items-center gap-2.5">
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Overview Dashboard</span>
-              </div>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === 'overview' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-300'
-              }`}>
-                LIVE
-              </span>
+              <LayoutDashboard className="w-4 h-4 text-slate-300 shrink-0" />
+              <span>Overview</span>
             </button>
           </div>
 
@@ -1019,59 +1114,38 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={() => { setActiveTab('products'); setSidebarOpen(false); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
                 activeTab === 'products'
-                  ? 'bg-[#D52B30] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white/10 text-white font-semibold border-l-3 border-[#D52B30]'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
               }`}
             >
-              <div className="flex items-center gap-2.5">
-                <Package className="w-4 h-4" />
-                <span>Product Catalog</span>
-              </div>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === 'products' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-300'
-              }`}>
-                {products.length}
-              </span>
+              <Package className="w-4 h-4 text-slate-300 shrink-0" />
+              <span>Products &amp; Inventory</span>
             </button>
 
             <button
               onClick={() => { setActiveTab('orders'); setSidebarOpen(false); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
                 activeTab === 'orders'
-                  ? 'bg-[#D52B30] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white/10 text-white font-semibold border-l-3 border-[#D52B30]'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
               }`}
             >
-              <div className="flex items-center gap-2.5">
-                <ShoppingBag className="w-4 h-4" />
-                <span>Customer Orders</span>
-              </div>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === 'orders' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-300'
-              }`}>
-                {orders.length}
-              </span>
+              <ShoppingBag className="w-4 h-4 text-slate-300 shrink-0" />
+              <span>Customer Orders</span>
             </button>
 
             <button
               onClick={() => { setActiveTab('quotations'); setSidebarOpen(false); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
                 activeTab === 'quotations'
-                  ? 'bg-[#D52B30] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white/10 text-white font-semibold border-l-3 border-[#D52B30]'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
               }`}
             >
-              <div className="flex items-center gap-2.5">
-                <MessageSquare className="w-4 h-4" />
-                <span>Contact Inquiries &amp; Leads</span>
-              </div>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === 'quotations' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-300'
-              }`}>
-                {quotations.length}
-              </span>
+              <MessageSquare className="w-4 h-4 text-slate-300 shrink-0" />
+              <span>Inquiries &amp; Quotes</span>
             </button>
           </div>
 
@@ -1083,130 +1157,131 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={() => { setActiveTab('certifications'); setSidebarOpen(false); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
                 activeTab === 'certifications'
-                  ? 'bg-[#D52B30] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white/10 text-white font-semibold border-l-3 border-[#D52B30]'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
               }`}
             >
-              <div className="flex items-center gap-2.5">
-                <Award className="w-4 h-4" />
-                <span>Certifications &amp; BIS</span>
-              </div>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === 'certifications' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-300'
-              }`}>
-                {certifications.length}
-              </span>
+              <Award className="w-4 h-4 text-slate-300 shrink-0" />
+              <span>Brand Certifications</span>
             </button>
 
             <button
               onClick={() => { setActiveTab('settings'); setSidebarOpen(false); }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
                 activeTab === 'settings'
-                  ? 'bg-[#D52B30] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white/10 text-white font-semibold border-l-3 border-[#D52B30]'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
               }`}
             >
-              <div className="flex items-center gap-2.5">
-                <Settings className="w-4 h-4" />
-                <span>Policies &amp; Delivery PINs</span>
-              </div>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === 'settings' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-300'
-              }`}>
-                {settings?.eligiblePincodes?.length || 0}
-              </span>
+              <Settings className="w-4 h-4 text-slate-300 shrink-0" />
+              <span>Settings &amp; Policies</span>
             </button>
           </div>
         </nav>
-
-        {/* Sidebar Footer: User Details, Storefront link, and Logout */}
-        <div className="p-4 border-t border-slate-800 space-y-3 bg-[#081122]">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center font-bold text-xs shrink-0">
-              <User className="w-4 h-4 text-slate-300" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-white truncate">
-                {currentUser?.name}
-              </p>
-              <p className="text-[11px] text-slate-400 truncate font-mono">
-                {currentUser?.email}
-              </p>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
-            <Link
-              href="/"
-              target="_blank"
-              className="text-slate-400 hover:text-white flex items-center gap-1.5 transition-colors"
-            >
-              <Home className="w-3.5 h-3.5" />
-              <span>Storefront</span>
-            </Link>
-
-            <button
-              onClick={handleLogout}
-              className="text-red-400 hover:text-red-300 flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
-            </button>
-          </div>
-        </div>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Desktop Top Bar */}
-        <header className="bg-white border-b border-slate-200 px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sticky top-0 z-30 shadow-2xs">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-lg sm:text-xl font-black text-[#142B55] tracking-tight">
+        <header className="bg-white border-b border-slate-200/90 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sticky top-0 z-30 shadow-2xs">
+          <div>
+            <h1 className="text-xl font-extrabold text-[#142B55] tracking-tight">
               {pageMeta[activeTab]?.title}
             </h1>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">
-              {pageMeta[activeTab]?.category}
-            </span>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {pageMeta[activeTab]?.subtitle}
+            </p>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap sm:flex-nowrap">
-            {/* Session Timeout Indicator */}
-            <div
-              className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-500"
-              title={`Security policy: Session automatically terminates after ${sessionTimeoutMinutes} minutes of inactivity.`}
-            >
-              <Clock className="w-3.5 h-3.5 text-amber-600" />
-              <span>{sessionTimeoutMinutes}m Inactivity Timeout</span>
-            </div>
-
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={reloadData}
               className="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Refresh store data"
             >
               <RefreshCw className="w-3.5 h-3.5 text-[#142B55]" />
-              <span className="hidden sm:inline">Refresh Data</span>
+              <span className="hidden sm:inline">Refresh</span>
             </button>
 
-            <Link
-              href="/"
-              target="_blank"
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#142B55] hover:bg-[#0B172F] text-white flex items-center gap-1.5 transition-colors shadow-xs"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Storefront</span>
-            </Link>
+            {/* Top Navbar Profile & Sign Out Dropdown */}
+            <div id="admin-user-menu-container" className="relative">
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-full border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 transition-all cursor-pointer shadow-2xs"
+                aria-expanded={userMenuOpen}
+                aria-haspopup="true"
+              >
+                <div className="w-7 h-7 rounded-full bg-[#142B55] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  <User className="w-3.5 h-3.5 text-white" />
+                </div>
+                <span className="text-xs font-bold text-slate-800 hidden sm:inline">
+                  {currentUser?.name ? currentUser.name.replace(/super admin/i, '').replace(/[()]/g, '').trim() || 'RPS Executive' : 'RPS Executive'}
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-red-50 hover:bg-red-100 text-[#D52B30] hover:text-red-700 border border-red-200/80 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-              title="Sign Out of Admin"
-            >
-              <LogOut className="w-3.5 h-3.5 text-[#D52B30]" />
-              <span>Sign Out</span>
-            </button>
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  {/* Account Summary Header */}
+                  <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-slate-100 text-[#142B55] flex items-center justify-center font-bold text-xs shrink-0 border border-slate-200">
+                      <User className="w-4 h-4 text-[#142B55]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-xs text-slate-900 truncate">
+                        {currentUser?.name ? currentUser.name.replace(/super admin/i, '').replace(/[()]/g, '').trim() || 'RPS Executive' : 'RPS Executive'}
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate font-mono mt-0.5">
+                        {currentUser?.email || 'admin@rajpowertech.com'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="py-1 text-xs">
+                    <Link
+                      href="/"
+                      target="_blank"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-[#142B55] transition-colors"
+                    >
+                      <Globe className="w-4 h-4 text-slate-400" />
+                      <span>Visit RPS Storefront</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('settings');
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-[#142B55] transition-colors cursor-pointer text-left"
+                    >
+                      <Settings className="w-4 h-4 text-slate-400" />
+                      <span>Settings &amp; Password</span>
+                    </button>
+                  </div>
+
+                  {/* Sign Out Action */}
+                  <div className="border-t border-slate-100 pt-1 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer text-left"
+                    >
+                      <LogOut className="w-4 h-4 text-red-500" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -1228,45 +1303,9 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-        {/* TAB 0: EXECUTIVE STORE OVERVIEW DASHBOARD */}
+        {/* TAB 0: STORE OVERVIEW DASHBOARD */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            {/* Store Operational Welcome & Quick Stats Banner */}
-            <div className="bg-gradient-to-br from-[#0B172F] via-[#142B55] to-[#1A386D] text-white p-6 sm:p-7 rounded-3xl shadow-lg border border-slate-700/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-              <div className="space-y-2 relative z-10">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white/10 text-emerald-300 border border-white/15">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Single Store Operations Active</span>
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                  Raj Power Tech Services Admin Desk
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
-                  Headquartered at Vijaya Nagar Colony, Picket, Secunderabad. Real-time control center for incoming customer contact leads, orders, equipment inventory, and OEM certifications.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 relative z-10 shrink-0">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setShowAddProductModal(true)}
-                  icon={<Plus className="w-4 h-4" />}
-                  className="bg-[#D52B30] hover:bg-[#B51E22] text-white shadow-md font-bold text-xs"
-                >
-                  Add Product
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setActiveTab('quotations')}
-                  icon={<MessageSquare className="w-4 h-4 text-emerald-400" />}
-                  className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold text-xs"
-                >
-                  View Inquiries ({quotations.length})
-                </Button>
-              </div>
-            </div>
 
             {/* 4 Primary Operational Metric Cards */}
             {(() => {
@@ -1280,12 +1319,12 @@ export default function AdminDashboardPage() {
                   {/* Card 1: Gross Orders Value */}
                   <div
                     onClick={() => setActiveTab('orders')}
-                    className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
                   >
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Store Orders</span>
-                        <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#142B55] flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Store Revenue</span>
+                        <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#142B55] flex items-center justify-center group-hover:scale-105 transition-transform">
                           <ShoppingBag className="w-4 h-4 text-[#142B55]" />
                         </div>
                       </div>
@@ -1295,7 +1334,7 @@ export default function AdminDashboardPage() {
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
-                        Across <strong>{orders.length}</strong> total customer orders
+                        Across {orders.length} customer orders
                       </p>
                     </div>
                     <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -1307,12 +1346,12 @@ export default function AdminDashboardPage() {
                   {/* Card 2: Contact Leads & Inquiries */}
                   <div
                     onClick={() => setActiveTab('quotations')}
-                    className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
                   >
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Customer Leads &amp; Inquiries</span>
-                        <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#D52B30] flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Customer Inquiries</span>
+                        <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#D52B30] flex items-center justify-center group-hover:scale-105 transition-transform">
                           <MessageSquare className="w-4 h-4 text-[#D52B30]" />
                         </div>
                       </div>
@@ -1323,11 +1362,11 @@ export default function AdminDashboardPage() {
                         <span className="text-xs text-slate-500">Inquiries</span>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
-                        From Contact Us &amp; product consultation requests
+                        From Contact Us &amp; Quotations form
                       </p>
                     </div>
                     <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                      <span className="text-[#D52B30] font-semibold">{pendingQuotes} Requiring Response</span>
+                      <span className="text-rose-700 font-semibold">{pendingQuotes} Requiring Response</span>
                       <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </div>
@@ -1335,12 +1374,12 @@ export default function AdminDashboardPage() {
                   {/* Card 3: Product Catalog */}
                   <div
                     onClick={() => setActiveTab('products')}
-                    className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
                   >
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Live Equipment Catalog</span>
-                        <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Product Catalog</span>
+                        <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:scale-105 transition-transform">
                           <Package className="w-4 h-4 text-emerald-700" />
                         </div>
                       </div>
@@ -1348,10 +1387,10 @@ export default function AdminDashboardPage() {
                         <span className="text-2xl font-black text-slate-900">
                           {products.length}
                         </span>
-                        <span className="text-xs text-slate-500">Catalog SKUs</span>
+                        <span className="text-xs text-slate-500">Products</span>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
-                        Inverters, tall tubular batteries &amp; online UPS
+                        Inverters, Batteries &amp; Online UPS
                       </p>
                     </div>
                     <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -1363,12 +1402,12 @@ export default function AdminDashboardPage() {
                   {/* Card 4: Official Dealerships */}
                   <div
                     onClick={() => setActiveTab('certifications')}
-                    className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
                   >
                     <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">OEM Accreditations</span>
-                        <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Certifications</span>
+                        <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center group-hover:scale-105 transition-transform">
                           <Award className="w-4 h-4 text-amber-700" />
                         </div>
                       </div>
@@ -1376,62 +1415,20 @@ export default function AdminDashboardPage() {
                         <span className="text-2xl font-black text-slate-900">
                           {certifications.length}
                         </span>
-                        <span className="text-xs text-slate-500">Verified OEM Awards</span>
+                        <span className="text-xs text-slate-500">Verified OEM</span>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
-                        Exide Gold Dealer (92884) &amp; BPE Platinum
+                        Exide Gold Dealer &amp; BPE Partner
                       </p>
                     </div>
                     <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                      <span className="text-amber-700 font-semibold">Active &amp; Published Online</span>
+                      <span className="text-amber-700 font-semibold">Active &amp; Published</span>
                       <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </div>
                 </div>
               );
             })()}
-
-            {/* Quick Operational Shortcuts Bar */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#D52B30]" />
-                <span className="font-bold text-slate-800">Quick Administrative Operations:</span>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => setShowAddProductModal(true)}
-                  className="px-3 py-1.5 rounded-xl bg-[#D52B30] hover:bg-[#B51E22] text-white font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add New Product to Store</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('quotations')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors"
-                >
-                  <MessageSquare className="w-3.5 h-3.5 text-[#142B55]" />
-                  <span>Customer Contact Inquiries</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('orders')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors"
-                >
-                  <ShoppingBag className="w-3.5 h-3.5 text-[#142B55]" />
-                  <span>Customer Orders Management</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('certifications')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold inline-flex items-center gap-1.5 cursor-pointer transition-colors"
-                >
-                  <Award className="w-3.5 h-3.5 text-amber-600" />
-                  <span>OEM Certifications</span>
-                </button>
-              </div>
-            </div>
 
             {/* 2-Column Split: Recent Contact Leads (Left) & Recent Orders (Right) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1604,37 +1601,46 @@ export default function AdminDashboardPage() {
         {/* TAB 1: STORE PRODUCT CATALOG MANAGEMENT */}
         {activeTab === 'products' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
               <div>
-                <div className="flex items-center gap-2.5">
-                  <h2 className="text-base sm:text-lg font-bold text-[#142B55]">Store Product Catalog</h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                    {products.length} Products
-                  </span>
-                </div>
+                <h2 className="text-base sm:text-lg font-bold text-[#142B55]">Store Products &amp; Catalog</h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Directly manage Raj Power Tech Services equipment, selling prices, and live inventory.
+                  Manage equipment items, pricing, specs, and stock levels.
                 </p>
               </div>
 
               <div className="flex items-center gap-2.5 flex-wrap">
-                {/* Category Filter Pills */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-                  {['all', 'inverters', 'batteries', 'ups'].map((cat) => (
+                {/* Category Filter Pills (Clean, no counts) */}
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-medium overflow-x-auto max-w-full">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProductCategoryFilter('all');
+                      setProductsPage(1);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg capitalize transition-colors cursor-pointer whitespace-nowrap ${
+                      productCategoryFilter === 'all'
+                        ? 'bg-white text-[#142B55] shadow-2xs font-bold'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    All
+                  </button>
+                  {categories.map((cat) => (
                     <button
-                      key={cat}
+                      key={cat.id}
                       type="button"
                       onClick={() => {
-                        setProductCategoryFilter(cat);
+                        setProductCategoryFilter(cat.id);
                         setProductsPage(1);
                       }}
-                      className={`px-3 py-1 rounded-lg capitalize transition-colors cursor-pointer ${
-                        productCategoryFilter === cat
+                      className={`px-3 py-1.5 rounded-lg capitalize transition-colors cursor-pointer whitespace-nowrap ${
+                        productCategoryFilter.toLowerCase() === cat.id.toLowerCase()
                           ? 'bg-white text-[#142B55] shadow-2xs font-bold'
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      {cat === 'all' ? 'All' : cat}
+                      {cat.name}
                     </button>
                   ))}
                 </div>
@@ -1644,9 +1650,9 @@ export default function AdminDashboardPage() {
                   size="sm"
                   onClick={() => setShowAddProductModal(true)}
                   icon={<Plus className="w-4 h-4" />}
-                  className="bg-[#D52B30] hover:bg-[#B51E22] text-white cursor-pointer"
+                  className="bg-[#D52B30] hover:bg-[#B51E22] text-white cursor-pointer font-semibold"
                 >
-                  Add New Product
+                  Add Product
                 </Button>
               </div>
             </div>
@@ -1660,11 +1666,11 @@ export default function AdminDashboardPage() {
 
               if (filtered.length === 0) {
                 return (
-                  <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-3">
+                  <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
                     <Package className="w-10 h-10 text-slate-300 mx-auto" />
                     <p className="text-sm font-bold text-slate-700">No products found in this category</p>
                     <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                      Click below to add a new equipment item directly to this category.
+                      Click below to add equipment directly to this category.
                     </p>
                     <Button
                       size="sm"
@@ -1673,7 +1679,7 @@ export default function AdminDashboardPage() {
                       icon={<Plus className="w-4 h-4" />}
                       className="bg-[#D52B30] hover:bg-[#B51E22] text-white"
                     >
-                      Add New Product
+                      Add Product
                     </Button>
                   </div>
                 );
@@ -1686,14 +1692,14 @@ export default function AdminDashboardPage() {
 
               return (
                 <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {paginatedProducts.map((p) => (
                       <div
                         key={p.id}
-                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                        className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
                       >
-                        {/* Product Image Header */}
-                        <div className="h-44 w-full bg-slate-50 border-b border-slate-100 flex items-center justify-center p-3 relative group">
+                        {/* Clean Product Image Container */}
+                        <div className="h-44 w-full bg-slate-50 border-b border-slate-100 flex items-center justify-center p-3 relative">
                           <img
                             src={p.imageUrl || '/products/inverter-demo-1.jpg'}
                             alt={p.name}
@@ -1702,32 +1708,28 @@ export default function AdminDashboardPage() {
                               (e.target as HTMLImageElement).src = '/products/inverter-demo-1.jpg';
                             }}
                           />
-                          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
-                            <Badge variant={p.stock && p.stock > 0 ? 'success' : 'warning'}>
-                              {p.stock && p.stock > 0 ? `Stock: ${p.stock}` : 'Out of Stock'}
-                            </Badge>
-                          </div>
-                          <div className="absolute top-2.5 left-2.5">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#142B55] text-white uppercase tracking-wider">
-                              {p.category}
-                            </span>
-                          </div>
                         </div>
 
                         {/* Content & Specs */}
                         <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                           <div>
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <span className="font-semibold text-slate-400 uppercase tracking-wider">{p.brand}</span>
-                              {p.sku && <span className="font-mono text-[10px] text-slate-400">SKU: {p.sku}</span>}
+                            <div className="flex items-center justify-between text-xs mb-1.5">
+                              <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">{p.brand}</span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 capitalize">
+                                {p.category?.replace(/-/g, ' ')}
+                              </span>
                             </div>
 
                             <h3 className="font-bold text-slate-900 text-sm line-clamp-2 leading-snug">{p.name}</h3>
-                            <p className="text-xs text-slate-500 line-clamp-2 mt-1">{p.shortDescription}</p>
+                            {p.capacity && (
+                              <p className="text-[11px] font-medium text-slate-500 mt-1">
+                                Capacity: <span className="text-slate-700">{p.capacity}</span>
+                              </p>
+                            )}
 
-                            <div className="bg-slate-50 p-2.5 rounded-xl text-xs space-y-1.5 mt-3 border border-slate-100">
+                            <div className="bg-slate-50/80 p-2.5 rounded-xl text-xs space-y-1 mt-2.5 border border-slate-100">
                               <div className="flex justify-between items-baseline">
-                                <span className="text-slate-500">Selling Price:</span>
+                                <span className="text-slate-500 text-[11px]">Price:</span>
                                 <div className="flex items-baseline gap-1.5">
                                   {p.comparePrice && p.comparePrice > (p.price || 0) && (
                                     <span className="text-slate-400 line-through text-[11px]">
@@ -1739,10 +1741,10 @@ export default function AdminDashboardPage() {
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-slate-500">Inventory Status:</span>
-                                <span className="font-semibold text-slate-800">
-                                  {p.availability || (p.stock && p.stock > 0 ? 'In Stock' : 'Available on Order')}
+                              <div className="flex justify-between items-center text-[11px]">
+                                <span className="text-slate-500">Stock:</span>
+                                <span className={`font-semibold ${p.stock && p.stock > 0 ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                  {p.stock && p.stock > 0 ? `${p.stock} units available` : 'Out of stock'}
                                 </span>
                               </div>
                             </div>
@@ -1752,7 +1754,21 @@ export default function AdminDashboardPage() {
                           <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                             <button
                               type="button"
-                              onClick={() => setEditingProduct(p)}
+                              onClick={() => {
+                                setEditingProduct({
+                                  ...p,
+                                  featuresText: Array.isArray(p.features) ? p.features.join(', ') : '',
+                                  features: Array.isArray(p.features) ? p.features : [],
+                                  keySpecs: p.keySpecs && Array.isArray(p.keySpecs) && p.keySpecs.length > 0
+                                    ? p.keySpecs
+                                    : [
+                                        { label: 'Category', value: (p.category || 'inverters').toUpperCase() },
+                                        { label: 'Brand', value: p.brand || '' },
+                                        ...(p.capacity ? [{ label: 'Capacity', value: p.capacity }] : []),
+                                        ...(p.warrantyPeriod ? [{ label: 'Warranty', value: p.warrantyPeriod }] : []),
+                                      ],
+                                });
+                              }}
                               className="flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                             >
                               <Edit3 className="w-3.5 h-3.5 text-[#142B55]" />
@@ -1865,11 +1881,11 @@ export default function AdminDashboardPage() {
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Fulfillment Pending</span>
-                    <Award className="w-4 h-4 text-[#D52B30]" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Pending Fulfillment</span>
+                    <Clock className="w-4 h-4 text-[#D52B30]" />
                   </div>
-                  <p className="text-2xl font-extrabold text-[#D52B30]">₹{totalPlatformCommission.toLocaleString('en-IN')}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">Units awaiting allocation or dispatch</p>
+                  <p className="text-2xl font-extrabold text-[#D52B30]">{pendingItemsCount}</p>
+                  <p className="text-[11px] text-slate-500 font-medium">Items awaiting dispatch or delivery</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
@@ -1879,7 +1895,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <p className="text-2xl font-extrabold text-blue-900">{dispatchedItemsCount + deliveredItemsCount}</p>
                   <p className="text-[11px] text-slate-500 font-medium">
-                    {deliveredItemsCount} Delivered &bull; {pendingItemsCount} Awaiting Vendor
+                    {deliveredItemsCount} Delivered &bull; {pendingItemsCount} Awaiting Dispatch
                   </p>
                 </div>
               </div>
@@ -1926,7 +1942,7 @@ export default function AdminDashboardPage() {
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
-                      All ({orders.length})
+                      All
                     </button>
                     <button
                       type="button"
@@ -1940,7 +1956,7 @@ export default function AdminDashboardPage() {
                           : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
                       }`}
                     >
-                      Pending Vendor Action ({pendingItemsCount})
+                      Pending Action
                     </button>
                     <button
                       type="button"
@@ -1954,7 +1970,7 @@ export default function AdminDashboardPage() {
                           : 'bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-200'
                       }`}
                     >
-                      In Transit ({dispatchedItemsCount})
+                      In Transit
                     </button>
                     <button
                       type="button"
@@ -1968,7 +1984,7 @@ export default function AdminDashboardPage() {
                           : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
                       }`}
                     >
-                      Delivered ({deliveredItemsCount})
+                      Delivered
                     </button>
                     <button
                       type="button"
@@ -1982,7 +1998,7 @@ export default function AdminDashboardPage() {
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      Paid Orders ({paidOrdersCount})
+                      Paid
                     </button>
                   </div>
 
@@ -2069,19 +2085,18 @@ export default function AdminDashboardPage() {
                             : 'border-slate-200/90 shadow-2xs hover:border-slate-300 hover:shadow-xs'
                         }`}
                       >
-                        {/* Compact Single-Line Order Header Row with Horizontal Scroll */}
-                        <div className="overflow-x-auto">
-                          <div
-                            onClick={() => {
-                              setExpandedOrderIds((prev) => ({
-                                ...prev,
-                                [ord.id]: !prev[ord.id],
-                              }));
-                            }}
-                            className={`p-3 sm:p-3.5 min-w-[760px] flex items-center justify-between gap-2.5 sm:gap-3 cursor-pointer select-none transition-colors ${
-                              isExpanded ? 'bg-slate-50/80 border-b border-slate-200/80' : 'hover:bg-slate-50/60'
-                            }`}
-                          >
+                        {/* Compact Single-Line Order Header Row */}
+                        <div
+                          onClick={() => {
+                            setExpandedOrderIds((prev) => ({
+                              ...prev,
+                              [ord.id]: !prev[ord.id],
+                            }));
+                          }}
+                          className={`p-3 sm:p-3.5 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2.5 sm:gap-3 cursor-pointer select-none transition-colors ${
+                            isExpanded ? 'bg-slate-50/80 border-b border-slate-200/80' : 'hover:bg-slate-50/60'
+                          }`}
+                        >
                             {/* Col 1: Order Number, Copy & Date */}
                             <div className="flex items-center gap-2 min-w-[175px] shrink-0">
                               <button
@@ -2216,7 +2231,6 @@ export default function AdminDashboardPage() {
                               </button>
                             </div>
                           </div>
-                        </div>
 
                         {/* Expanded Full Order Dossier & Multi-Vendor Execution */}
                         {isExpanded && (
@@ -2323,7 +2337,7 @@ export default function AdminDashboardPage() {
                               <div className="md:col-span-5 space-y-2 border-b md:border-b-0 md:border-r border-slate-200/80 pb-3 md:pb-0 md:pr-4">
                                 <span className="font-bold uppercase tracking-wider text-[10px] text-slate-400 flex items-center gap-1.5">
                                   <User className="w-3.5 h-3.5 text-[#142B55]" />
-                                  <span>Customer Contact Dossier</span>
+                                  <span>Customer Contact Information</span>
                                 </span>
                                 <div className="flex items-start gap-3">
                                   <div className="w-9 h-9 rounded-full bg-[#142B55] text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
@@ -2633,29 +2647,29 @@ export default function AdminDashboardPage() {
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Awaiting Branch Quote</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Awaiting Quote</span>
                     <Clock className="w-4 h-4 text-amber-600" />
                   </div>
                   <p className="text-2xl font-extrabold text-amber-700">{pendingQuotes}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">Pending vendor sizing review</p>
+                  <p className="text-[11px] text-slate-500 font-medium">Pending review &amp; pricing</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Officially Quoted</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Quoted</span>
                     <CheckCircle2 className="w-4 h-4 text-blue-600" />
                   </div>
                   <p className="text-2xl font-extrabold text-blue-900">{officialQuoted}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">Proposal submitted by branch</p>
+                  <p className="text-[11px] text-slate-500 font-medium">Proposal sent to customer</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Customer Accepted</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Accepted</span>
                     <Award className="w-4 h-4 text-emerald-600" />
                   </div>
                   <p className="text-2xl font-extrabold text-emerald-700">{acceptedQuotes}</p>
-                  <p className="text-[11px] text-emerald-700 font-semibold">Converted consultations</p>
+                  <p className="text-[11px] text-emerald-700 font-semibold">Converted customers</p>
                 </div>
               </div>
 
@@ -2701,7 +2715,7 @@ export default function AdminDashboardPage() {
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
-                      All ({quotations.length})
+                      All
                     </button>
                     <button
                       type="button"
@@ -2715,7 +2729,7 @@ export default function AdminDashboardPage() {
                           : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
                       }`}
                     >
-                      New ({quotations.filter((q) => q.status === 'submitted').length})
+                      New Inquiries
                     </button>
                     <button
                       type="button"
@@ -2729,7 +2743,7 @@ export default function AdminDashboardPage() {
                           : 'bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200'
                       }`}
                     >
-                      Quoted ({officialQuoted})
+                      Quoted
                     </button>
                     <button
                       type="button"
@@ -2743,7 +2757,7 @@ export default function AdminDashboardPage() {
                           : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
                       }`}
                     >
-                      Accepted ({acceptedQuotes})
+                      Accepted
                     </button>
                   </div>
 
@@ -2829,150 +2843,136 @@ export default function AdminDashboardPage() {
                             : 'border-slate-200/90 shadow-2xs hover:border-slate-300 hover:shadow-xs'
                         }`}
                       >
-                        {/* Compact Single-Line Quotation Header Row with Horizontal Scroll */}
-                        <div className="overflow-x-auto">
-                          <div
-                            onClick={() => {
-                              setExpandedQuoteIds((prev) => ({
-                                ...prev,
-                                [q.id]: !prev[q.id],
-                              }));
-                            }}
-                            className={`p-3 sm:p-3.5 min-w-[760px] flex items-center justify-between gap-2.5 sm:gap-3 cursor-pointer select-none transition-colors ${
-                              isExpanded ? 'bg-slate-50/80 border-b border-slate-200/80' : 'hover:bg-slate-50/60'
-                            }`}
-                          >
-                            {/* Col 1: Quotation Number & Date */}
-                            <div className="flex items-center gap-2 min-w-[175px] shrink-0">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setExpandedQuoteIds((prev) => ({
-                                    ...prev,
-                                    [q.id]: !prev[q.id],
-                                  }));
-                                }}
-                                className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
-                                  isExpanded
-                                    ? 'bg-[#142B55] text-white'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                }`}
-                                title={isExpanded ? 'Collapse' : 'Expand full details'}
-                              >
-                                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                              </button>
-                              <div className="min-w-0">
-                                <span className="font-extrabold text-xs text-[#142B55] tracking-tight block truncate">
-                                  {q.quotationNumber}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-medium block">
-                                  {new Date(q.createdAt).toLocaleDateString('en-IN', {
-                                    day: 'numeric',
-                                    month: 'short',
-                                    year: 'numeric',
-                                  })}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Col 2: Business & Customer Dossier */}
-                            <div className="min-w-[170px] max-w-[220px] shrink-0">
-                              {q.companyName ? (
-                                <p className="font-extrabold text-xs text-[#142B55] truncate" title={q.companyName}>
-                                  {q.companyName}
-                                </p>
-                              ) : null}
-                              <p className={`font-bold text-xs truncate ${q.companyName ? 'text-slate-600 font-medium text-[11px]' : 'text-slate-900'}`}>
-                                {q.customerName}
-                              </p>
-                              <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                                <span className="font-mono text-slate-600">{q.customerPhone}</span>
-                                <span>&bull;</span>
-                                <span className="truncate">{q.cityOrDistrict}</span>
-                                {q.gstin && (
-                                  <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100 px-1 rounded">GST</span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Col 3: Product Scope & Quantity */}
-                            <div className="min-w-[170px] max-w-[240px] shrink-0">
-                              <p className="font-extrabold text-xs text-slate-900 truncate" title={q.productName}>
-                                {q.productName || `${q.category.toUpperCase()} Commercial Solution`}
-                              </p>
-                              <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                                <span className="font-extrabold text-[#D52B30] bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">
-                                  {q.quantity || 1} Units
-                                </span>
-                                <span>&bull;</span>
-                                <span className="uppercase text-[10px] font-bold text-slate-600">{q.category}</span>
-                              </div>
-                            </div>
-
-                            {/* Col 4: Assigned Vendor(s) */}
-                            <div className="min-w-[140px] max-w-[190px] shrink-0">
-                              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-                                Assigned Vendor
+                        {/* Compact Quotation Header Row */}
+                        <div
+                          onClick={() => {
+                            setExpandedQuoteIds((prev) => ({
+                              ...prev,
+                              [q.id]: !prev[q.id],
+                            }));
+                          }}
+                          className={`p-3 sm:p-3.5 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 cursor-pointer select-none transition-colors ${
+                            isExpanded ? 'bg-slate-50/80 border-b border-slate-200/80' : 'hover:bg-slate-50/60'
+                          }`}
+                        >
+                          {/* Col 1: Quotation Number & Date */}
+                          <div className="flex items-center gap-2 min-w-[140px] shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedQuoteIds((prev) => ({
+                                  ...prev,
+                                  [q.id]: !prev[q.id],
+                                }));
+                              }}
+                              className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+                                isExpanded
+                                  ? 'bg-[#142B55] text-white'
+                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              }`}
+                              title={isExpanded ? 'Collapse' : 'Expand full details'}
+                            >
+                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                            </button>
+                            <div className="min-w-0">
+                              <span className="font-extrabold text-xs text-[#142B55] tracking-tight block truncate">
+                                {q.quotationNumber}
                               </span>
-                              <p className="text-xs font-semibold text-slate-800 truncate">
-                                {assignedVendorsList.length > 0
-                                  ? assignedVendorsList.map((v) => v.businessName).join(', ')
-                                  : q.assignedVendorIds.join(', ')}
+                              <span className="text-[10px] text-slate-400 font-medium block">
+                                {new Date(q.createdAt).toLocaleDateString('en-IN', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                })}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Col 2: Business & Customer Dossier */}
+                          <div className="min-w-[150px] max-w-[240px] flex-1">
+                            {q.companyName ? (
+                              <p className="font-extrabold text-xs text-[#142B55] truncate" title={q.companyName}>
+                                {q.companyName}
                               </p>
-                            </div>
-
-                            {/* Col 5: Quotation Status & Quoted Price */}
-                            <div className="flex items-center gap-2 shrink-0 min-w-[140px] justify-end">
-                              {q.quotedAmount ? (
-                                <div className="text-right">
-                                  <span className="text-[10px] uppercase font-bold text-emerald-800 block">Quoted Price</span>
-                                  <span className="font-extrabold text-xs text-emerald-900">
-                                    ₹{q.quotedAmount.toLocaleString('en-IN')}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-[11px] text-slate-400 font-medium italic">
-                                  Pending Quote
-                                </span>
+                            ) : null}
+                            <p className={`font-bold text-xs truncate ${q.companyName ? 'text-slate-600 font-medium text-[11px]' : 'text-slate-900'}`}>
+                              {q.customerName}
+                            </p>
+                            <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                              <span className="font-mono text-slate-600">{q.customerPhone}</span>
+                              <span>&bull;</span>
+                              <span className="truncate">{q.cityOrDistrict}</span>
+                              {q.gstin && (
+                                <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100 px-1 rounded">GST</span>
                               )}
-
-                              <Badge
-                                variant={
-                                  q.status === 'quoted'
-                                    ? 'navy'
-                                    : q.status === 'accepted'
-                                    ? 'success'
-                                    : q.status === 'under_review'
-                                    ? 'navy'
-                                    : 'warning'
-                                }
-                              >
-                                {q.status.toUpperCase()}
-                              </Badge>
                             </div>
+                          </div>
 
-                            {/* Col 6: Details Button */}
-                            <div className="shrink-0 flex items-center pl-1 sm:pl-2 pr-3 sm:pr-4">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setExpandedQuoteIds((prev) => ({
-                                    ...prev,
-                                    [q.id]: !prev[q.id],
-                                  }));
-                                }}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap ${
-                                  isExpanded
-                                    ? 'bg-slate-200 hover:bg-slate-300 text-slate-800'
-                                    : 'bg-[#142B55] hover:bg-[#0B172F] text-white hover:shadow-xs'
-                                }`}
-                              >
-                                <span>{isExpanded ? 'Hide Details' : 'Details & Actions'}</span>
-                                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                              </button>
+                          {/* Col 3: Product Scope & Quantity */}
+                          <div className="min-w-[150px] max-w-[260px] flex-1">
+                            <p className="font-extrabold text-xs text-slate-900 truncate" title={q.productName}>
+                              {q.productName || `${q.category.toUpperCase()} Commercial Solution`}
+                            </p>
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                              <span className="font-extrabold text-[#D52B30] bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">
+                                {q.quantity || 1} Units
+                              </span>
+                              <span>&bull;</span>
+                              <span className="uppercase text-[10px] font-bold text-slate-600">{q.category}</span>
                             </div>
+                          </div>
+
+                          {/* Col 4: Quotation Status & Quoted Price */}
+                          <div className="flex items-center gap-2 shrink-0 min-w-[120px] justify-end">
+                            {q.quotedAmount ? (
+                              <div className="text-right">
+                                <span className="text-[10px] uppercase font-bold text-emerald-800 block">Quoted Price</span>
+                                <span className="font-extrabold text-xs text-emerald-900">
+                                  ₹{q.quotedAmount.toLocaleString('en-IN')}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 font-medium italic">
+                                Pending Quote
+                              </span>
+                            )}
+
+                            <Badge
+                              variant={
+                                q.status === 'quoted'
+                                  ? 'navy'
+                                  : q.status === 'accepted'
+                                  ? 'success'
+                                  : q.status === 'under_review'
+                                  ? 'navy'
+                                  : 'warning'
+                              }
+                            >
+                              {q.status.toUpperCase()}
+                            </Badge>
+                          </div>
+
+                          {/* Col 5: Details Button */}
+                          <div className="shrink-0 flex items-center">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedQuoteIds((prev) => ({
+                                  ...prev,
+                                  [q.id]: !prev[q.id],
+                                }));
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap ${
+                                isExpanded
+                                  ? 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                                  : 'bg-[#142B55] hover:bg-[#0B172F] text-white hover:shadow-xs'
+                              }`}
+                            >
+                              <span>{isExpanded ? 'Hide' : 'Details & Actions'}</span>
+                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                            </button>
                           </div>
                         </div>
 
@@ -2985,7 +2985,7 @@ export default function AdminDashboardPage() {
                               <div className="md:col-span-5 space-y-2 border-b md:border-b-0 md:border-r border-slate-200/80 pb-3 md:pb-0 md:pr-4">
                                 <span className="font-bold uppercase tracking-wider text-[10px] text-slate-400 flex items-center gap-1.5">
                                   <Building2 className="w-3.5 h-3.5 text-[#142B55]" />
-                                  <span>Client &amp; Organization Dossier</span>
+                                  <span>Client &amp; Organization Details</span>
                                 </span>
                                 {q.companyName && (
                                   <p className="font-extrabold text-sm text-[#142B55]">
@@ -3213,15 +3213,128 @@ export default function AdminDashboardPage() {
       );
     })()}
 
-        {/* TAB 5: PLATFORM POLICIES */}
-        {activeTab === 'settings' && settings && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs max-w-3xl space-y-6">
-            <div>
-              <h2 className="text-lg font-bold text-[#142B55]">Configurable Platform Policies &amp; Fees</h2>
-              <p className="text-xs text-slate-500">
-                All business policies are kept fully configurable per Phase 2 requirements (no hardcoded rates).
-              </p>
+        {/* TAB 5: PLATFORM POLICIES & SUPER ADMIN SECURITY */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6 max-w-3xl">
+            {/* Super Admin Security & Password Card */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                  <h2 className="text-lg font-bold text-[#142B55] flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-[#D52B30]" />
+                    <span>Super Admin Credentials &amp; Security</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Manage password for authenticated account:{' '}
+                    <span className="font-semibold text-slate-800">{currentUser?.email || 'admin@rajpowertech.com'}</span>
+                  </p>
+                </div>
+                <Badge variant="navy" className="self-start sm:self-auto text-[11px] font-mono tracking-wider">
+                  {currentUser?.role === 'super_admin' ? 'SUPER ADMIN' : 'ADMINISTRATOR'}
+                </Badge>
+              </div>
+
+              {passwordFeedback && (
+                <div
+                  className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-xs font-medium ${
+                    passwordFeedback.type === 'success'
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      : 'bg-red-50 text-red-800 border-red-200'
+                  }`}
+                >
+                  {passwordFeedback.type === 'success' ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  )}
+                  <span>{passwordFeedback.text}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Current Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                      placeholder="Enter current password (e.g. Admin@2026)"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#142B55] pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                    >
+                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      New Password (min 8 chars)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={passwordForm.newPassword}
+                        onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                        placeholder="New strong password"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#142B55] pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                      >
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                      placeholder="Repeat new password"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#142B55]"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="md"
+                    disabled={passwordLoading}
+                    className="bg-[#142B55] hover:bg-[#0B172F] text-white"
+                    icon={passwordLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                  >
+                    {passwordLoading ? 'Updating Password...' : 'Update Super Admin Password'}
+                  </Button>
+                </div>
+              </form>
             </div>
+
+            {/* Platform Policies Card */}
+            {settings && (
+              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+                <div>
+                  <h2 className="text-lg font-bold text-[#142B55]">Store Policies &amp; Delivery Rules</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Configure delivery fees, free delivery threshold, payment methods, and serviceable PIN codes.
+                  </p>
+                </div>
 
             <form onSubmit={handleSaveSettings} noValidate className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -3505,16 +3618,18 @@ export default function AdminDashboardPage() {
             </form>
           </div>
         )}
+      </div>
+    )}
 
         {/* TAB 6: CERTIFICATIONS & STANDARDS */}
         {activeTab === 'certifications' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
-              <div className="flex items-center gap-2.5">
-                <h2 className="text-base sm:text-lg font-bold text-[#142B55]">Verified Equipment Certifications</h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                  {certifications.length}
-                </span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-[#142B55]">Authorized Brand Certifications</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Manage official manufacturer dealership credentials and quality standards.
+                </p>
               </div>
 
               <Button
@@ -3522,7 +3637,7 @@ export default function AdminDashboardPage() {
                 size="sm"
                 onClick={() => setShowCertModal(true)}
                 icon={<Plus className="w-4 h-4" />}
-                className="bg-[#D52B30] hover:bg-[#B51E22] text-white"
+                className="bg-[#D52B30] hover:bg-[#B51E22] text-white font-semibold cursor-pointer"
               >
                 Add Certification
               </Button>
@@ -4002,28 +4117,31 @@ export default function AdminDashboardPage() {
 
       {/* ADD CERTIFICATION MODAL */}
       {showCertModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 my-8">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto border border-slate-100">
+            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-[#142B55]">Add Equipment Certification</h3>
                 <p className="text-xs text-slate-500">Add verified standard compliance record to public gallery</p>
               </div>
               <button
+                type="button"
                 onClick={() => setShowCertModal(false)}
-                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center font-bold text-sm cursor-pointer transition-colors"
+                aria-label="Close modal"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateCertification} noValidate className="space-y-4 text-xs">
-              {certModalError && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                  <span className="font-medium">{certModalError}</span>
-                </div>
-              )}
+            <form onSubmit={handleCreateCertification} noValidate className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 text-xs">
+                {certModalError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                    <span className="font-medium">{certModalError}</span>
+                  </div>
+                )}
 
               <div>
                 <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
@@ -4161,142 +4279,21 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* CERTIFICATE IMAGE / BADGE ATTACHMENT */}
-              <div className="space-y-2 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="flex items-center justify-between">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px]">
-                    Certificate Document / Badge Image *
-                  </label>
-                  <span className="text-[10px] text-slate-500">Preset, Upload, or URL</span>
-                </div>
+              <ImageUploader
+                label="Certificate Document / Badge Image"
+                value={newCertData.imageUrl}
+                onChange={(url) => setNewCertData({ ...newCertData, imageUrl: url })}
+                required
+                fallbackImage="/images/cert-exide-gold-2025.png"
+                presets={[
+                  { label: 'Exide Gold 2025', url: '/images/cert-exide-gold-2025.png' },
+                  { label: 'BPE Benchmark', url: '/images/cert-bpe-benchmark.png' },
+                  { label: 'BPE 25Y Trophy', url: '/images/cert-bpe-benchmark-2025.jpg' },
+                  { label: 'BPE Vision25', url: '/images/cert-bpe-platinum-2024.png' },
+                  { label: 'BPE Trophy Star', url: '/images/cert-bpe-platinum-2022.png' },
+                ]}
+              />
 
-                {/* Preset Fast Selectors */}
-                <div>
-                  <span className="text-[10px] text-slate-500 block mb-1.5 font-medium">Quick Standards Presets:</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setNewCertData({ ...newCertData, imageUrl: '/images/cert-exide-gold-2025.png' })}
-                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
-                        newCertData.imageUrl === '/images/cert-exide-gold-2025.png'
-                          ? 'bg-[#142B55] text-white border-[#142B55]'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      Exide Gold 2025
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNewCertData({ ...newCertData, imageUrl: '/images/cert-bpe-benchmark.png' })}
-                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
-                        newCertData.imageUrl === '/images/cert-bpe-benchmark.png'
-                          ? 'bg-[#142B55] text-white border-[#142B55]'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      BPE Benchmark
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNewCertData({ ...newCertData, imageUrl: '/images/cert-bpe-benchmark-2025.jpg' })}
-                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
-                        newCertData.imageUrl === '/images/cert-bpe-benchmark-2025.jpg'
-                          ? 'bg-[#142B55] text-white border-[#142B55]'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      BPE 25Y Trophy
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNewCertData({ ...newCertData, imageUrl: '/images/cert-bpe-platinum-2024.png' })}
-                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
-                        newCertData.imageUrl === '/images/cert-bpe-platinum-2024.png'
-                          ? 'bg-[#142B55] text-white border-[#142B55]'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      BPE Vision25
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setNewCertData({ ...newCertData, imageUrl: '/images/cert-bpe-platinum-2022.png' })}
-                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
-                        newCertData.imageUrl === '/images/cert-bpe-platinum-2022.png'
-                          ? 'bg-[#142B55] text-white border-[#142B55]'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      BPE Trophy Star
-                    </button>
-                  </div>
-                </div>
-
-                {/* Upload from Computer / Device */}
-                <div className="flex items-center gap-2 pt-1">
-                  <label className="flex-1 cursor-pointer">
-                    <div className="flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-slate-300 rounded-xl bg-white hover:bg-slate-50 transition-colors text-slate-700 text-xs font-semibold">
-                      <Upload className="w-4 h-4 text-[#142B55]" />
-                      <span>Upload Certificate File (PNG, JPG, SVG)</span>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        if (file.size > 3 * 1024 * 1024) {
-                          alert('Image file size must be under 3MB');
-                          return;
-                        }
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          if (typeof reader.result === 'string') {
-                            setNewCertData({ ...newCertData, imageUrl: reader.result });
-                          }
-                        };
-                        reader.readAsDataURL(file);
-                      }}
-                    />
-                  </label>
-                </div>
-
-                {/* Or Custom URL */}
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Or enter Image URL (e.g. /images/cert-exide-gold-2025.png or https://...)"
-                    value={newCertData.imageUrl}
-                    onChange={(e) => setNewCertData({ ...newCertData, imageUrl: e.target.value })}
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs bg-white"
-                  />
-                </div>
-
-                {/* Live Preview Box */}
-                {newCertData.imageUrl && (
-                  <div className="mt-2 p-2 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      { }
-                      <img
-                        src={newCertData.imageUrl}
-                        alt="Certificate Preview"
-                        className="w-16 h-12 object-contain rounded border border-slate-100 bg-slate-50"
-                      />
-                      <div>
-                        <span className="font-bold text-slate-800 text-xs block">Certificate Preview Attached</span>
-                        <span className="text-[10px] text-slate-500">Saves in database and displays in public gallery</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setNewCertData({ ...newCertData, imageUrl: '' })}
-                      className="text-xs text-red-600 hover:text-red-800 font-semibold cursor-pointer px-2 py-1"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                )}
-              </div>
 
               <label className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer">
                 <input
@@ -4309,8 +4306,9 @@ export default function AdminDashboardPage() {
                   Publish to Public Certifications Gallery immediately
                 </span>
               </label>
+              </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              <div className="p-4 sm:p-5 border-t border-slate-100 flex justify-end gap-2.5 bg-slate-50/90 shrink-0">
                 <Button
                   type="button"
                   variant="ghost"
@@ -4323,7 +4321,7 @@ export default function AdminDashboardPage() {
                   type="submit"
                   variant="primary"
                   size="sm"
-                  className="bg-[#142B55] hover:bg-[#0B172F] text-white"
+                  className="bg-[#142B55] hover:bg-[#0B172F] text-white shadow-xs font-bold"
                 >
                   Publish Certification
                 </Button>
@@ -4335,28 +4333,31 @@ export default function AdminDashboardPage() {
 
       {/* EDIT CERTIFICATION MODAL (ADMIN / SUPER ADMIN) */}
       {editingCert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 my-8">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto border border-slate-100">
+            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-[#142B55]">Edit Equipment Certification</h3>
                 <p className="text-xs text-slate-500">Update compliance record, validity dates, and certificate image</p>
               </div>
               <button
+                type="button"
                 onClick={() => setEditingCert(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center font-bold text-sm cursor-pointer transition-colors"
+                aria-label="Close modal"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleUpdateCertification} noValidate className="space-y-4 text-xs">
-              {editCertModalError && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                  <span className="font-medium">{editCertModalError}</span>
-                </div>
-              )}
+            <form onSubmit={handleUpdateCertification} noValidate className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 text-xs">
+                {editCertModalError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                    <span className="font-medium">{editCertModalError}</span>
+                  </div>
+                )}
 
               <div>
                 <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
@@ -4489,142 +4490,20 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* CERTIFICATE IMAGE / BADGE ATTACHMENT */}
-              <div className="space-y-2 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="flex items-center justify-between">
-                  <label className="block font-bold text-slate-700 uppercase tracking-wider text-[11px]">
-                    Certificate Document / Badge Image
-                  </label>
-                  <span className="text-[10px] text-slate-500">Preset, Upload, or URL</span>
-                </div>
-
-                {/* Preset Fast Selectors */}
-                <div>
-                  <span className="text-[10px] text-slate-500 block mb-1.5 font-medium">Quick Standards Presets:</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setEditingCert({ ...editingCert, imageUrl: '/images/cert-exide-gold-2025.png' })}
-                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
-                        editingCert.imageUrl === '/images/cert-exide-gold-2025.png'
-                          ? 'bg-[#142B55] text-white border-[#142B55]'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      Exide Gold 2025
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditingCert({ ...editingCert, imageUrl: '/images/cert-bpe-benchmark.png' })}
-                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
-                        editingCert.imageUrl === '/images/cert-bpe-benchmark.png'
-                          ? 'bg-[#142B55] text-white border-[#142B55]'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      BPE Benchmark
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditingCert({ ...editingCert, imageUrl: '/images/cert-bpe-benchmark-2025.jpg' })}
-                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
-                        editingCert.imageUrl === '/images/cert-bpe-benchmark-2025.jpg'
-                          ? 'bg-[#142B55] text-white border-[#142B55]'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      BPE 25Y Trophy
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditingCert({ ...editingCert, imageUrl: '/images/cert-bpe-platinum-2024.png' })}
-                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
-                        editingCert.imageUrl === '/images/cert-bpe-platinum-2024.png'
-                          ? 'bg-[#142B55] text-white border-[#142B55]'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      BPE Vision25
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditingCert({ ...editingCert, imageUrl: '/images/cert-bpe-platinum-2022.png' })}
-                      className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold text-left transition-all cursor-pointer ${
-                        editingCert.imageUrl === '/images/cert-bpe-platinum-2022.png'
-                          ? 'bg-[#142B55] text-white border-[#142B55]'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      BPE Trophy Star
-                    </button>
-                  </div>
-                </div>
-
-                {/* Upload from Computer / Device */}
-                <div className="flex items-center gap-2 pt-1">
-                  <label className="flex-1 cursor-pointer">
-                    <div className="flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-slate-300 rounded-xl bg-white hover:bg-slate-50 transition-colors text-slate-700 text-xs font-semibold">
-                      <Upload className="w-4 h-4 text-[#142B55]" />
-                      <span>Upload New Certificate File (PNG, JPG, SVG)</span>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        if (file.size > 3 * 1024 * 1024) {
-                          alert('Image file size must be under 3MB');
-                          return;
-                        }
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          if (typeof reader.result === 'string') {
-                            setEditingCert({ ...editingCert, imageUrl: reader.result });
-                          }
-                        };
-                        reader.readAsDataURL(file);
-                      }}
-                    />
-                  </label>
-                </div>
-
-                {/* Or Custom URL */}
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Or enter Image URL (e.g. /images/cert-exide-gold-2025.png or https://...)"
-                    value={editingCert.imageUrl || ''}
-                    onChange={(e) => setEditingCert({ ...editingCert, imageUrl: e.target.value })}
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs bg-white"
-                  />
-                </div>
-
-                {/* Live Preview Box */}
-                {editingCert.imageUrl && (
-                  <div className="mt-2 p-2 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      { }
-                      <img
-                        src={editingCert.imageUrl}
-                        alt="Certificate Preview"
-                        className="w-16 h-12 object-contain rounded border border-slate-100 bg-slate-50"
-                      />
-                      <div>
-                        <span className="font-bold text-slate-800 text-xs block">Certificate Image Attached</span>
-                        <span className="text-[10px] text-slate-500">Will update in database when saved</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setEditingCert({ ...editingCert, imageUrl: '' })}
-                      className="text-xs text-red-600 hover:text-red-800 font-semibold cursor-pointer px-2 py-1"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                )}
-              </div>
+              <ImageUploader
+                label="Certificate Document / Badge Image"
+                value={editingCert.imageUrl || ''}
+                onChange={(url) => setEditingCert({ ...editingCert, imageUrl: url })}
+                required
+                fallbackImage="/images/cert-exide-gold-2025.png"
+                presets={[
+                  { label: 'Exide Gold 2025', url: '/images/cert-exide-gold-2025.png' },
+                  { label: 'BPE Benchmark', url: '/images/cert-bpe-benchmark.png' },
+                  { label: 'BPE 25Y Trophy', url: '/images/cert-bpe-benchmark-2025.jpg' },
+                  { label: 'BPE Vision25', url: '/images/cert-bpe-platinum-2024.png' },
+                  { label: 'BPE Trophy Star', url: '/images/cert-bpe-platinum-2022.png' },
+                ]}
+              />
 
               <label className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer">
                 <input
@@ -4637,8 +4516,9 @@ export default function AdminDashboardPage() {
                   Published in Public Certifications Gallery
                 </span>
               </label>
+              </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              <div className="p-4 sm:p-5 border-t border-slate-100 flex justify-end gap-2.5 bg-slate-50/90 shrink-0">
                 <Button
                   type="button"
                   variant="ghost"
@@ -4651,7 +4531,7 @@ export default function AdminDashboardPage() {
                   type="submit"
                   variant="primary"
                   size="sm"
-                  className="bg-[#142B55] hover:bg-[#0B172F] text-white"
+                  className="bg-[#142B55] hover:bg-[#0B172F] text-white shadow-xs font-bold"
                 >
                   Save &amp; Update in Database
                 </Button>
@@ -4793,32 +4673,91 @@ export default function AdminDashboardPage() {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. BPE, Microtek, Exide, Amaron"
+                      placeholder="e.g. Microtek, Exide, Amaron Quanta, BPE"
+                      list="admin-existing-brands"
                       value={productForm.brand}
                       onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
                       className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
                     />
+                    <datalist id="admin-existing-brands">
+                      {existingBrands.map((b) => (
+                        <option key={b} value={b} />
+                      ))}
+                    </datalist>
                     {productErrors.brand && <p className="text-red-500 text-[11px] mt-0.5">{productErrors.brand}</p>}
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Category *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider">
+                        Category / Solution *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowNewCategoryModal(true)}
+                        className="text-[11px] text-[#142B55] hover:underline font-semibold"
+                      >
+                        + Create Category
+                      </button>
+                    </div>
                     <select
                       value={productForm.category}
                       onChange={(e) => {
-                        const cat = e.target.value as 'inverters' | 'batteries' | 'ups';
+                        const cat = e.target.value;
+                        if (cat === '__new__') {
+                          setShowNewCategoryModal(true);
+                          return;
+                        }
                         let img = '/products/inverter-demo-1.jpg';
-                        if (cat === 'batteries') img = '/products/battery-demo-1.jpg';
-                        if (cat === 'ups') img = '/products/ups-demo-1.jpg';
-                        setProductForm({ ...productForm, category: cat, imageUrl: img });
+                        let specs = [
+                          { label: 'Capacity', value: '1100VA / 900W' },
+                          { label: 'Technology', value: 'Pure Sine Wave' },
+                          { label: 'Nominal Voltage', value: '12V DC' },
+                          { label: 'Warranty', value: '36 Months' },
+                        ];
+                        if (cat === 'batteries') {
+                          img = '/products/battery-demo-1.jpg';
+                          specs = [
+                            { label: 'Capacity', value: '150Ah' },
+                            { label: 'Technology', value: 'Tall Tubular' },
+                            { label: 'Nominal Voltage', value: '12V' },
+                            { label: 'Warranty', value: '36 Months' },
+                          ];
+                        } else if (cat === 'ups') {
+                          img = '/products/ups-demo-1.jpg';
+                          specs = [
+                            { label: 'Topology', value: 'Online Double Conversion' },
+                            { label: 'Capacity', value: '1kVA / 800W' },
+                            { label: 'Transfer Time', value: '0ms (Instant)' },
+                            { label: 'Warranty', value: '24 Months' },
+                          ];
+                        } else if (cat === 'lithium') {
+                          img = 'https://cms.microtek.in/uploads/product/thumb/24v-60ah-wall-mounted.png';
+                          specs = [
+                            { label: 'Technology', value: 'LiFePO4 (Lithium Iron Phosphate)' },
+                            { label: 'Capacity', value: '100Ah / 2.56kWh' },
+                            { label: 'Nominal Voltage', value: '25.6V' },
+                            { label: 'Warranty', value: '5 Years' },
+                          ];
+                        } else if (cat === 'high-capacity-ups') {
+                          img = 'https://cms.microtek.in/uploads/product/thumb/jumbo-ups-super-power-10kva-180v.png';
+                          specs = [
+                            { label: 'Topology', value: 'High Capacity Pure Sine Wave' },
+                            { label: 'Capacity', value: '10kVA / 8000W' },
+                            { label: 'DC Bus Voltage', value: '180V' },
+                            { label: 'Warranty', value: '24 Months' },
+                          ];
+                        }
+                        setProductForm({ ...productForm, category: cat, imageUrl: img, keySpecs: specs });
                       }}
                       className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] bg-white capitalize"
                     >
-                      <option value="inverters">Inverters</option>
-                      <option value="batteries">Batteries</option>
-                      <option value="ups">Online UPS</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                      <option value="__new__">+ Add New Solution / Category...</option>
                     </select>
                   </div>
 
@@ -4905,69 +4844,22 @@ export default function AdminDashboardPage() {
                   </div>
 
                   {/* PRODUCT IMAGE SELECTOR */}
-                  <div className="sm:col-span-2 space-y-2.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                    <label className="block font-bold text-slate-800 uppercase tracking-wider text-[11px]">
-                      Product Image *
-                    </label>
-
-                    {/* Preset Photos */}
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                      {[
+                  <div className="sm:col-span-2">
+                    <ImageUploader
+                      label="Product Equipment Image"
+                      value={productForm.imageUrl}
+                      onChange={(url) => setProductForm({ ...productForm, imageUrl: url })}
+                      required
+                      fallbackImage="/products/inverter-demo-1.jpg"
+                      presets={[
                         { label: 'Inverter 1', url: '/products/inverter-demo-1.jpg' },
                         { label: 'Inverter 2', url: '/products/inverter-demo-2.jpg' },
                         { label: 'Battery 1', url: '/products/battery-demo-1.jpg' },
                         { label: 'Battery 2', url: '/products/battery-demo-2.jpg' },
                         { label: 'UPS Unit 1', url: '/products/ups-demo-1.jpg' },
                         { label: 'UPS Unit 2', url: '/products/ups-demo-2.jpg' },
-                      ].map((preset) => (
-                        <button
-                          key={preset.url}
-                          type="button"
-                          onClick={() => setProductForm({ ...productForm, imageUrl: preset.url })}
-                          className={`p-1 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${
-                            productForm.imageUrl === preset.url
-                              ? 'bg-blue-50 border-[#142B55] ring-2 ring-[#142B55]/20 shadow-xs'
-                              : 'bg-white border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          <div className="w-12 h-10 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center p-0.5">
-                            <img src={preset.url} alt={preset.label} className="w-full h-full object-contain" />
-                          </div>
-                          <span className="text-[9px] font-bold text-slate-700 truncate w-full text-center">
-                            {preset.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Image URL Input & Live Preview */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 items-center">
-                      <div className="sm:col-span-2">
-                        <input
-                          type="text"
-                          placeholder="Image URL or Path (/products/...)"
-                          value={productForm.imageUrl}
-                          onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono text-[11px] focus:outline-none focus:border-[#142B55]"
-                        />
-                      </div>
-
-                      <div className="p-2 bg-white rounded-xl border border-slate-200 flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border border-slate-100">
-                          <img
-                            src={productForm.imageUrl || '/products/inverter-demo-1.jpg'}
-                            alt="Product preview"
-                            className="w-full h-full object-contain"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/products/inverter-demo-1.jpg';
-                            }}
-                          />
-                        </div>
-                        <span className="text-[10px] font-semibold text-slate-600 truncate">
-                          Preview
-                        </span>
-                      </div>
-                    </div>
+                      ]}
+                    />
                   </div>
 
                   <div className="sm:col-span-2">
@@ -4987,17 +4879,125 @@ export default function AdminDashboardPage() {
                     )}
                   </div>
 
-                  <div className="sm:col-span-2">
-                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Key Features
+                  {/* KEY FEATURES / HIGHLIGHTS */}
+                  <div className="sm:col-span-2 space-y-2 p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200">
+                    <label className="block font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                      Key Selling Features &amp; Highlights
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Pure Sine Wave, Fast Charging, Overload Protection"
+                      placeholder="e.g. Pure Sine Wave, 100% Copper Transformer, Fast Multi-Stage Charging, Auto Overload Cutoff"
                       value={productForm.features}
                       onChange={(e) => setProductForm({ ...productForm, features: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-xs focus:outline-none focus:border-[#142B55]"
                     />
+                    <p className="text-[10px] text-slate-500">
+                      Separate multiple features with commas. These are highlighted as key selling points on the website.
+                    </p>
+                    {productForm.features && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {productForm.features.split(',').map((feat, i) => {
+                          const trimmed = feat.trim();
+                          if (!trimmed) return null;
+                          return (
+                            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-[#142B55] text-[10px] font-bold border border-blue-100">
+                              <Check className="w-2.5 h-2.5 text-blue-600" />
+                              {trimmed}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* CORE TECHNICAL SPECIFICATIONS MATRIX */}
+                  <div className="sm:col-span-2 space-y-2.5 p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="block font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                          Core Technical Specifications Matrix
+                        </label>
+                        <p className="text-[10px] text-slate-500">
+                          Displayed on product cards &amp; technical specifications section
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProductForm({
+                            ...productForm,
+                            keySpecs: [...(productForm.keySpecs || []), { label: '', value: '' }],
+                          });
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-[#142B55] hover:bg-[#0B172F] text-white text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Add Spec</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {(productForm.keySpecs || []).map((spec, sIdx) => (
+                        <div key={sIdx} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="Spec Label (e.g. Capacity)"
+                            value={spec.label}
+                            onChange={(e) => {
+                              const updated = [...(productForm.keySpecs || [])];
+                              updated[sIdx].label = e.target.value;
+                              setProductForm({ ...productForm, keySpecs: updated });
+                            }}
+                            className="w-1/3 px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-xs font-semibold focus:outline-none focus:border-[#142B55]"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Value (e.g. 1100VA / 900W)"
+                            value={spec.value}
+                            onChange={(e) => {
+                              const updated = [...(productForm.keySpecs || [])];
+                              updated[sIdx].value = e.target.value;
+                              setProductForm({ ...productForm, keySpecs: updated });
+                            }}
+                            className="flex-1 px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-xs focus:outline-none focus:border-[#142B55]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = (productForm.keySpecs || []).filter((_, idx) => idx !== sIdx);
+                              setProductForm({ ...productForm, keySpecs: updated });
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 cursor-pointer"
+                            title="Remove specification"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Quick add spec pills */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Quick Add:</span>
+                      {['Technology', 'Voltage', 'Backup Time', 'Efficiency', 'Waveform'].map((presetLabel) => (
+                        <button
+                          key={presetLabel}
+                          type="button"
+                          onClick={() => {
+                            const current = productForm.keySpecs || [];
+                            if (!current.some((s) => s.label.toLowerCase() === presetLabel.toLowerCase())) {
+                              setProductForm({
+                                ...productForm,
+                                keySpecs: [...current, { label: presetLabel, value: '' }],
+                              });
+                            }
+                          }}
+                          className="px-2 py-0.5 rounded-md border border-slate-200 bg-white hover:bg-slate-100 text-[10px] font-semibold text-slate-600 cursor-pointer transition-colors"
+                        >
+                          + {presetLabel}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -5065,10 +5065,28 @@ export default function AdminDashboardPage() {
                     <input
                       type="text"
                       required
+                      list="admin-existing-brands"
                       value={editingProduct.brand}
                       onChange={(e) => setEditingProduct({ ...editingProduct, brand: e.target.value })}
                       className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Category / Solution *
+                    </label>
+                    <select
+                      value={editingProduct.category || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] bg-white capitalize"
+                    >
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
@@ -5127,6 +5145,19 @@ export default function AdminDashboardPage() {
 
                   <div>
                     <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Capacity
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1100VA / 900W or 150Ah"
+                      value={editingProduct.capacity || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, capacity: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
                       Warranty
                     </label>
                     <input
@@ -5139,69 +5170,22 @@ export default function AdminDashboardPage() {
                   </div>
 
                   {/* PRODUCT IMAGE SELECTOR */}
-                  <div className="sm:col-span-2 space-y-2.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
-                    <label className="block font-bold text-slate-800 uppercase tracking-wider text-[11px]">
-                      Product Image *
-                    </label>
-
-                    {/* Preset Photos */}
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                      {[
+                  <div className="sm:col-span-2">
+                    <ImageUploader
+                      label="Product Equipment Image"
+                      value={editingProduct.imageUrl || ''}
+                      onChange={(url) => setEditingProduct({ ...editingProduct, imageUrl: url })}
+                      required
+                      fallbackImage="/products/inverter-demo-1.jpg"
+                      presets={[
                         { label: 'Inverter 1', url: '/products/inverter-demo-1.jpg' },
                         { label: 'Inverter 2', url: '/products/inverter-demo-2.jpg' },
                         { label: 'Battery 1', url: '/products/battery-demo-1.jpg' },
                         { label: 'Battery 2', url: '/products/battery-demo-2.jpg' },
                         { label: 'UPS Unit 1', url: '/products/ups-demo-1.jpg' },
                         { label: 'UPS Unit 2', url: '/products/ups-demo-2.jpg' },
-                      ].map((preset) => (
-                        <button
-                          key={preset.url}
-                          type="button"
-                          onClick={() => setEditingProduct({ ...editingProduct, imageUrl: preset.url })}
-                          className={`p-1 rounded-xl border flex flex-col items-center gap-1 transition-all cursor-pointer ${
-                            editingProduct.imageUrl === preset.url
-                              ? 'bg-blue-50 border-[#142B55] ring-2 ring-[#142B55]/20 shadow-xs'
-                              : 'bg-white border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          <div className="w-12 h-10 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center p-0.5">
-                            <img src={preset.url} alt={preset.label} className="w-full h-full object-contain" />
-                          </div>
-                          <span className="text-[9px] font-bold text-slate-700 truncate w-full text-center">
-                            {preset.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Image URL Input & Live Preview */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 items-center">
-                      <div className="sm:col-span-2">
-                        <input
-                          type="text"
-                          placeholder="Image URL or Path (/products/...)"
-                          value={editingProduct.imageUrl || ''}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono text-[11px] focus:outline-none focus:border-[#142B55]"
-                        />
-                      </div>
-
-                      <div className="p-2 bg-white rounded-xl border border-slate-200 flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 border border-slate-100">
-                          <img
-                            src={editingProduct.imageUrl || '/products/inverter-demo-1.jpg'}
-                            alt="Product preview"
-                            className="w-full h-full object-contain"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/products/inverter-demo-1.jpg';
-                            }}
-                          />
-                        </div>
-                        <span className="text-[10px] font-semibold text-slate-600 truncate">
-                          Preview
-                        </span>
-                      </div>
-                    </div>
+                      ]}
+                    />
                   </div>
 
                   <div className="sm:col-span-2">
@@ -5215,6 +5199,131 @@ export default function AdminDashboardPage() {
                       onChange={(e) => setEditingProduct({ ...editingProduct, shortDescription: e.target.value })}
                       className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
                     />
+                  </div>
+
+                  {/* KEY FEATURES / HIGHLIGHTS (EDIT) */}
+                  <div className="sm:col-span-2 space-y-2 p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200">
+                    <label className="block font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                      Key Selling Features &amp; Highlights
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Pure Sine Wave, 100% Copper Transformer, Fast Multi-Stage Charging, Auto Overload Cutoff"
+                      value={editingProduct.featuresText ?? (Array.isArray(editingProduct.features) ? editingProduct.features.join(', ') : '')}
+                      onChange={(e) => {
+                        const txt = e.target.value;
+                        const parsed = txt.split(',').map((s) => s.trim()).filter(Boolean);
+                        setEditingProduct({ ...editingProduct, featuresText: txt, features: parsed });
+                      }}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-xs focus:outline-none focus:border-[#142B55]"
+                    />
+                    <p className="text-[10px] text-slate-500">
+                      Separate multiple features with commas. These are highlighted as key selling bullet points.
+                    </p>
+                    {editingProduct.features && editingProduct.features.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {editingProduct.features.map((feat: string, i: number) => {
+                          const trimmed = feat.trim();
+                          if (!trimmed) return null;
+                          return (
+                            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-[#142B55] text-[10px] font-bold border border-blue-100">
+                              <Check className="w-2.5 h-2.5 text-blue-600" />
+                              {trimmed}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* CORE TECHNICAL SPECIFICATIONS MATRIX (EDIT) */}
+                  <div className="sm:col-span-2 space-y-2.5 p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="block font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                          Core Technical Specifications Matrix
+                        </label>
+                        <p className="text-[10px] text-slate-500">
+                          Displayed on product cards &amp; technical specifications section
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingProduct({
+                            ...editingProduct,
+                            keySpecs: [...(editingProduct.keySpecs || []), { label: '', value: '' }],
+                          });
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-[#142B55] hover:bg-[#0B172F] text-white text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Add Spec</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {(editingProduct.keySpecs || []).map((spec, sIdx) => (
+                        <div key={sIdx} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="Spec Label (e.g. Capacity)"
+                            value={spec.label}
+                            onChange={(e) => {
+                              const updated = [...(editingProduct.keySpecs || [])];
+                              updated[sIdx].label = e.target.value;
+                              setEditingProduct({ ...editingProduct, keySpecs: updated });
+                            }}
+                            className="w-1/3 px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-xs font-semibold focus:outline-none focus:border-[#142B55]"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Value (e.g. 1100VA / 900W)"
+                            value={spec.value}
+                            onChange={(e) => {
+                              const updated = [...(editingProduct.keySpecs || [])];
+                              updated[sIdx].value = e.target.value;
+                              setEditingProduct({ ...editingProduct, keySpecs: updated });
+                            }}
+                            className="flex-1 px-3 py-1.5 border border-slate-200 rounded-xl bg-white text-xs focus:outline-none focus:border-[#142B55]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = (editingProduct.keySpecs || []).filter((_, idx) => idx !== sIdx);
+                              setEditingProduct({ ...editingProduct, keySpecs: updated });
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 cursor-pointer"
+                            title="Remove specification"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Quick add spec pills */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Quick Add:</span>
+                      {['Technology', 'Voltage', 'Backup Time', 'Efficiency', 'Waveform'].map((presetLabel) => (
+                        <button
+                          key={presetLabel}
+                          type="button"
+                          onClick={() => {
+                            const current = editingProduct.keySpecs || [];
+                            if (!current.some((s) => s.label.toLowerCase() === presetLabel.toLowerCase())) {
+                              setEditingProduct({
+                                ...editingProduct,
+                                keySpecs: [...current, { label: presetLabel, value: '' }],
+                              });
+                            }
+                          }}
+                          className="px-2 py-0.5 rounded-md border border-slate-200 bg-white hover:bg-slate-100 text-[10px] font-semibold text-slate-600 cursor-pointer transition-colors"
+                        >
+                          + {presetLabel}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -5515,7 +5624,7 @@ export default function AdminDashboardPage() {
                     <p className="text-slate-600">{issuingVendor?.address?.line1 || 'Plot No:12A, Vijaya Nagar Colony'}</p>
                     <p className="text-slate-600">{issuingVendor?.address?.city || 'Secunderabad'}, Telangana</p>
                     <p className="text-slate-700 font-medium">Branch Contact: {issuingVendor?.phone || '9346021289'}</p>
-                    <p className="text-slate-700 font-medium">Commercial Email: {issuingVendor?.email || 'vendor@powertech.com'}</p>
+                    <p className="text-slate-700 font-medium">Commercial Email: {issuingVendor?.email || 'info@rajpowertech.com'}</p>
                   </div>
                 </div>
 
