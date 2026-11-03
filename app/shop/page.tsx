@@ -240,6 +240,7 @@ function ShopContent() {
               const isActive = selectedCategory.toLowerCase() === cat.id.toLowerCase();
               return (
                 <button
+                  suppressHydrationWarning
                   key={cat.id}
                   onClick={() => handleCategoryChange(cat.id)}
                   className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
@@ -265,6 +266,7 @@ function ShopContent() {
                 const isActive = selectedBrand.toLowerCase() === brand.id.toLowerCase();
                 return (
                   <button
+                    suppressHydrationWarning
                     key={brand.id}
                     onClick={() => handleBrandChange(brand.id)}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
@@ -294,6 +296,7 @@ function ShopContent() {
                 />
                 {searchQuery && (
                   <button
+                    suppressHydrationWarning
                     type="button"
                     onClick={() => setSearchQuery('')}
                     className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
@@ -307,6 +310,7 @@ function ShopContent() {
               <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-700 font-medium shrink-0">
                 <ArrowUpDown className="w-3 h-3 text-slate-400" />
                 <select
+                  suppressHydrationWarning
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as 'featured' | 'price-asc' | 'price-desc' | 'name')}
                   className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer"
@@ -321,6 +325,7 @@ function ShopContent() {
               {/* Reset Button */}
               {hasActiveFilters && (
                 <button
+                  suppressHydrationWarning
                   onClick={handleResetFilters}
                   className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-[#D52B30] hover:bg-red-50 transition-colors cursor-pointer shrink-0"
                   title="Reset filters"
@@ -338,22 +343,22 @@ function ShopContent() {
               {selectedCategory !== 'all' && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-200/90 text-slate-800 text-xs font-semibold">
                   <span>{dynamicCategories.find((c) => c.id.toLowerCase() === selectedCategory.toLowerCase())?.label || selectedCategory}</span>
-                  <button onClick={() => handleCategoryChange('all')} className="hover:text-red-600 cursor-pointer ml-0.5">✕</button>
+                  <button suppressHydrationWarning onClick={() => handleCategoryChange('all')} className="hover:text-red-600 cursor-pointer ml-0.5">✕</button>
                 </span>
               )}
               {selectedBrand !== 'all' && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-200/90 text-slate-800 text-xs font-semibold">
                   <span>{selectedBrand}</span>
-                  <button onClick={() => handleBrandChange('all')} className="hover:text-red-600 cursor-pointer ml-0.5">✕</button>
+                  <button suppressHydrationWarning onClick={() => handleBrandChange('all')} className="hover:text-red-600 cursor-pointer ml-0.5">✕</button>
                 </span>
               )}
               {searchQuery.trim() && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-semibold">
                   <span>&ldquo;{searchQuery}&rdquo;</span>
-                  <button onClick={() => setSearchQuery('')} className="hover:text-red-600 cursor-pointer ml-0.5">✕</button>
+                  <button suppressHydrationWarning onClick={() => setSearchQuery('')} className="hover:text-red-600 cursor-pointer ml-0.5">✕</button>
                 </span>
               )}
-              <button onClick={handleResetFilters} className="text-xs text-[#D52B30] hover:underline cursor-pointer ml-1 font-semibold">
+              <button suppressHydrationWarning onClick={handleResetFilters} className="text-xs text-[#D52B30] hover:underline cursor-pointer ml-1 font-semibold">
                 Clear all
               </button>
             </div>
@@ -369,6 +374,7 @@ function ShopContent() {
           </span>
           {hasActiveFilters && (
             <button
+              suppressHydrationWarning
               onClick={handleResetFilters}
               className="text-xs font-semibold text-[#D52B30] hover:underline cursor-pointer"
             >
@@ -411,6 +417,7 @@ function ShopContent() {
               </p>
             </div>
             <button
+              suppressHydrationWarning
               onClick={handleResetFilters}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#142B55] hover:bg-[#1E3A8A] text-white text-xs font-bold transition-all shadow-md shadow-[#142B55]/15 cursor-pointer"
             >

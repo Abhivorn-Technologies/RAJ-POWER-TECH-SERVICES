@@ -174,7 +174,7 @@ export function BrandShowcase() {
                     href={brand.shopUrl}
                     className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#142B55] hover:bg-[#0B172F] text-white font-bold text-xs transition-all shadow-sm group-hover:shadow-md cursor-pointer"
                   >
-                    <span>Explore {brand.name.split(' ')[0]} Range</span>
+                    <span>Explore {brand.name.split(' ')[0]} Products</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>

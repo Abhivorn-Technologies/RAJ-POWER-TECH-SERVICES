@@ -153,43 +153,52 @@ export function ProductCard({ product, index, delay }: ProductCardProps) {
           </div>
 
           {/* Action Controls */}
-          <div className="flex items-center gap-2 pt-1">
-            <Button
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <button
+              suppressHydrationWarning
               type="button"
-              variant="primary"
-              size="sm"
               onClick={handleAddToCart}
               className={cn(
-                'flex-1 text-xs font-bold py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer',
+                'w-full py-2.5 px-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs',
                 added
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
                   : 'bg-[#142B55] hover:bg-[#0B172F] text-white hover:shadow-md'
               )}
-              icon={added ? <Check className="w-3.5 h-3.5 text-white" /> : <ShoppingBag className="w-3.5 h-3.5" />}
             >
-              {added ? 'Added to Bag ✓' : 'Add to Bag'}
-            </Button>
+              {added ? (
+                <>
+                  <Check className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Added ✓</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Add to Bag</span>
+                </>
+              )}
+            </button>
 
             <button
               suppressHydrationWarning
               type="button"
               onClick={() => setQuoteOpen(true)}
-              title="Request Official Technical Quotation"
-              aria-label="Request Official Technical Quotation"
-              className="p-2.5 text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl transition-colors cursor-pointer shadow-2xs shrink-0 flex items-center justify-center"
+              title={`Request Official Quotation for ${product.name}`}
+              aria-label={`Request Official Quotation for ${product.name}`}
+              className="w-full py-2.5 px-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 border-2 border-[#142B55] text-[#142B55] bg-white hover:bg-[#142B55] hover:text-white cursor-pointer shadow-xs group/quote-btn"
             >
-              <FileText className="w-4 h-4 text-slate-700" />
+              <FileText className="w-3.5 h-3.5 text-[#D52B30] group-hover/quote-btn:text-white transition-colors shrink-0" />
+              <span className="truncate">Request Quote</span>
             </button>
           </div>
         </div>
+      </motion.div>
 
-      {/* Product Quotation Request Modal (Logs in Admin & Dispatches to WhatsApp) */}
+      {/* Product Quotation Request Modal (Portaled to body, logs in Admin & dispatches to WhatsApp) */}
       <ProductQuoteModal
         product={product}
         isOpen={quoteOpen}
         onClose={() => setQuoteOpen(false)}
       />
-    </motion.div>
-  </div>
+    </div>
   );
 }

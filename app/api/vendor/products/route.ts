@@ -12,6 +12,9 @@ import {
 } from '@/lib/db/data-store';
 import { Product, CreateProductInput } from '@/types/product';
 
+// In-flight product creation tracker to prevent rapid duplicate double-clicks
+const activeProductCreations = new Map<string, number>();
+
 /**
  * GET: List products.
  * If called by a Vendor, returns ONLY their own products.
@@ -132,15 +135,69 @@ export async function POST(request: Request) {
     }
 
     const categoryDisplayName = matchedCategory.name;
+    const cleanName = name.trim();
+    const cleanBrand = brand.trim();
+    const nameLower = cleanName.toLowerCase();
+    const brandLower = cleanBrand.toLowerCase();
+
+    // Idempotency check: prevent duplicate product creation on rapid multi-clicks
+    const dedupeKey = `${targetVendorId}:${nameLower}:${brandLower}:${matchedCategory.id}`;
+    const lastSubmissionTime = activeProductCreations.get(dedupeKey);
+    if (lastSubmissionTime && Date.now() - lastSubmissionTime < 10000) {
+      // Check if product was already created during this in-flight window
+      const existingProducts = await listProducts({ category: matchedCategory.id, vendorId: targetVendorId });
+      const recent = existingProducts.find(
+        (p) =>
+          (p.name || '').trim().toLowerCase() === nameLower &&
+          (p.brand || '').trim().toLowerCase() === brandLower &&
+          p.vendorId === targetVendorId
+      );
+      if (recent) {
+        return NextResponse.json({
+          success: true,
+          message: 'Product created and published immediately',
+          product: recent,
+        });
+      }
+      return NextResponse.json(
+        { error: 'Product submission is currently processing. Please do not click multiple times.' },
+        { status: 429 }
+      );
+    }
+
+    // Check database for recent duplicate within 30 seconds
+    const existingProducts = await listProducts({ category: matchedCategory.id, vendorId: targetVendorId });
+    const recentDuplicate = existingProducts.find((p) => {
+      const matchName = (p.name || '').trim().toLowerCase() === nameLower;
+      const matchBrand = (p.brand || '').trim().toLowerCase() === brandLower;
+      const matchVendor = p.vendorId === targetVendorId;
+      if (matchName && matchBrand && matchVendor) {
+        const createdMs = p.createdAt ? new Date(p.createdAt).getTime() : 0;
+        if (createdMs > 0 && Date.now() - createdMs < 30000) {
+          return true;
+        }
+      }
+      return false;
+    });
+
+    if (recentDuplicate) {
+      return NextResponse.json({
+        success: true,
+        message: 'Product created and published immediately',
+        product: recentDuplicate,
+      });
+    }
+
+    activeProductCreations.set(dedupeKey, Date.now());
 
     const productId = `prd-${matchedCategory.id.substring(0, 3)}-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
     const now = new Date().toISOString();
 
     const newProduct: Product = {
       id: productId,
-      name: name.trim(),
-      slug: name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-      brand: brand.trim(),
+      name: cleanName,
+      slug: cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+      brand: cleanBrand,
       category: matchedCategory.id,
       categoryName: categoryDisplayName,
       vendorId: targetVendorId,
@@ -156,7 +213,7 @@ export async function POST(request: Request) {
       additionalImages: body.additionalImages || [],
       keySpecs: Array.isArray(keySpecs) && keySpecs.length > 0 ? keySpecs : [
         { label: 'Category', value: categoryDisplayName },
-        { label: 'Brand', value: brand },
+        { label: 'Brand', value: cleanBrand },
         { label: 'Condition', value: 'Brand New Original' },
       ],
       technicalSpecs,
@@ -166,7 +223,14 @@ export async function POST(request: Request) {
       updatedAt: now,
     };
 
-    const created = await createProductRecord(newProduct);
+    let created: Product;
+    try {
+      created = await createProductRecord(newProduct);
+    } finally {
+      setTimeout(() => {
+        activeProductCreations.delete(dedupeKey);
+      }, 10000);
+    }
 
     try {
       revalidatePath('/', 'layout');

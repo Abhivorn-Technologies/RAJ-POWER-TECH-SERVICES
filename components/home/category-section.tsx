@@ -106,7 +106,7 @@ export function CategorySection() {
             href="/shop"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-[#142B55] text-sm font-semibold text-white transition-all group shrink-0 shadow-sm"
           >
-            <span>Explore Full Catalog</span>
+            <span>Explore All Products</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </motion.div>

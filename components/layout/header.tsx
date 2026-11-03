@@ -6,7 +6,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
-  Heart,
   ShoppingBag,
   Menu,
   X,
@@ -18,6 +17,7 @@ import {
   BatteryCharging,
   Server,
   Layers,
+  Sparkles,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import { NAV_LINKS, SOLUTIONS_LINKS, BUSINESS_INFO } from '@/lib/constants';
@@ -149,81 +149,52 @@ export function Header() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.98 }}
                           transition={{ duration: 0.15 }}
-                          className="absolute top-full left-0 w-84 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-2.5 z-50 mt-1"
+                          className="absolute top-full left-0 w-56 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-50 mt-1 space-y-0.5"
                         >
-                          <div className="px-3 py-1.5 border-b border-slate-100 mb-1.5 flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#D52B30]">
-                              Power Solutions
-                            </span>
-                            <span className="text-[10px] text-slate-400">Doorstep Delivery</span>
-                          </div>
-
-                          <div className="space-y-1">
-                            {SOLUTIONS_LINKS.map((sol) => {
-                              const isSubActive = pathname === sol.href;
-                              return (
-                                <Link
-                                  key={sol.href}
-                                  href={sol.href}
-                                  onClick={() => setSolutionsDropdownOpen(false)}
+                          {SOLUTIONS_LINKS.map((sol) => {
+                            const isSubActive = pathname === sol.href;
+                            return (
+                              <Link
+                                key={sol.href}
+                                href={sol.href}
+                                onClick={() => setSolutionsDropdownOpen(false)}
+                                className={cn(
+                                  'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all',
+                                  isSubActive
+                                    ? 'bg-red-50 text-[#D52B30] font-bold'
+                                    : 'text-slate-700 hover:text-[#142B55] hover:bg-slate-50'
+                                )}
+                              >
+                                <span
                                   className={cn(
-                                    'flex items-start gap-3 p-2.5 rounded-xl transition-all',
-                                    isSubActive
-                                      ? 'bg-red-50/70 text-[#D52B30]'
-                                      : 'hover:bg-slate-50 text-slate-800'
+                                    'w-6 h-6 rounded-lg flex items-center justify-center shrink-0',
+                                    sol.slug === 'inverters'
+                                      ? 'bg-red-50 text-[#D52B30]'
+                                      : sol.slug === 'batteries'
+                                      ? 'bg-amber-50 text-amber-600'
+                                      : sol.slug === 'ups'
+                                      ? 'bg-sky-50 text-sky-600'
+                                      : sol.slug === 'lithium'
+                                      ? 'bg-purple-50 text-purple-600'
+                                      : 'bg-blue-50 text-[#142B55]'
                                   )}
                                 >
-                                  <div
-                                    className={cn(
-                                      'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5',
-                                      sol.slug === 'inverters'
-                                        ? 'bg-red-50 text-[#D52B30]'
-                                        : sol.slug === 'batteries'
-                                        ? 'bg-amber-50 text-amber-600'
-                                        : sol.slug === 'ups'
-                                        ? 'bg-sky-50 text-sky-600'
-                                        : 'bg-blue-50 text-[#142B55]'
-                                    )}
-                                  >
-                                    {sol.slug === 'inverters' ? (
-                                      <Zap className="w-4 h-4" />
-                                    ) : sol.slug === 'batteries' ? (
-                                      <BatteryCharging className="w-4 h-4" />
-                                    ) : sol.slug === 'ups' ? (
-                                      <Server className="w-4 h-4" />
-                                    ) : (
-                                      <Layers className="w-4 h-4" />
-                                    )}
-                                  </div>
-                                  <div>
-                                    <div className="text-xs font-bold leading-snug flex items-center gap-1.5">
-                                      <span>{sol.label}</span>
-                                      {sol.slug === 'all' && (
-                                        <span className="px-1.5 py-0.2 bg-[#142B55] text-white text-[9px] rounded font-bold">
-                                          All
-                                        </span>
-                                      )}
-                                    </div>
-                                    <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                                      {sol.description}
-                                    </p>
-                                  </div>
-                                </Link>
-                              );
-                            })}
-                          </div>
-
-                          <div className="pt-2 mt-1.5 border-t border-slate-100 flex items-center justify-between px-2 text-[11px]">
-                            <Link
-                              href="/contact"
-                              onClick={() => setSolutionsDropdownOpen(false)}
-                              className="text-[#142B55] hover:text-[#D52B30] font-semibold flex items-center gap-1"
-                            >
-                              <span>Custom Capacity Sizing</span>
-                              <ChevronRight className="w-3 h-3" />
-                            </Link>
-                            <span className="text-emerald-600 font-bold">Doorstep Service</span>
-                          </div>
+                                  {sol.slug === 'inverters' ? (
+                                    <Zap className="w-3.5 h-3.5" />
+                                  ) : sol.slug === 'batteries' ? (
+                                    <BatteryCharging className="w-3.5 h-3.5" />
+                                  ) : sol.slug === 'ups' ? (
+                                    <Server className="w-3.5 h-3.5" />
+                                  ) : sol.slug === 'lithium' ? (
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Layers className="w-3.5 h-3.5" />
+                                  )}
+                                </span>
+                                <span className="flex-1 truncate">{sol.label}</span>
+                              </Link>
+                            );
+                          })}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -323,15 +294,6 @@ export function Header() {
                 )}
               </AnimatePresence>
             </div>
-
-            {/* Wishlist Link */}
-            <Link
-              href="/wishlist"
-              className="relative p-2 text-slate-700 hover:text-[#142B55] hover:bg-[#F3F5F8] rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#142B55]"
-              aria-label="Wishlist"
-            >
-              <Heart className="w-5 h-5" />
-            </Link>
 
             {/* Cart Button with Drawer Trigger */}
             <button

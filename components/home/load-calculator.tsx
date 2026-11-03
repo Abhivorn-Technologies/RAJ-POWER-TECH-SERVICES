@@ -160,6 +160,7 @@ export function LoadCalculatorSection() {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
+                        suppressHydrationWarning
                         onClick={() => handleDecrement(app.id)}
                         disabled={count <= 0}
                         aria-label={`Decrease ${app.name}`}
@@ -172,6 +173,7 @@ export function LoadCalculatorSection() {
                       </span>
                       <button
                         type="button"
+                        suppressHydrationWarning
                         onClick={() => handleIncrement(app.id)}
                         aria-label={`Increase ${app.name}`}
                         className="w-7 h-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"

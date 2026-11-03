@@ -105,6 +105,25 @@ const BRAND_SPOTLIGHTS: BrandSpotlight[] = [
     bgGlow: 'bg-amber-500/15',
     accentBorder: 'border-amber-500/40',
   },
+  {
+    id: 'lithium',
+    brandName: 'Microtek i-Lithium',
+    brandPill: 'i-Lithium Products',
+    pillActiveColor: 'border-purple-400 bg-purple-950/80 text-purple-200 shadow-purple-500/25',
+    badge: 'Wall-Mount Li-Ion Technology',
+    headlineAccent: 'Smart Wall-Mount i-Lithium Systems',
+    gradientText: 'from-purple-300 via-fuchsia-200 to-indigo-200',
+    description: 'Say goodbye to heavy lead-acid batteries. The Microtek i-Lithium 1500 SW combines an integrated 1280Wh Li-Ion pack with silent, zero-maintenance wall-mounted backup.',
+    productName: 'Microtek I-Lithium 1500 SW WiFi Pearl Edition',
+    productType: 'All-In-One Wall-Mount Lithium Inverter',
+    productImage: '/products/microtek-i-lithium-1500-clean.png',
+    specHighlight: '1100VA / 925W Pure Sine',
+    keyMetric: '1280Wh Built-In Li-Ion • WiFi Smart App',
+    glowColor: 'rgba(168, 85, 247, 0.45)',
+    waveColor: '#a855f7',
+    bgGlow: 'bg-purple-500/15',
+    accentBorder: 'border-purple-500/40',
+  },
 ];
 
 export function HeroSection() {
@@ -140,15 +159,16 @@ export function HeroSection() {
           {/* Left Column: Brand Presentation & Typography */}
           <div className="lg:col-span-6 space-y-5 text-left">
             {/* Interactive Brand Selector Tabs with Smooth Sliding Pill */}
-            <div className="p-1 rounded-2xl bg-white/[0.04] backdrop-blur-md border border-white/10 inline-flex flex-wrap items-center gap-1">
+            <div className="p-1 rounded-2xl bg-white/[0.04] backdrop-blur-md border border-white/10 inline-flex items-center gap-1 max-w-full overflow-x-auto scrollbar-none">
               {BRAND_SPOTLIGHTS.map((brand, idx) => {
                 const isActive = idx === activeBrandIndex;
                 return (
                   <button
                     key={brand.id}
                     type="button"
+                    suppressHydrationWarning
                     onClick={() => handleSelectBrand(idx)}
-                    className="relative px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer select-none overflow-hidden"
+                    className="relative px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all cursor-pointer select-none overflow-hidden shrink-0"
                   >
                     {isActive && (
                       <motion.div
@@ -211,7 +231,7 @@ export function HeroSection() {
 
             {/* Action CTAs */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
-              <Link href={`/shop?brand=${encodeURIComponent(currentBrand.id === 'microtek' ? 'Microtek' : currentBrand.id === 'amaron' ? 'Amaron Quanta' : currentBrand.id === 'exide' ? 'Exide' : 'BPE')}`}>
+              <Link href={currentBrand.id === 'lithium' ? '/categories/lithium' : `/shop?brand=${encodeURIComponent(currentBrand.id === 'microtek' ? 'Microtek' : currentBrand.id === 'amaron' ? 'Amaron Quanta' : currentBrand.id === 'exide' ? 'Exide' : 'BPE')}`}>
                 <Button
                   size="lg"
                   variant="primary"
@@ -278,6 +298,7 @@ export function HeroSection() {
                     fill
                     priority
                     loading="eager"
+                    unoptimized={currentBrand.productImage.startsWith('http')}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 420px"
                     className="object-contain filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.65)] select-none pointer-events-none p-2"
                   />

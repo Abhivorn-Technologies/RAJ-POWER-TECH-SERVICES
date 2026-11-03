@@ -72,7 +72,7 @@ export function FeaturedProducts() {
             href="/shop"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#142B55] hover:bg-[#0B172F] px-4 py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md shrink-0 group"
           >
-            <span>Browse Complete Catalog</span>
+            <span>Explore All Products</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </motion.div>
@@ -127,6 +127,7 @@ export function FeaturedProducts() {
                 </div>
                 <button
                   type="button"
+                  suppressHydrationWarning
                   onClick={() => setQuickViewProduct(null)}
                   className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
                   aria-label="Close dialog"

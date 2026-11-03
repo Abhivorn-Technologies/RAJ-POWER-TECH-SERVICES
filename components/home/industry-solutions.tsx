@@ -15,7 +15,6 @@ import {
   Zap,
   Cpu,
   Layers,
-  FileText,
 } from 'lucide-react';
 import { fadeUp, VIEWPORT_ONCE, PREMIUM_EASE } from '@/lib/animations';
 import { Button } from '@/components/ui/button';
@@ -217,6 +216,7 @@ export function IndustrySolutionsSection() {
               <button
                 key={sector.id}
                 type="button"
+                suppressHydrationWarning
                 onClick={() => setActiveTab(sector.id)}
                 className={`relative px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 border select-none ${
                   isActive
@@ -292,7 +292,7 @@ export function IndustrySolutionsSection() {
                 </div>
               </div>
 
-              {/* CTA Action Buttons */}
+              {/* CTA Action Button */}
               <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <Link href={currentSector.recommendedEquipment.link}>
                   <Button
@@ -302,17 +302,6 @@ export function IndustrySolutionsSection() {
                     icon={<ArrowRight className="w-4 h-4 ml-1" />}
                   >
                     Explore Recommended Hardware
-                  </Button>
-                </Link>
-
-                <Link href="/contact">
-                  <Button
-                    size="md"
-                    variant="outline"
-                    className="w-full sm:w-auto border-slate-300 hover:bg-white text-slate-800 font-bold text-xs rounded-xl cursor-pointer"
-                    icon={<FileText className="w-4 h-4 text-[#D52B30] mr-1" />}
-                  >
-                    Request Single-Line Diagram Audit
                   </Button>
                 </Link>
               </div>
@@ -379,6 +368,7 @@ export function IndustrySolutionsSection() {
               <button
                 key={sec.id}
                 type="button"
+                suppressHydrationWarning
                 onClick={() => setActiveTab(sec.id)}
                 className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                   isCur

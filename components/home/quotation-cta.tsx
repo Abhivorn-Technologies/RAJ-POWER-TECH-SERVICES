@@ -372,6 +372,7 @@ I would like to request an official product quotation:
                       </a>
                       <button
                         type="button"
+                        suppressHydrationWarning
                         onClick={handleReset}
                         className="text-xs text-slate-600 hover:text-slate-900 transition-colors py-2 px-3 inline-flex items-center gap-1.5 cursor-pointer font-semibold"
                       >
@@ -386,6 +387,7 @@ I would like to request an official product quotation:
                     key="form"
                     onSubmit={handleDualSubmit}
                     noValidate
+                    suppressHydrationWarning
                     className="space-y-4"
                   >
                     {submitError && (
@@ -402,6 +404,7 @@ I would like to request an official product quotation:
                           Full Name *
                         </label>
                         <input
+                          suppressHydrationWarning
                           type="text"
                           required
                           placeholder="e.g. Ramesh Reddy"
@@ -425,6 +428,7 @@ I would like to request an official product quotation:
                         <div className="relative">
                           <span className="absolute left-3 top-2.5 text-slate-400 font-mono text-xs">+91</span>
                           <input
+                            suppressHydrationWarning
                             type="tel"
                             maxLength={10}
                             required

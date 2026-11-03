@@ -48,6 +48,7 @@ import {
   Building2,
   ShieldCheck,
   KeyRound,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -86,6 +87,8 @@ export default function AdminDashboardPage() {
   const [editingProduct, setEditingProduct] = useState<(Product & { featuresText?: string }) | null>(null);
   const [productErrors, setProductErrors] = useState<Record<string, string>>({});
   const [productModalError, setProductModalError] = useState<string | null>(null);
+  const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
+  const [isUpdatingProduct, setIsUpdatingProduct] = useState(false);
   const existingBrands = useMemo(() => {
     return Array.from(new Set(products.map((p) => p.brand).filter(Boolean))).sort();
   }, [products]);
@@ -140,14 +143,17 @@ export default function AdminDashboardPage() {
   const [showVendorPassword, setShowVendorPassword] = useState(false);
   const [vendorErrors, setVendorErrors] = useState<Record<string, string>>({});
   const [vendorModalError, setVendorModalError] = useState<string | null>(null);
+  const [isSubmittingVendor, setIsSubmittingVendor] = useState(false);
 
   // Cert Form Errors
   const [certErrors, setCertErrors] = useState<Record<string, string>>({});
   const [certModalError, setCertModalError] = useState<string | null>(null);
+  const [isSubmittingCert, setIsSubmittingCert] = useState(false);
 
   // Edit Cert Form Errors
   const [editCertErrors, setEditCertErrors] = useState<Record<string, string>>({});
   const [editCertModalError, setEditCertModalError] = useState<string | null>(null);
+  const [isUpdatingCert, setIsUpdatingCert] = useState(false);
 
   // Settings Errors
   const [settingsErrors, setSettingsErrors] = useState<Record<string, string>>({});
@@ -169,6 +175,7 @@ export default function AdminDashboardPage() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryDesc, setNewCategoryDesc] = useState('');
   const [newCategoryError, setNewCategoryError] = useState<string | null>(null);
+  const [isSubmittingCategory, setIsSubmittingCategory] = useState(false);
 
   // Detailed Order & Vendor Dispatch Sheet Modal & Pagination
   const [selectedOrderForModal, setSelectedOrderForModal] = useState<Order | null>(null);
@@ -343,6 +350,7 @@ export default function AdminDashboardPage() {
   // Products CRUD Handlers
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingProduct) return;
     setProductModalError(null);
     const errs: Record<string, string> = {};
 
@@ -358,6 +366,7 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    setIsSubmittingProduct(true);
     try {
       const featureList = productForm.features
         ? productForm.features.split(',').map((f) => f.trim()).filter(Boolean)
@@ -422,13 +431,16 @@ export default function AdminDashboardPage() {
       reloadData();
     } catch (err) {
       setProductModalError(err instanceof Error ? err.message : 'Failed to save product');
+    } finally {
+      setIsSubmittingProduct(false);
     }
   };
 
   const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingProduct) return;
+    if (!editingProduct || isUpdatingProduct) return;
     setProductModalError(null);
+    setIsUpdatingProduct(true);
 
     try {
       const featureList = editingProduct.features || [];
@@ -464,6 +476,8 @@ export default function AdminDashboardPage() {
       reloadData();
     } catch (err) {
       setProductModalError(err instanceof Error ? err.message : 'Failed to update product');
+    } finally {
+      setIsUpdatingProduct(false);
     }
   };
 
@@ -489,6 +503,7 @@ export default function AdminDashboardPage() {
   // Certifications CRUD Handlers
   const handleCreateCertification = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingCert) return;
     setCertModalError(null);
     const errs: Record<string, string> = {};
 
@@ -511,6 +526,7 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    setIsSubmittingCert(true);
     try {
       const res = await fetch('/api/admin/certifications', {
         method: 'POST',
@@ -538,12 +554,14 @@ export default function AdminDashboardPage() {
       reloadData();
     } catch (err) {
       setCertModalError(err instanceof Error ? err.message : 'Failed to add certification');
+    } finally {
+      setIsSubmittingCert(false);
     }
   };
 
   const handleUpdateCertification = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingCert) return;
+    if (!editingCert || isUpdatingCert) return;
     setEditCertModalError(null);
     const errs: Record<string, string> = {};
 
@@ -566,6 +584,7 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    setIsUpdatingCert(true);
     try {
       const res = await fetch('/api/admin/certifications', {
         method: 'PATCH',
@@ -581,6 +600,8 @@ export default function AdminDashboardPage() {
       reloadData();
     } catch (err) {
       setEditCertModalError(err instanceof Error ? err.message : 'Failed to update certification');
+    } finally {
+      setIsUpdatingCert(false);
     }
   };
 
@@ -739,10 +760,12 @@ export default function AdminDashboardPage() {
   // Create new solution category
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingCategory) return;
     if (!newCategoryName.trim()) {
       setNewCategoryError('Category / solution name is required');
       return;
     }
+    setIsSubmittingCategory(true);
     try {
       const res = await fetch('/api/admin/categories', {
         method: 'POST',
@@ -767,12 +790,15 @@ export default function AdminDashboardPage() {
       setMessage({ type: 'success', text: `Solution "${data.category.name}" created and assigned!` });
     } catch (err) {
       setNewCategoryError(err instanceof Error ? err.message : 'Failed to create solution');
+    } finally {
+      setIsSubmittingCategory(false);
     }
   };
 
   // Create Vendor
   const handleCreateVendor = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingVendor) return;
     setVendorModalError(null);
     const errs: Record<string, string> = {};
 
@@ -829,6 +855,7 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    setIsSubmittingVendor(true);
     try {
       const res = await fetch('/api/admin/vendors', {
         method: 'POST',
@@ -876,6 +903,8 @@ export default function AdminDashboardPage() {
       reloadData();
     } catch (err) {
       setVendorModalError(err instanceof Error ? err.message : 'Failed to create vendor');
+    } finally {
+      setIsSubmittingVendor(false);
     }
   };
 
@@ -4097,7 +4126,8 @@ export default function AdminDashboardPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowVendorModal(false)}
+                  disabled={isSubmittingVendor}
+                  onClick={() => !isSubmittingVendor && setShowVendorModal(false)}
                 >
                   Cancel
                 </Button>
@@ -4105,9 +4135,11 @@ export default function AdminDashboardPage() {
                   type="submit"
                   variant="primary"
                   size="sm"
-                  className="bg-[#142B55] hover:bg-[#0B172F] text-white"
+                  disabled={isSubmittingVendor}
+                  icon={isSubmittingVendor ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+                  className="bg-[#142B55] hover:bg-[#0B172F] text-white disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
-                  Provision &amp; Send Login Credentials
+                  {isSubmittingVendor ? 'Provisioning...' : 'Provision & Send Login Credentials'}
                 </Button>
               </div>
             </form>
@@ -4313,7 +4345,8 @@ export default function AdminDashboardPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowCertModal(false)}
+                  disabled={isSubmittingCert}
+                  onClick={() => !isSubmittingCert && setShowCertModal(false)}
                 >
                   Cancel
                 </Button>
@@ -4321,9 +4354,11 @@ export default function AdminDashboardPage() {
                   type="submit"
                   variant="primary"
                   size="sm"
-                  className="bg-[#142B55] hover:bg-[#0B172F] text-white shadow-xs font-bold"
+                  disabled={isSubmittingCert}
+                  icon={isSubmittingCert ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+                  className="bg-[#142B55] hover:bg-[#0B172F] text-white shadow-xs font-bold disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
-                  Publish Certification
+                  {isSubmittingCert ? 'Publishing...' : 'Publish Certification'}
                 </Button>
               </div>
             </form>
@@ -4523,7 +4558,8 @@ export default function AdminDashboardPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setEditingCert(null)}
+                  disabled={isUpdatingCert}
+                  onClick={() => !isUpdatingCert && setEditingCert(null)}
                 >
                   Cancel
                 </Button>
@@ -4531,9 +4567,11 @@ export default function AdminDashboardPage() {
                   type="submit"
                   variant="primary"
                   size="sm"
-                  className="bg-[#142B55] hover:bg-[#0B172F] text-white shadow-xs font-bold"
+                  disabled={isUpdatingCert}
+                  icon={isUpdatingCert ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+                  className="bg-[#142B55] hover:bg-[#0B172F] text-white shadow-xs font-bold disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
-                  Save &amp; Update in Database
+                  {isUpdatingCert ? 'Saving...' : 'Save & Update in Database'}
                 </Button>
               </div>
             </form>
@@ -4600,9 +4638,12 @@ export default function AdminDashboardPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
+                  disabled={isSubmittingCategory}
                   onClick={() => {
-                    setShowNewCategoryModal(false);
-                    setNewCategoryError(null);
+                    if (!isSubmittingCategory) {
+                      setShowNewCategoryModal(false);
+                      setNewCategoryError(null);
+                    }
                   }}
                 >
                   Cancel
@@ -4611,9 +4652,11 @@ export default function AdminDashboardPage() {
                   type="submit"
                   variant="primary"
                   size="sm"
-                  className="bg-[#D52B30] hover:bg-[#B51E22] text-white"
+                  disabled={isSubmittingCategory}
+                  icon={isSubmittingCategory ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+                  className="bg-[#D52B30] hover:bg-[#B51E22] text-white disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
-                  Save &amp; Authorize Solution
+                  {isSubmittingCategory ? 'Saving...' : 'Save & Authorize Solution'}
                 </Button>
               </div>
             </form>
@@ -4629,12 +4672,15 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-4 shrink-0 bg-white">
               <h3 className="text-base font-bold text-[#142B55]">Add Product</h3>
               <button
+                type="button"
+                disabled={isSubmittingProduct}
                 onClick={() => {
+                  if (isSubmittingProduct) return;
                   setShowAddProductModal(false);
                   setProductModalError(null);
                   setProductErrors({});
                 }}
-                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer transition-colors"
+                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 ✕
               </button>
@@ -5008,7 +5054,12 @@ export default function AdminDashboardPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowAddProductModal(false)}
+                  disabled={isSubmittingProduct}
+                  onClick={() => {
+                    if (!isSubmittingProduct) {
+                      setShowAddProductModal(false);
+                    }
+                  }}
                 >
                   Cancel
                 </Button>
@@ -5016,9 +5067,11 @@ export default function AdminDashboardPage() {
                   type="submit"
                   variant="primary"
                   size="sm"
-                  className="bg-[#D52B30] hover:bg-[#B51E22] text-white"
+                  disabled={isSubmittingProduct}
+                  icon={isSubmittingProduct ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+                  className="bg-[#D52B30] hover:bg-[#B51E22] text-white disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
-                  Publish Product
+                  {isSubmittingProduct ? 'Publishing Product...' : 'Publish Product'}
                 </Button>
               </div>
             </form>
@@ -5034,8 +5087,14 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between border-b border-slate-100 px-5 sm:px-6 py-4 shrink-0 bg-white">
               <h3 className="text-base font-bold text-[#142B55]">Edit Product</h3>
               <button
-                onClick={() => setEditingProduct(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer transition-colors"
+                type="button"
+                disabled={isUpdatingProduct}
+                onClick={() => {
+                  if (!isUpdatingProduct) {
+                    setEditingProduct(null);
+                  }
+                }}
+                className="text-slate-400 hover:text-slate-600 font-bold p-1 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 ✕
               </button>
@@ -5334,7 +5393,12 @@ export default function AdminDashboardPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setEditingProduct(null)}
+                  disabled={isUpdatingProduct}
+                  onClick={() => {
+                    if (!isUpdatingProduct) {
+                      setEditingProduct(null);
+                    }
+                  }}
                 >
                   Cancel
                 </Button>
@@ -5342,9 +5406,11 @@ export default function AdminDashboardPage() {
                   type="submit"
                   variant="primary"
                   size="sm"
-                  className="bg-[#142B55] hover:bg-[#0B172F] text-white"
+                  disabled={isUpdatingProduct}
+                  icon={isUpdatingProduct ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+                  className="bg-[#142B55] hover:bg-[#0B172F] text-white disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
-                  Save Changes
+                  {isUpdatingProduct ? 'Saving Changes...' : 'Save Changes'}
                 </Button>
               </div>
             </form>
