@@ -173,7 +173,7 @@ function AdminLoginForm() {
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} noValidate className="space-y-3.5">
+          <form onSubmit={handleSubmit} noValidate className="space-y-3.5" suppressHydrationWarning>
             <div>
               <label
                 htmlFor="admin-email"
@@ -183,6 +183,7 @@ function AdminLoginForm() {
               </label>
               <div className="relative">
                 <input
+                  suppressHydrationWarning
                   id="admin-email"
                   type="email"
                   value={email}
@@ -217,6 +218,7 @@ function AdminLoginForm() {
               </label>
               <div className="relative">
                 <input
+                  suppressHydrationWarning
                   id="admin-password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -235,6 +237,7 @@ function AdminLoginForm() {
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5 pointer-events-none" />
 
                 <button
+                  suppressHydrationWarning
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -256,6 +259,7 @@ function AdminLoginForm() {
             </div>
 
             <Button
+              suppressHydrationWarning
               type="submit"
               variant="primary"
               size="md"
