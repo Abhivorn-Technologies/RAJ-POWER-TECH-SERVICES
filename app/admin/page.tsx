@@ -194,6 +194,16 @@ export default function AdminDashboardPage() {
   const [quotesPage, setQuotesPage] = useState<number>(1);
   const quotesPerPage = 6;
 
+  // Branded In-App Deletion Confirmation Modal State
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmLabel?: string;
+    isProcessing?: boolean;
+    onConfirm: () => Promise<void> | void;
+  } | null>(null);
+
   const [newVendorData, setNewVendorData] = useState({
     businessName: '',
     tradeName: '',
@@ -481,23 +491,30 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleDeleteProduct = async (productId: string, productName: string) => {
-    if (!confirm(`Are you sure you want to permanently delete "${productName}" from the catalog?`)) {
-      return;
-    }
+  const handleDeleteProduct = (productId: string, productName: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      title: 'Delete Equipment Model',
+      description: `Are you sure you want to permanently delete "${productName}" from the catalog? This will remove the model and all related inventory records from the store.`,
+      confirmLabel: 'Permanently Delete Product',
+      onConfirm: async () => {
+        try {
+          setDeleteConfirmation((prev) => (prev ? { ...prev, isProcessing: true } : null));
+          const res = await fetch(`/api/vendor/products?productId=${productId}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to delete product');
 
-    try {
-      const res = await fetch(`/api/vendor/products?productId=${productId}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to delete product');
-
-      setMessage({ type: 'success', text: `Product "${productName}" deleted successfully!` });
-      reloadData();
-    } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to delete product' });
-    }
+          setMessage({ type: 'success', text: `Product "${productName}" deleted successfully!` });
+          setDeleteConfirmation(null);
+          reloadData();
+        } catch (err) {
+          setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to delete product' });
+          setDeleteConfirmation(null);
+        }
+      },
+    });
   };
 
   // Certifications CRUD Handlers
@@ -621,21 +638,29 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleDeleteCertification = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to permanently delete certification "${title}"?`)) {
-      return;
-    }
-    try {
-      const res = await fetch(`/api/admin/certifications?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setMessage({ type: 'success', text: 'Certification record deleted successfully' });
-      reloadData();
-    } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Delete failed' });
-    }
+  const handleDeleteCertification = (id: string, title: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      title: 'Delete Certification Record',
+      description: `Are you sure you want to permanently delete certification "${title}"? This record will be removed from storefront compliance badges.`,
+      confirmLabel: 'Permanently Delete Certification',
+      onConfirm: async () => {
+        try {
+          setDeleteConfirmation((prev) => (prev ? { ...prev, isProcessing: true } : null));
+          const res = await fetch(`/api/admin/certifications?id=${encodeURIComponent(id)}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          setMessage({ type: 'success', text: 'Certification record deleted successfully' });
+          setDeleteConfirmation(null);
+          reloadData();
+        } catch (err) {
+          setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Delete failed' });
+          setDeleteConfirmation(null);
+        }
+      },
+    });
   };
 
   // PIN Code Serviceability Rule Handlers
@@ -679,10 +704,19 @@ export default function AdminDashboardPage() {
   };
 
   const handleDeletePincodeRule = (pincode: string) => {
-    if (!settings) return;
-    const updated = (settings.eligiblePincodes || []).filter((r) => r.pincode !== pincode);
-    setSettings({ ...settings, eligiblePincodes: updated });
-    setMessage({ type: 'success', text: `Removed PIN ${pincode}. Remember to save policies.` });
+    setDeleteConfirmation({
+      isOpen: true,
+      title: 'Remove Delivery PIN Code',
+      description: `Are you sure you want to remove PIN code ${pincode} from eligible delivery zones?`,
+      confirmLabel: 'Remove PIN Rule',
+      onConfirm: () => {
+        if (!settings) return;
+        const updated = (settings.eligiblePincodes || []).filter((r) => r.pincode !== pincode);
+        setSettings({ ...settings, eligiblePincodes: updated });
+        setMessage({ type: 'success', text: `Removed PIN ${pincode}. Remember to click "Save Platform Policies" to persist.` });
+        setDeleteConfirmation(null);
+      },
+    });
   };
 
   const handleLogout = async () => {
@@ -5821,6 +5855,85 @@ export default function AdminDashboardPage() {
           </div>
         );
       })()}
+
+      {/* BRANDED IN-APP DELETION CONFIRMATION MODAL */}
+      {deleteConfirmation && deleteConfirmation.isOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deleteConfirmation.isProcessing) {
+              setDeleteConfirmation(null);
+            }
+          }}
+        >
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 space-y-5 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150 relative">
+            {/* Top Close Button */}
+            <button
+              type="button"
+              onClick={() => !deleteConfirmation.isProcessing && setDeleteConfirmation(null)}
+              disabled={deleteConfirmation.isProcessing}
+              className="absolute right-5 top-5 p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-40"
+              aria-label="Close dialog"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Warning Icon Badge */}
+            <div className="w-14 h-14 rounded-2xl bg-red-50 text-[#D52B30] flex items-center justify-center border border-red-100 shadow-2xs">
+              <Trash2 className="w-7 h-7" />
+            </div>
+
+            {/* Title & Description */}
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                {deleteConfirmation.title}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {deleteConfirmation.description}
+              </p>
+            </div>
+
+            {/* Irreversible Action Warning Box */}
+            <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-xl flex items-center gap-2 text-xs text-amber-900">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span className="font-medium">
+                This operation is immediate and permanently removes data from the store database.
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pt-2 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmation(null)}
+                disabled={deleteConfirmation.isProcessing}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={() => deleteConfirmation.onConfirm()}
+                disabled={deleteConfirmation.isProcessing}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-[#D52B30] hover:bg-[#b82226] shadow-md shadow-[#D52B30]/20 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {deleteConfirmation.isProcessing ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>{deleteConfirmation.confirmLabel || 'Yes, Delete Permanently'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
