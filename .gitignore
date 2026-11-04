@@ -45,6 +45,13 @@ yarn-error.log*
 Thumbs.db
 *.pem
 
+# archives & scratch dumps
+*.zip
+*.tar
+*.tar.gz
+*.7z
+/all-product-images/
+
 # IDE caches (allow .vscode/settings.json for project-wide tailwind rules)
 .idea/
 *.sublime-project
