@@ -25,6 +25,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  ChevronLeft,
   User,
   Edit3,
   Upload,
@@ -49,23 +50,40 @@ import {
   ShieldCheck,
   KeyRound,
   Loader2,
+  Briefcase,
+  Star,
+  Zap,
+  ArrowUp,
+  ArrowDown,
+  ListOrdered,
+  Sliders,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SessionUser } from '@/types/auth';
 import { Vendor } from '@/types/vendor';
-import { Product, SolutionCategoryItem } from '@/types/product';
+import { Product, SolutionCategoryItem, CategorySortConfig } from '@/types/product';
 import { Order, OverallOrderStatus, OrderPaymentStatus } from '@/types/order';
 import { QuotationRequest } from '@/types/quotation';
 import { PlatformSettings, EligiblePincodeRule } from '@/types/settings';
 import { Certification } from '@/types/certification';
+import { ClientProject, ClientSector } from '@/types/client-project';
 import { AdminPagination } from '@/components/admin/admin-pagination';
 import { ImageUploader } from '@/components/admin/image-uploader';
+
+const PROJECT_PRESET_IMAGES = [
+  { label: 'BPE Online UPS Rack', url: '/products/bpe-online-ups-hq.png' },
+  { label: 'BPE High-Cap 6kVA', url: '/products/bpe-mf-6kva.png' },
+  { label: 'Microtek Inverter Unit', url: '/products/microtek-vturbo-clean.png' },
+  { label: 'Lithium LiFePO4 Bank', url: '/products/microtek-i-lithium-1500-clean.png' },
+  { label: 'Amaron Quanta SMF', url: '/products/amaron-quanta-clean.png' },
+  { label: 'Exide Powersafe AGM', url: '/products/exide-powersafe-hq.png' },
+];
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'quotations' | 'certifications' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'quotations' | 'certifications' | 'clients' | 'settings'>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -77,7 +95,25 @@ export default function AdminDashboardPage() {
   const [quotations, setQuotations] = useState<QuotationRequest[]>([]);
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [clientProjects, setClientProjects] = useState<ClientProject[]>([]);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Client Projects Management State
+  const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+  const [editingProject, setEditingProject] = useState<ClientProject | null>(null);
+  const [projectModalError, setProjectModalError] = useState<string | null>(null);
+  const [isSubmittingProject, setIsSubmittingProject] = useState(false);
+  const [projectSectorFilter, setProjectSectorFilter] = useState<string>('all');
+  const [clientProjectsPage, setClientProjectsPage] = useState<number>(1);
+  const clientProjectsPerPage = 6;
+  const [newProjectData, setNewProjectData] = useState({
+    clientName: '',
+    sector: 'Healthcare & Hospitals' as ClientSector,
+    location: 'Secunderabad / Hyderabad',
+    systemInstalled: '',
+    imageUrl: '/products/bpe-online-ups-hq.png',
+    isFeatured: true,
+  });
 
   // Products Management State & Pagination
   const [productCategoryFilter, setProductCategoryFilter] = useState<string>('all');
@@ -89,6 +125,12 @@ export default function AdminDashboardPage() {
   const [productModalError, setProductModalError] = useState<string | null>(null);
   const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
   const [isUpdatingProduct, setIsUpdatingProduct] = useState(false);
+  const [productSubView, setProductSubView] = useState<'catalog' | 'sorting'>('catalog');
+  const [selectedSortCategory, setSelectedSortCategory] = useState<string>('ups');
+  const [categorySortConfigs, setCategorySortConfigs] = useState<Record<string, CategorySortConfig>>({});
+  const [activeBrandOrder, setActiveBrandOrder] = useState<string[]>([]);
+  const [activeProductOrder, setActiveProductOrder] = useState<Record<string, number>>({});
+  const [isSavingCategorySort, setIsSavingCategorySort] = useState(false);
   const existingBrands = useMemo(() => {
     return Array.from(new Set(products.map((p) => p.brand).filter(Boolean))).sort();
   }, [products]);
@@ -104,6 +146,7 @@ export default function AdminDashboardPage() {
     sku: '',
     capacity: '1100VA / 900W',
     warrantyPeriod: '36 Months',
+    sortOrder: 10,
     features: 'Pure Sine Wave Output, Heavy Duty Inverter Support, Smart Battery Charging',
     keySpecs: [
       { label: 'Capacity', value: '1100VA / 900W' },
@@ -285,29 +328,45 @@ export default function AdminDashboardPage() {
         if (!ignore && catData.categories) setCategories(catData.categories);
 
         if (activeTab === 'overview') {
-          const [prodRes, ordersRes, quotesRes, certsRes, vendorsRes] = await Promise.all([
+          const [prodRes, ordersRes, quotesRes, certsRes, vendorsRes, clientsRes] = await Promise.all([
             fetch('/api/vendor/products'),
             fetch('/api/orders'),
             fetch('/api/quotations'),
             fetch('/api/admin/certifications'),
             fetch('/api/admin/vendors'),
+            fetch('/api/admin/clients'),
           ]);
           const prodData = await prodRes.json();
           const ordersData = await ordersRes.json();
           const quotesData = await quotesRes.json();
           const certsData = await certsRes.json();
           const vendorsData = await vendorsRes.json();
+          const clientsData = await clientsRes.json();
           if (!ignore) {
             if (prodData.products) setProducts(prodData.products);
             if (ordersData.orders) setOrders(ordersData.orders);
             if (quotesData.quotations) setQuotations(quotesData.quotations);
             if (certsData.certifications) setCertifications(certsData.certifications);
             if (vendorsData.vendors) setVendors(vendorsData.vendors);
+            if (clientsData.projects) setClientProjects(clientsData.projects);
           }
         } else if (activeTab === 'products') {
-          const res = await fetch('/api/vendor/products');
+          const [res, sortRes] = await Promise.all([
+            fetch('/api/vendor/products'),
+            fetch('/api/admin/categories/sorting'),
+          ]);
           const data = await res.json();
-          if (!ignore && data.products) setProducts(data.products);
+          const sortData = await sortRes.json();
+          if (!ignore) {
+            if (data.products) setProducts(data.products);
+            if (sortData.configs && Array.isArray(sortData.configs)) {
+              const configMap: Record<string, CategorySortConfig> = {};
+              for (const c of sortData.configs) {
+                configMap[c.categoryId] = c;
+              }
+              setCategorySortConfigs(configMap);
+            }
+          }
         } else if (activeTab === 'orders') {
           const [ordersRes, vendorsRes] = await Promise.all([
             fetch('/api/orders'),
@@ -329,6 +388,10 @@ export default function AdminDashboardPage() {
           const res = await fetch('/api/admin/certifications');
           const data = await res.json();
           if (!ignore && data.certifications) setCertifications(data.certifications);
+        } else if (activeTab === 'clients') {
+          const res = await fetch('/api/admin/clients');
+          const data = await res.json();
+          if (!ignore && data.projects) setClientProjects(data.projects);
         }
       } catch (e) {
         console.error('Data load error:', e);
@@ -430,6 +493,7 @@ export default function AdminDashboardPage() {
         sku: '',
         capacity: '1100VA / 900W',
         warrantyPeriod: '36 Months',
+        sortOrder: 10,
         features: 'Pure Sine Wave Output, Heavy Duty Inverter Support, Smart Battery Charging',
         keySpecs: [
           { label: 'Capacity', value: '1100VA / 900W' },
@@ -472,6 +536,7 @@ export default function AdminDashboardPage() {
           warrantyPeriod: editingProduct.warrantyPeriod,
           shortDescription: editingProduct.shortDescription,
           imageUrl: editingProduct.imageUrl,
+          sortOrder: editingProduct.sortOrder !== undefined ? Number(editingProduct.sortOrder) : 999,
           features: featureList,
           keySpecs: userSpecs,
         }),
@@ -488,6 +553,95 @@ export default function AdminDashboardPage() {
       setProductModalError(err instanceof Error ? err.message : 'Failed to update product');
     } finally {
       setIsUpdatingProduct(false);
+    }
+  };
+
+  // Synchronize category brand and product sorting state whenever selectedSortCategory, categorySortConfigs, or products change
+  useEffect(() => {
+    const catProducts = products.filter((p) => p.category === selectedSortCategory);
+    const catBrands = Array.from(new Set(catProducts.map((p) => (p.brand || '').trim()).filter(Boolean)));
+
+    const existingConfig = categorySortConfigs[selectedSortCategory];
+    let brands = existingConfig?.brandOrder ? [...existingConfig.brandOrder] : [];
+    for (const b of catBrands) {
+      if (!brands.some((existing) => existing.toLowerCase() === b.toLowerCase())) {
+        brands.push(b);
+      }
+    }
+    brands = brands.filter((b) => catBrands.some((cb) => cb.toLowerCase() === b.toLowerCase()));
+    if (brands.length === 0 && catBrands.length > 0) {
+      brands = catBrands;
+    }
+    // Default BPE first in Online UPS if not previously saved
+    if (selectedSortCategory === 'ups' && !existingConfig) {
+      brands.sort((a, b) => {
+        if (a.toLowerCase() === 'bpe') return -1;
+        if (b.toLowerCase() === 'bpe') return 1;
+        return a.localeCompare(b);
+      });
+    }
+
+    setActiveBrandOrder(brands);
+
+    const prodMap: Record<string, number> = {};
+    for (const b of brands) {
+      const bProds = catProducts.filter((p) => (p.brand || '').trim().toLowerCase() === b.toLowerCase());
+      bProds.forEach((p, idx) => {
+        prodMap[p.id] = existingConfig?.productOrder?.[p.id] ?? idx + 1;
+      });
+    }
+    setActiveProductOrder(prodMap);
+  }, [selectedSortCategory, categorySortConfigs, products]);
+
+  const handleBrandRankChange = (brandName: string, newRank: number) => {
+    const targetIdx = Math.max(0, Math.min(activeBrandOrder.length - 1, newRank - 1));
+    const currentIdx = activeBrandOrder.indexOf(brandName);
+    if (currentIdx === -1 || currentIdx === targetIdx) return;
+    const updated = [...activeBrandOrder];
+    updated.splice(currentIdx, 1);
+    updated.splice(targetIdx, 0, brandName);
+    setActiveBrandOrder(updated);
+  };
+
+  const handleSaveCategorySort = async () => {
+    setIsSavingCategorySort(true);
+    try {
+      const res = await fetch('/api/admin/categories/sorting', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          categoryId: selectedSortCategory,
+          brandOrder: activeBrandOrder,
+          productOrder: activeProductOrder,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save category sorting');
+
+      if (data.config) {
+        setCategorySortConfigs((prev) => ({
+          ...prev,
+          [selectedSortCategory]: data.config,
+        }));
+      }
+
+      // Re-fetch products to update continuous sortOrders in local state
+      const prodRes = await fetch('/api/vendor/products');
+      const prodData = await prodRes.json();
+      if (prodData.products) setProducts(prodData.products);
+
+      const catName = categories.find((c) => c.id === selectedSortCategory)?.name || selectedSortCategory;
+      setMessage({
+        type: 'success',
+        text: `✓ ${catName} sorting saved! ${activeBrandOrder[0] || 'Selected'} brand products will display first on the storefront in arranged sequence.`,
+      });
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to save category sorting',
+      });
+    } finally {
+      setIsSavingCategorySort(false);
     }
   };
 
@@ -657,6 +811,132 @@ export default function AdminDashboardPage() {
           reloadData();
         } catch (err) {
           setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Delete failed' });
+          setDeleteConfirmation(null);
+        }
+      },
+    });
+  };
+
+  // Client Projects Handlers
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmittingProject) return;
+    setProjectModalError(null);
+
+    if (!newProjectData.clientName.trim()) {
+      setProjectModalError('Client or organization name is required.');
+      return;
+    }
+    if (!newProjectData.systemInstalled.trim()) {
+      setProjectModalError('System / equipment installed is required.');
+      return;
+    }
+    if (!newProjectData.location.trim()) {
+      setProjectModalError('Installation location is required.');
+      return;
+    }
+
+    setIsSubmittingProject(true);
+    try {
+      const res = await fetch('/api/admin/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProjectData),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save customer project');
+
+      setMessage({ type: 'success', text: `Project "${newProjectData.clientName}" created successfully!` });
+      setShowAddProjectModal(false);
+      setNewProjectData({
+        clientName: '',
+        sector: 'Healthcare & Hospitals',
+        location: 'Secunderabad / Hyderabad',
+        systemInstalled: '',
+        imageUrl: '/products/bpe-online-ups-hq.png',
+        isFeatured: true,
+      });
+      reloadData();
+    } catch (err) {
+      setProjectModalError(err instanceof Error ? err.message : 'Failed to save customer project');
+    } finally {
+      setIsSubmittingProject(false);
+    }
+  };
+
+  const handleUpdateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProject || isSubmittingProject) return;
+    setProjectModalError(null);
+
+    if (!editingProject.clientName.trim()) {
+      setProjectModalError('Client or organization name is required.');
+      return;
+    }
+    if (!editingProject.systemInstalled.trim()) {
+      setProjectModalError('System / equipment installed is required.');
+      return;
+    }
+
+    setIsSubmittingProject(true);
+    try {
+      const res = await fetch('/api/admin/clients', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingProject),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update customer project');
+
+      setMessage({ type: 'success', text: `Project "${editingProject.clientName}" updated successfully!` });
+      setEditingProject(null);
+      reloadData();
+    } catch (err) {
+      setProjectModalError(err instanceof Error ? err.message : 'Failed to update customer project');
+    } finally {
+      setIsSubmittingProject(false);
+    }
+  };
+
+  const toggleProjectFeatured = async (id: string, currentFeatured: boolean) => {
+    try {
+      const res = await fetch('/api/admin/clients', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, isFeatured: !currentFeatured }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to toggle featured status');
+      setMessage({
+        type: 'success',
+        text: `Project is now ${!currentFeatured ? 'Featured on Website' : 'Hidden from Website'}`,
+      });
+      reloadData();
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Action failed' });
+    }
+  };
+
+  const handleDeleteProject = (id: string, clientName: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      title: 'Delete Customer Project',
+      description: `Are you sure you want to permanently delete "${clientName}" from customer projects? This will remove the case study and installation photos from the public showcase.`,
+      confirmLabel: 'Permanently Delete Project',
+      onConfirm: async () => {
+        try {
+          setDeleteConfirmation((prev) => (prev ? { ...prev, isProcessing: true } : null));
+          const res = await fetch(`/api/admin/clients?id=${encodeURIComponent(id)}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to delete client project');
+
+          setMessage({ type: 'success', text: `Project "${clientName}" deleted successfully!` });
+          setDeleteConfirmation(null);
+          reloadData();
+        } catch (err) {
+          setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to delete client project' });
           setDeleteConfirmation(null);
         }
       },
@@ -1060,6 +1340,11 @@ export default function AdminDashboardPage() {
       subtitle: 'Manage official manufacturer dealer certificates and quality credentials.',
       category: 'Compliance',
     },
+    clients: {
+      title: 'Clients & Work Projects',
+      subtitle: 'Manage client installations, commercial projects, testimonials & setup photos.',
+      category: 'Showcase',
+    },
     settings: {
       title: 'Settings & Security',
       subtitle: 'Update superadmin password, delivery PIN codes, and store rules.',
@@ -1209,6 +1494,18 @@ export default function AdminDashboardPage() {
             >
               <MessageSquare className="w-4 h-4 text-slate-300 shrink-0" />
               <span>Inquiries &amp; Quotes</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('clients'); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
+                activeTab === 'clients'
+                  ? 'bg-white/10 text-white font-semibold border-l-3 border-[#D52B30]'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
+              }`}
+            >
+              <Briefcase className="w-4 h-4 text-slate-300 shrink-0" />
+              <span>Clients &amp; Work Projects</span>
             </button>
           </div>
 
@@ -1664,205 +1961,533 @@ export default function AdminDashboardPage() {
         {/* TAB 1: STORE PRODUCT CATALOG MANAGEMENT */}
         {activeTab === 'products' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-[#142B55]">Store Products &amp; Catalog</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Manage equipment items, pricing, specs, and stock levels.
-                </p>
-              </div>
+            {/* View Mode Switcher: Catalog vs Category & Brand Sorting */}
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+              <button
+                type="button"
+                onClick={() => setProductSubView('catalog')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  productSubView === 'catalog'
+                    ? 'bg-[#142B55] text-white shadow-xs'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                }`}
+              >
+                <Package className="w-4 h-4" />
+                <span>Catalog &amp; Inventory</span>
+              </button>
 
-              <div className="flex items-center gap-2.5 flex-wrap">
-                {/* Category Filter Pills (Clean, no counts) */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-medium overflow-x-auto max-w-full">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProductCategoryFilter('all');
-                      setProductsPage(1);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg capitalize transition-colors cursor-pointer whitespace-nowrap ${
-                      productCategoryFilter === 'all'
-                        ? 'bg-white text-[#142B55] shadow-2xs font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    All
-                  </button>
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => {
-                        setProductCategoryFilter(cat.id);
-                        setProductsPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-lg capitalize transition-colors cursor-pointer whitespace-nowrap ${
-                        productCategoryFilter.toLowerCase() === cat.id.toLowerCase()
-                          ? 'bg-white text-[#142B55] shadow-2xs font-bold'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      {cat.name}
-                    </button>
-                  ))}
-                </div>
-
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setShowAddProductModal(true)}
-                  icon={<Plus className="w-4 h-4" />}
-                  className="bg-[#D52B30] hover:bg-[#B51E22] text-white cursor-pointer font-semibold"
-                >
-                  Add Product
-                </Button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setProductSubView('sorting')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  productSubView === 'sorting'
+                    ? 'bg-[#142B55] text-white shadow-xs'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                }`}
+              >
+                <Sliders className="w-4 h-4 text-cyan-400" />
+                <span>Category &amp; Brand Display Sorting</span>
+              </button>
             </div>
 
-            {/* Products Grid */}
-            {(() => {
-              const filtered = products.filter((p) => {
-                if (productCategoryFilter === 'all') return true;
-                return p.category === productCategoryFilter;
-              });
-
-              if (filtered.length === 0) {
-                return (
-                  <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
-                    <Package className="w-10 h-10 text-slate-300 mx-auto" />
-                    <p className="text-sm font-bold text-slate-700">No products found in this category</p>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                      Click below to add equipment directly to this category.
+            {/* SUB-VIEW 1: REGULAR CATALOG & INVENTORY */}
+            {productSubView === 'catalog' && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-[#142B55]">Store Products &amp; Catalog</h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Manage equipment items, pricing, specs, and stock levels.
                     </p>
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={() => setShowAddProductModal(true)}
-                      icon={<Plus className="w-4 h-4" />}
-                      className="bg-[#D52B30] hover:bg-[#B51E22] text-white"
-                    >
-                      Add Product
-                    </Button>
                   </div>
-                );
-              }
 
-              const paginatedProducts = filtered.slice(
-                (productsPage - 1) * productsPerPage,
-                productsPage * productsPerPage
-              );
-
-              return (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {paginatedProducts.map((p) => (
-                      <div
-                        key={p.id}
-                        className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    {/* Category Filter Pills (Clean, no counts) */}
+                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-medium overflow-x-auto max-w-full">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProductCategoryFilter('all');
+                          setProductsPage(1);
+                        }}
+                        className={`px-3 py-1.5 rounded-lg capitalize transition-colors cursor-pointer whitespace-nowrap ${
+                          productCategoryFilter === 'all'
+                            ? 'bg-white text-[#142B55] shadow-2xs font-bold'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
                       >
-                        {/* Clean Product Image Container */}
-                        <div className="h-44 w-full bg-slate-50 border-b border-slate-100 flex items-center justify-center p-3 relative">
-                          <img
-                            src={p.imageUrl || '/products/inverter-demo-1.jpg'}
-                            alt={p.name}
-                            className="h-full w-full object-contain"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/products/inverter-demo-1.jpg';
-                            }}
-                          />
-                        </div>
+                        All
+                      </button>
+                      {categories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => {
+                            setProductCategoryFilter(cat.id);
+                            setProductsPage(1);
+                          }}
+                          className={`px-3 py-1.5 rounded-lg capitalize transition-colors cursor-pointer whitespace-nowrap ${
+                            productCategoryFilter.toLowerCase() === cat.id.toLowerCase()
+                              ? 'bg-white text-[#142B55] shadow-2xs font-bold'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      ))}
+                    </div>
 
-                        {/* Content & Specs */}
-                        <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                          <div>
-                            <div className="flex items-center justify-between text-xs mb-1.5">
-                              <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">{p.brand}</span>
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 capitalize">
-                                {p.category?.replace(/-/g, ' ')}
-                              </span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => setShowAddProductModal(true)}
+                        icon={<Plus className="w-4 h-4" />}
+                        className="bg-[#D52B30] hover:bg-[#B51E22] text-white cursor-pointer font-semibold"
+                      >
+                        Add Product
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Products Grid */}
+                {(() => {
+                  const filtered = products.filter((p) => {
+                    if (productCategoryFilter === 'all') return true;
+                    return p.category === productCategoryFilter;
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
+                        <Package className="w-10 h-10 text-slate-300 mx-auto" />
+                        <p className="text-sm font-bold text-slate-700">No products found in this category</p>
+                        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                          Click below to add equipment directly to this category.
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          onClick={() => setShowAddProductModal(true)}
+                          icon={<Plus className="w-4 h-4" />}
+                          className="bg-[#D52B30] hover:bg-[#B51E22] text-white"
+                        >
+                          Add Product
+                        </Button>
+                      </div>
+                    );
+                  }
+
+                  const paginatedProducts = filtered.slice(
+                    (productsPage - 1) * productsPerPage,
+                    productsPage * productsPerPage
+                  );
+
+                  return (
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {paginatedProducts.map((p) => (
+                          <div
+                            key={p.id}
+                            className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                          >
+                            {/* Clean Product Image Container */}
+                            <div className="h-44 w-full bg-slate-50 border-b border-slate-100 flex items-center justify-center p-3 relative">
+                              <img
+                                src={p.imageUrl || '/products/inverter-demo-1.jpg'}
+                                alt={p.name}
+                                referrerPolicy="no-referrer"
+                                loading="lazy"
+                                className="h-full w-full object-contain"
+                                onError={(e) => {
+                                  const img = e.currentTarget as HTMLImageElement;
+                                  if (!img.dataset.hasFailed) {
+                                    img.dataset.hasFailed = 'true';
+                                    img.src = '/products/inverter-demo-1.jpg';
+                                  }
+                                }}
+                              />
                             </div>
 
-                            <h3 className="font-bold text-slate-900 text-sm line-clamp-2 leading-snug">{p.name}</h3>
-                            {p.capacity && (
-                              <p className="text-[11px] font-medium text-slate-500 mt-1">
-                                Capacity: <span className="text-slate-700">{p.capacity}</span>
-                              </p>
-                            )}
-
-                            <div className="bg-slate-50/80 p-2.5 rounded-xl text-xs space-y-1 mt-2.5 border border-slate-100">
-                              <div className="flex justify-between items-baseline">
-                                <span className="text-slate-500 text-[11px]">Price:</span>
-                                <div className="flex items-baseline gap-1.5">
-                                  {p.comparePrice && p.comparePrice > (p.price || 0) && (
-                                    <span className="text-slate-400 line-through text-[11px]">
-                                      ₹{p.comparePrice.toLocaleString('en-IN')}
-                                    </span>
-                                  )}
-                                  <span className="font-extrabold text-[#D52B30] text-sm">
-                                    ₹{p.price?.toLocaleString('en-IN')}
+                            {/* Content & Specs */}
+                            <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                              <div>
+                                <div className="flex items-center justify-between text-xs mb-1.5 gap-2">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">{p.brand}</span>
+                                    {typeof p.sortOrder === 'number' && p.sortOrder < 100 && (
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                                        #{p.sortOrder} on Store
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 capitalize">
+                                    {p.category?.replace(/-/g, ' ')}
                                   </span>
                                 </div>
+
+                                <h3 className="font-bold text-slate-900 text-sm line-clamp-2 leading-snug">{p.name}</h3>
+                                {p.capacity && (
+                                  <p className="text-[11px] font-medium text-slate-500 mt-1">
+                                    Capacity: <span className="text-slate-700">{p.capacity}</span>
+                                  </p>
+                                )}
+
+                                <div className="bg-slate-50/80 p-2.5 rounded-xl text-xs space-y-1 mt-2.5 border border-slate-100">
+                                  <div className="flex justify-between items-baseline">
+                                    <span className="text-slate-500 text-[11px]">Price:</span>
+                                    <div className="flex items-baseline gap-1.5">
+                                      {p.comparePrice && p.comparePrice > (p.price || 0) && (
+                                        <span className="text-slate-400 line-through text-[11px]">
+                                          ₹{p.comparePrice.toLocaleString('en-IN')}
+                                        </span>
+                                      )}
+                                      <span className="font-extrabold text-[#D52B30] text-sm">
+                                        ₹{p.price?.toLocaleString('en-IN')}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="flex justify-between items-center text-[11px]">
+                                    <span className="text-slate-500">Stock:</span>
+                                    <span className={`font-semibold ${p.stock && p.stock > 0 ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                      {p.stock && p.stock > 0 ? `${p.stock} units available` : 'Out of stock'}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex justify-between items-center text-[11px]">
-                                <span className="text-slate-500">Stock:</span>
-                                <span className={`font-semibold ${p.stock && p.stock > 0 ? 'text-emerald-700' : 'text-amber-700'}`}>
-                                  {p.stock && p.stock > 0 ? `${p.stock} units available` : 'Out of stock'}
+
+                              {/* Action buttons */}
+                              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingProduct({
+                                      ...p,
+                                      featuresText: Array.isArray(p.features) ? p.features.join(', ') : '',
+                                      features: Array.isArray(p.features) ? p.features : [],
+                                      keySpecs: p.keySpecs && Array.isArray(p.keySpecs) && p.keySpecs.length > 0
+                                        ? p.keySpecs
+                                        : [
+                                            { label: 'Category', value: (p.category || 'inverters').toUpperCase() },
+                                            { label: 'Brand', value: p.brand || '' },
+                                            ...(p.capacity ? [{ label: 'Capacity', value: p.capacity }] : []),
+                                            ...(p.warrantyPeriod ? [{ label: 'Warranty', value: p.warrantyPeriod }] : []),
+                                          ],
+                                    });
+                                  }}
+                                  className="flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5 text-[#142B55]" />
+                                  <span>Edit Details</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteProduct(p.id, p.name)}
+                                  title="Delete Product"
+                                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-100"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Products Pagination */}
+                      <AdminPagination
+                        currentPage={productsPage}
+                        totalItems={filtered.length}
+                        itemsPerPage={productsPerPage}
+                        onPageChange={setProductsPage}
+                        itemLabel="products"
+                      />
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* SUB-VIEW 2: CATEGORY & BRAND SORTING STUDIO (ZERO ARROWS) */}
+            {productSubView === 'sorting' && (
+              <div className="space-y-6">
+                {/* Introduction & Quick Save Bar */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-base sm:text-lg font-black text-[#142B55] flex items-center gap-2">
+                        <Sliders className="w-5 h-5 text-[#D52B30]" />
+                        <span>Category &amp; Brand Display Sorting</span>
+                      </h2>
+                      <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+                        Control exactly which brand appears first for each category (e.g. show BPE first in Online UPS) and arrange model sequence. No arrows — set simple priority numbers.
+                      </p>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      disabled={isSavingCategorySort}
+                      onClick={handleSaveCategorySort}
+                      className="bg-[#D52B30] hover:bg-[#b82226] text-white font-bold whitespace-nowrap self-start sm:self-auto"
+                      icon={isSavingCategorySort ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                    >
+                      {isSavingCategorySort ? 'Saving Sorting...' : `Save ${categories.find(c => c.id === selectedSortCategory)?.name || 'Category'} Sorting`}
+                    </Button>
+                  </div>
+
+                  {/* Step 1: Category Selection Tabs */}
+                  <div className="pt-3 border-t border-slate-100 space-y-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Step 1: Select Category to Organize
+                    </span>
+                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+                      {categories.map((cat) => {
+                        const isSelected = selectedSortCategory.toLowerCase() === cat.id.toLowerCase();
+                        const pCount = products.filter((p) => (p.category || '').toLowerCase() === cat.id.toLowerCase()).length;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setSelectedSortCategory(cat.id)}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                              isSelected
+                                ? 'bg-[#142B55] text-white shadow-sm scale-[1.02]'
+                                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                            }`}
+                          >
+                            <span>{cat.name}</span>
+                            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                              {pCount}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 2: Brand Priority for Selected Category */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
+                  <div className="border-b border-slate-100 pb-3">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-[#142B55] text-white text-[11px] font-mono flex items-center justify-center font-bold">1</span>
+                      <span>Brand Display Priority in {categories.find(c => c.id === selectedSortCategory)?.name || selectedSortCategory}</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Which brand should customers see first? (e.g. choose #1 for BPE so BPE products appear before Microtek).
+                    </p>
+                  </div>
+
+                  {activeBrandOrder.length === 0 ? (
+                    <div className="p-8 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
+                      No products found in this category yet. Add products to configure brand sorting.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {activeBrandOrder.map((brandName, idx) => {
+                        const brandProds = products.filter(
+                          (p) => (p.category || '').toLowerCase() === selectedSortCategory.toLowerCase() && (p.brand || '').trim().toLowerCase() === brandName.toLowerCase()
+                        );
+                        return (
+                          <div
+                            key={brandName}
+                            className={`p-4 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                              idx === 0
+                                ? 'bg-amber-50/70 border-amber-300 shadow-2xs'
+                                : 'bg-slate-50/70 border-slate-200'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0 ${
+                                idx === 0 ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-700'
+                              }`}>
+                                #{idx + 1}
+                              </span>
+                              <div className="min-w-0">
+                                <h4 className="text-xs font-bold text-slate-900 uppercase truncate">{brandName}</h4>
+                                <span className="text-[10px] text-slate-500 font-medium">
+                                  {brandProds.length} models {idx === 0 && '• Displays First'}
                                 </span>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Action buttons */}
-                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingProduct({
-                                  ...p,
-                                  featuresText: Array.isArray(p.features) ? p.features.join(', ') : '',
-                                  features: Array.isArray(p.features) ? p.features : [],
-                                  keySpecs: p.keySpecs && Array.isArray(p.keySpecs) && p.keySpecs.length > 0
-                                    ? p.keySpecs
-                                    : [
-                                        { label: 'Category', value: (p.category || 'inverters').toUpperCase() },
-                                        { label: 'Brand', value: p.brand || '' },
-                                        ...(p.capacity ? [{ label: 'Capacity', value: p.capacity }] : []),
-                                        ...(p.warrantyPeriod ? [{ label: 'Warranty', value: p.warrantyPeriod }] : []),
-                                      ],
-                                });
-                              }}
-                              className="flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                              <Edit3 className="w-3.5 h-3.5 text-[#142B55]" />
-                              <span>Edit Details</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteProduct(p.id, p.name)}
-                              title="Delete Product"
-                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-red-100"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            {/* Dropdown to change Brand Rank: NO ARROWS */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase">Rank:</label>
+                              <select
+                                value={idx + 1}
+                                onChange={(e) => handleBrandRankChange(brandName, Number(e.target.value))}
+                                className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold text-[#142B55] cursor-pointer shadow-2xs focus:outline-none focus:border-[#142B55]"
+                              >
+                                {activeBrandOrder.map((_, rIdx) => (
+                                  <option key={rIdx + 1} value={rIdx + 1}>
+                                    #{rIdx + 1} {rIdx === 0 ? '(1st)' : ''}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Step 3: Product Sequence within each Brand */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-5">
+                  <div className="border-b border-slate-100 pb-3">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-[#142B55] text-white text-[11px] font-mono flex items-center justify-center font-bold">2</span>
+                      <span>Product Sequence within Brands</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Set numerical display sequence for each model (e.g. 1 = 1kVA, 2 = 2kVA, 3 = 3kVA, 4 = 6kVA...).
+                    </p>
                   </div>
 
-                  {/* Products Pagination */}
-                  <AdminPagination
-                    currentPage={productsPage}
-                    totalItems={filtered.length}
-                    itemsPerPage={productsPerPage}
-                    onPageChange={setProductsPage}
-                    itemLabel="products"
-                  />
+                  {activeBrandOrder.map((brandName, bIdx) => {
+                    const brandProds = products.filter(
+                      (p) => (p.category || '').toLowerCase() === selectedSortCategory.toLowerCase() && (p.brand || '').trim().toLowerCase() === brandName.toLowerCase()
+                    );
+
+                    // Sort models by activeProductOrder
+                    const sortedBrandProds = [...brandProds].sort((a, b) => {
+                      const ordA = activeProductOrder[a.id] ?? 999;
+                      const ordB = activeProductOrder[b.id] ?? 999;
+                      if (ordA !== ordB) return ordA - ordB;
+                      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+                    });
+
+                    return (
+                      <div key={brandName} className="space-y-2.5 p-4 rounded-xl bg-slate-50/60 border border-slate-200/80">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-[#142B55] text-white uppercase tracking-wider">
+                              {brandName}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-500">
+                              (Brand Priority #{bIdx + 1})
+                            </span>
+                          </div>
+                          <span className="text-xs text-slate-400 font-medium">
+                            {sortedBrandProds.length} models
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3">
+                          {sortedBrandProds.map((prod) => (
+                            <div
+                              key={prod.id}
+                              className="p-4 bg-white rounded-2xl border border-slate-200/90 hover:border-slate-300 shadow-xs hover:shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
+                            >
+                              <div className="flex items-center gap-4 min-w-0 flex-1">
+                                {/* Clear, Visible Product Image (80px x 80px) */}
+                                <div className="w-20 h-20 rounded-xl bg-slate-50 border border-slate-200/90 p-2 shrink-0 flex items-center justify-center overflow-hidden shadow-2xs">
+                                  <img
+                                    src={prod.imageUrl || '/products/inverter-demo-1.jpg'}
+                                    alt={prod.name}
+                                    referrerPolicy="no-referrer"
+                                    loading="lazy"
+                                    className="max-h-full max-w-full object-contain"
+                                    onError={(e) => {
+                                      const img = e.currentTarget as HTMLImageElement;
+                                      if (!img.dataset.hasFailed) {
+                                        img.dataset.hasFailed = 'true';
+                                        img.src = '/products/inverter-demo-1.jpg';
+                                      }
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Readable Product Details */}
+                                <div className="min-w-0 space-y-1">
+                                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug line-clamp-2">
+                                    {prod.name}
+                                  </h4>
+                                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 font-medium">
+                                    <span className="font-extrabold text-[#D52B30]">
+                                      ₹{prod.price?.toLocaleString('en-IN') || 'Price on request'}
+                                    </span>
+                                    {prod.capacity && (
+                                      <>
+                                        <span className="text-slate-300">&bull;</span>
+                                        <span className="px-2 py-0.5 rounded-md bg-slate-100 font-semibold text-slate-700">
+                                          Capacity: {prod.capacity}
+                                        </span>
+                                      </>
+                                    )}
+                                    {prod.sku && (
+                                      <>
+                                        <span className="text-slate-300">&bull;</span>
+                                        <span className="font-mono text-slate-400 text-[10px]">
+                                          SKU: {prod.sku}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Prominent Order Number Input */}
+                              <div className="flex items-center gap-3 shrink-0 self-end sm:self-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
+                                <div className="text-right">
+                                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                                    Display Order
+                                  </span>
+                                  <span className="text-[10px] font-bold text-[#142B55]">
+                                    {(activeProductOrder[prod.id] ?? 999) === 1
+                                      ? '★ Shows First'
+                                      : `Position #${activeProductOrder[prod.id] ?? 999}`}
+                                  </span>
+                                </div>
+
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={activeProductOrder[prod.id] ?? ''}
+                                  placeholder="1"
+                                  onChange={(e) => {
+                                    const val = e.target.value === '' ? 1 : Number(e.target.value);
+                                    setActiveProductOrder((prev) => ({
+                                      ...prev,
+                                      [prod.id]: val,
+                                    }));
+                                  }}
+                                  className="w-16 h-10 px-2 bg-white border-2 border-slate-300 rounded-lg text-center text-sm font-mono font-bold text-[#142B55] focus:outline-none focus:border-[#142B55] shadow-2xs"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })()}
+
+                {/* Bottom Save Bar */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between gap-4">
+                  <p className="text-xs text-slate-500">
+                    Changes take effect on the customer storefront and category pages immediately upon saving.
+                  </p>
+
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    disabled={isSavingCategorySort}
+                    onClick={handleSaveCategorySort}
+                    className="bg-[#D52B30] hover:bg-[#b82226] text-white font-bold whitespace-nowrap px-6"
+                    icon={isSavingCategorySort ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  >
+                    {isSavingCategorySort ? 'Saving Sorting...' : `Save ${categories.find(c => c.id === selectedSortCategory)?.name || 'Category'} Sorting`}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -3810,6 +4435,278 @@ export default function AdminDashboardPage() {
             )}
           </div>
         )}
+
+        {/* TAB 7: CLIENTS & WORK PROJECTS */}
+        {activeTab === 'clients' && (
+          <div className="space-y-6">
+            {/* Header & Controls */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-[#142B55] flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-[#D52B30]" />
+                  <span>Clients &amp; Work Projects Showcase</span>
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Manage commercial installations, customer site setups, engineering case studies, and live photos.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+                <select
+                  value={projectSectorFilter}
+                  onChange={(e) => {
+                    setProjectSectorFilter(e.target.value);
+                    setClientProjectsPage(1);
+                  }}
+                  className="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#142B55]/20"
+                >
+                  <option value="all">All Sectors ({clientProjects.length})</option>
+                  <option value="Healthcare & Hospitals">Healthcare &amp; Hospitals</option>
+                  <option value="Corporate IT & Data Rooms">Corporate IT &amp; Data Rooms</option>
+                  <option value="Commercial & Retail">Commercial &amp; Retail</option>
+                  <option value="Villas & Residential">Villas &amp; Residential</option>
+                  <option value="Industrial & Manufacturing">Industrial &amp; Manufacturing</option>
+                </select>
+
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    setProjectModalError(null);
+                    setShowAddProjectModal(true);
+                  }}
+                  icon={<Plus className="w-4 h-4" />}
+                  className="bg-[#D52B30] hover:bg-[#B51E22] text-white font-semibold cursor-pointer shrink-0"
+                >
+                  Add Customer Project
+                </Button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Client Projects</p>
+                <p className="text-xl font-extrabold text-[#142B55] mt-1">{clientProjects.length}</p>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Featured on Website</p>
+                <p className="text-xl font-extrabold text-emerald-600 mt-1">
+                  {clientProjects.filter((p) => p.isFeatured).length}
+                </p>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Healthcare &amp; IT Sites</p>
+                <p className="text-xl font-extrabold text-blue-600 mt-1">
+                  {clientProjects.filter((p) => p.sector === 'Healthcare & Hospitals' || p.sector === 'Corporate IT & Data Rooms').length}
+                </p>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Commercial &amp; Industrial</p>
+                <p className="text-xl font-extrabold text-amber-600 mt-1">
+                  {clientProjects.filter((p) => p.sector === 'Commercial & Retail' || p.sector === 'Industrial & Manufacturing' || p.sector === 'Villas & Residential').length}
+                </p>
+              </div>
+            </div>
+
+            {/* Project Cards Grid */}
+            {(() => {
+              const filteredList = clientProjects.filter(
+                (p) => projectSectorFilter === 'all' || p.sector === projectSectorFilter
+              );
+              const totalPages = Math.ceil(filteredList.length / clientProjectsPerPage) || 1;
+              const paginatedList = filteredList.slice(
+                (clientProjectsPage - 1) * clientProjectsPerPage,
+                clientProjectsPage * clientProjectsPerPage
+              );
+
+              if (filteredList.length === 0) {
+                return (
+                  <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                      <Briefcase className="w-6 h-6" />
+                    </div>
+                    <h3 className="font-bold text-slate-800 text-sm">No client projects found</h3>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      {projectSectorFilter === 'all'
+                        ? 'No client projects have been recorded yet. Click "Add Customer Project" above to publish your first showcase entry.'
+                        : `No projects found under the "${projectSectorFilter}" sector.`}
+                    </p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {paginatedList.map((project) => (
+                      <div
+                        key={project.id}
+                        className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group"
+                      >
+                        <div className="space-y-3">
+                          {/* Project Image Banner */}
+                          <div className="rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-50/70 h-44 relative flex items-center justify-center">
+                            {project.imageUrl ? (
+                              <img
+                                src={project.imageUrl}
+                                alt={project.clientName}
+                                className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="text-slate-400 flex flex-col items-center gap-1">
+                                <Briefcase className="w-8 h-8 stroke-1" />
+                                <span className="text-[11px] font-medium">No photo uploaded</span>
+                              </div>
+                            )}
+
+                            {/* Quick Badges over Image */}
+                            <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#142B55] text-white shadow-2xs">
+                                {project.sector}
+                              </span>
+                            </div>
+
+                            <div className="absolute top-2.5 right-2.5">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-2xs ${
+                                  project.isFeatured
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-slate-200 text-slate-700'
+                                }`}
+                              >
+                                {project.isFeatured ? '★ Featured on Site' : 'Hidden'}
+                              </span>
+                            </div>
+
+                            {project.imageUrl && (
+                              <a
+                                href={project.imageUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-semibold gap-1.5 transition-opacity"
+                              >
+                                <Eye className="w-4 h-4" />
+                                <span>View Full Image</span>
+                              </a>
+                            )}
+                          </div>
+
+                          {/* Client Location & Business Name */}
+                          <div className="space-y-1">
+                            <p className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+                              <MapPin className="w-3.5 h-3.5 text-[#D52B30] shrink-0" />
+                              <span>{project.location}</span>
+                            </p>
+                            <h3 className="font-extrabold text-slate-900 text-base leading-snug">
+                              {project.clientName}
+                            </h3>
+                          </div>
+
+                          {/* Installed Product Box */}
+                          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[#D52B30] flex items-center gap-1">
+                              <Zap className="w-3 h-3" />
+                              <span>Installed Product</span>
+                            </p>
+                            <p className="text-xs font-bold text-[#142B55] leading-snug">
+                              {project.systemInstalled}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setProjectModalError(null);
+                                setEditingProject({ ...project });
+                              }}
+                              className="text-xs px-2.5 py-1.5 rounded-xl bg-blue-50 text-[#142B55] hover:bg-blue-100 font-semibold cursor-pointer flex items-center gap-1 transition-colors"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>Edit</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => toggleProjectFeatured(project.id, project.isFeatured)}
+                              className="text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold cursor-pointer transition-colors"
+                            >
+                              {project.isFeatured ? 'Hide' : 'Feature'}
+                            </button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteProject(project.id, project.clientName)}
+                            className="text-xs text-red-600 hover:text-red-800 p-1.5 rounded-xl hover:bg-red-50 flex items-center gap-1 font-semibold cursor-pointer transition-colors"
+                            title="Delete Project"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Admin Projects Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200 bg-white p-4 rounded-2xl">
+                      <p className="text-xs text-slate-500 font-medium">
+                        Showing <span className="font-bold text-slate-900">{(clientProjectsPage - 1) * clientProjectsPerPage + 1}</span> to{' '}
+                        <span className="font-bold text-slate-900">
+                          {Math.min(clientProjectsPage * clientProjectsPerPage, filteredList.length)}
+                        </span>{' '}
+                        of <span className="font-bold text-slate-900">{filteredList.length}</span> projects
+                      </p>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          disabled={clientProjectsPage === 1}
+                          onClick={() => setClientProjectsPage((p) => Math.max(p - 1, 1))}
+                          className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          <span>Previous</span>
+                        </button>
+
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
+                          <button
+                            key={pg}
+                            type="button"
+                            onClick={() => setClientProjectsPage(pg)}
+                            className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              clientProjectsPage === pg
+                                ? 'bg-[#142B55] text-white'
+                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            {pg}
+                          </button>
+                        ))}
+
+                        <button
+                          type="button"
+                          disabled={clientProjectsPage === totalPages}
+                          onClick={() => setClientProjectsPage((p) => Math.min(p + 1, totalPages))}
+                          className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+                        >
+                          <span>Next</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        )}
       </main>
 
       {/* PROVISION VENDOR MODAL */}
@@ -4923,6 +5820,22 @@ export default function AdminDashboardPage() {
                     />
                   </div>
 
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                      <span>Display Priority / Sort Order</span>
+                      <span className="text-[10px] text-cyan-700 font-bold lowercase">1 = Top Priority</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 1 for Top Showcase, 2, 3..."
+                      value={productForm.sortOrder || ''}
+                      onChange={(e) => setProductForm({ ...productForm, sortOrder: Number(e.target.value) || 999 })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] font-mono text-xs"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-0.5">Lower numbers appear first on the shop page (e.g. 1 for BPE Online UPS).</p>
+                  </div>
+
                   {/* PRODUCT IMAGE SELECTOR */}
                   <div className="sm:col-span-2">
                     <ImageUploader
@@ -5260,6 +6173,22 @@ export default function AdminDashboardPage() {
                       onChange={(e) => setEditingProduct({ ...editingProduct, warrantyPeriod: e.target.value })}
                       className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55]"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+                      <span>Display Priority / Sort Order</span>
+                      <span className="text-[10px] text-cyan-700 font-bold lowercase">1 = Top Priority</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 1 for Top Showcase, 2, 3..."
+                      value={editingProduct.sortOrder ?? ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, sortOrder: e.target.value === '' ? undefined : Number(e.target.value) })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] font-mono text-xs"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-0.5">Lower numbers appear first on the shop page.</p>
                   </div>
 
                   {/* PRODUCT IMAGE SELECTOR */}
@@ -5855,6 +6784,293 @@ export default function AdminDashboardPage() {
           </div>
         );
       })()}
+
+      {/* ADD CUSTOMER PROJECT MODAL */}
+      {showAddProjectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto border border-slate-100">
+            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
+              <div>
+                <h3 className="text-lg font-bold text-[#142B55] flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-[#D52B30]" />
+                  <span>Add Customer Project</span>
+                </h3>
+                <p className="text-xs text-slate-500">Publish installation case study and photos to public /services showcase</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddProjectModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center font-bold text-sm cursor-pointer transition-colors"
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateProject} noValidate className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 text-xs">
+                {projectModalError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                    <span className="font-medium">{projectModalError}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Client / Organization Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Yashoda Hospitals Diagnostic Wing"
+                      value={newProjectData.clientName}
+                      onChange={(e) => setNewProjectData({ ...newProjectData, clientName: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#142B55]/20 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Client Industry / Sector *
+                    </label>
+                    <select
+                      value={newProjectData.sector}
+                      onChange={(e) => setNewProjectData({ ...newProjectData, sector: e.target.value as ClientSector })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#142B55]/20 font-medium bg-white"
+                    >
+                      <option value="Healthcare & Hospitals">Healthcare &amp; Hospitals</option>
+                      <option value="Corporate IT & Data Rooms">Corporate IT &amp; Data Rooms</option>
+                      <option value="Commercial & Retail">Commercial &amp; Retail</option>
+                      <option value="Villas & Residential">Villas &amp; Residential</option>
+                      <option value="Industrial & Manufacturing">Industrial &amp; Manufacturing</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Installation Location *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Somajiguda, Hyderabad"
+                      value={newProjectData.location}
+                      onChange={(e) => setNewProjectData({ ...newProjectData, location: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#142B55]/20 font-medium"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-6">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={newProjectData.isFeatured}
+                        onChange={(e) => setNewProjectData({ ...newProjectData, isFeatured: e.target.checked })}
+                        className="w-4 h-4 text-[#D52B30] rounded focus:ring-[#D52B30] accent-[#D52B30]"
+                      />
+                      <span className="font-bold text-slate-800 text-xs">Featured on Website Showcase</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    System / Equipment Installed *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 30kVA BPE 3:3 True Online UPS + 120V Amaron SMF Bank"
+                    value={newProjectData.systemInstalled}
+                    onChange={(e) => setNewProjectData({ ...newProjectData, systemInstalled: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#142B55]/20 font-medium"
+                  />
+                </div>
+
+                {/* Setup Image Upload / Presets */}
+                <div className="pt-2 border-t border-slate-100">
+                  <ImageUploader
+                    value={newProjectData.imageUrl}
+                    onChange={(url) => setNewProjectData({ ...newProjectData, imageUrl: url })}
+                    label="Installation / Equipment Setup Photo"
+                    presets={PROJECT_PRESET_IMAGES}
+                    fallbackImage="/products/bpe-online-ups-hq.png"
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAddProjectModal(false)}
+                  disabled={isSubmittingProject}
+                  className="cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  disabled={isSubmittingProject}
+                  icon={isSubmittingProject ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+                  className="bg-[#142B55] hover:bg-[#0B172F] text-white shadow-xs font-bold disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                  {isSubmittingProject ? 'Publishing...' : 'Publish Customer Project'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT CUSTOMER PROJECT MODAL */}
+      {editingProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto border border-slate-100">
+            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
+              <div>
+                <h3 className="text-lg font-bold text-[#142B55] flex items-center gap-2">
+                  <Edit3 className="w-5 h-5 text-[#142B55]" />
+                  <span>Edit Customer Project</span>
+                </h3>
+                <p className="text-xs text-slate-500">Update installation specs, photos, review, or featured visibility</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingProject(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center font-bold text-sm cursor-pointer transition-colors"
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateProject} noValidate className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 text-xs">
+                {projectModalError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                    <span className="font-medium">{projectModalError}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Client / Organization Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editingProject.clientName}
+                      onChange={(e) => setEditingProject({ ...editingProject, clientName: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#142B55]/20 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Client Industry / Sector *
+                    </label>
+                    <select
+                      value={editingProject.sector}
+                      onChange={(e) => setEditingProject({ ...editingProject, sector: e.target.value as ClientSector })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#142B55]/20 font-medium bg-white"
+                    >
+                      <option value="Healthcare & Hospitals">Healthcare &amp; Hospitals</option>
+                      <option value="Corporate IT & Data Rooms">Corporate IT &amp; Data Rooms</option>
+                      <option value="Commercial & Retail">Commercial &amp; Retail</option>
+                      <option value="Villas & Residential">Villas &amp; Residential</option>
+                      <option value="Industrial & Manufacturing">Industrial &amp; Manufacturing</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Installation Location *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editingProject.location}
+                      onChange={(e) => setEditingProject({ ...editingProject, location: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#142B55]/20 font-medium"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3 pt-6">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={editingProject.isFeatured}
+                        onChange={(e) => setEditingProject({ ...editingProject, isFeatured: e.target.checked })}
+                        className="w-4 h-4 text-[#D52B30] rounded focus:ring-[#D52B30] accent-[#D52B30]"
+                      />
+                      <span className="font-bold text-slate-800 text-xs">Featured on Website Showcase</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    System / Equipment Installed *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingProject.systemInstalled}
+                    onChange={(e) => setEditingProject({ ...editingProject, systemInstalled: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#142B55]/20 font-medium"
+                  />
+                </div>
+
+                {/* Setup Image Upload / Presets */}
+                <div className="pt-2 border-t border-slate-100">
+                  <ImageUploader
+                    value={editingProject.imageUrl}
+                    onChange={(url) => setEditingProject({ ...editingProject, imageUrl: url })}
+                    label="Installation / Equipment Setup Photo"
+                    presets={PROJECT_PRESET_IMAGES}
+                    fallbackImage="/products/bpe-online-ups-hq.png"
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingProject(null)}
+                  disabled={isSubmittingProject}
+                  className="cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  disabled={isSubmittingProject}
+                  icon={isSubmittingProject ? <Loader2 className="w-4 h-4 animate-spin" /> : undefined}
+                  className="bg-[#142B55] hover:bg-[#0B172F] text-white shadow-xs font-bold disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                  {isSubmittingProject ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* BRANDED IN-APP DELETION CONFIRMATION MODAL */}
       {deleteConfirmation && deleteConfirmation.isOpen && (

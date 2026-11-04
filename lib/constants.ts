@@ -113,6 +113,7 @@ export const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'About Us', href: '/about' },
   { label: 'Our Solutions', href: '/shop', hasDropdown: true },
+  { label: 'Services', href: '/services' },
   { label: 'Certifications', href: '/certifications' },
   { label: 'Contact Us', href: '/contact' },
 ] as const;

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse, connection } from 'next/server';
 import { getPlatformSettings } from '@/lib/db/data-store';
 import { resolvePincodeServiceability } from '@/lib/pincodes';
 
@@ -7,10 +7,10 @@ import { resolvePincodeServiceability } from '@/lib/pincodes';
  * Seamlessly accepts all Hyderabad / Secunderabad / GHMC postal codes while returning
  * a professional, neutral delivery-unavailable error message for unserviceable regions.
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  await connection();
   try {
-    const { searchParams } = new URL(request.url);
-    const rawPincode = searchParams.get('pincode') || '';
+    const rawPincode = request.nextUrl.searchParams.get('pincode') || '';
 
     const settings = await getPlatformSettings();
     const resolution = resolvePincodeServiceability(rawPincode, settings);

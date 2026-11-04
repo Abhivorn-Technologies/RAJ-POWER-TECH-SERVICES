@@ -1,7 +1,17 @@
+(process.env as Record<string, string | undefined>).NODE_ENV = 'test';
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEMO_FEATURED_PRODUCTS } from '../lib/demo-data';
-import { AUTHENTIC_CERTIFICATIONS, DEFAULT_ELIGIBLE_PINCODES } from '../lib/db/data-store';
+import {
+  AUTHENTIC_CERTIFICATIONS,
+  DEFAULT_ELIGIBLE_PINCODES,
+  listClientProjects,
+  findClientProjectById,
+  createClientProjectRecord,
+  updateClientProjectRecord,
+  deleteClientProjectRecord,
+} from '../lib/db/data-store';
 
 test('DATASTORE: DEMO_FEATURED_PRODUCTS catalog integrity', () => {
   assert.ok(DEMO_FEATURED_PRODUCTS.length >= 10, 'Catalog should contain full range of products');
@@ -79,4 +89,71 @@ test('DATASTORE: getLatestProductPerBrand returns exactly 1 latest product for e
   assert.strictEqual(newLatestByBrand.length, 4);
   const microtekPick = newLatestByBrand.find((p) => p.brand.toLowerCase().includes('microtek'));
   assert.strictEqual(microtekPick?.id, 'mtk-latest-admin-01', 'Should select the newly uploaded admin product for Microtek');
+});
+
+test('DATASTORE: Client Projects CRUD operations and filtering', async () => {
+  const initialProjects = await listClientProjects();
+  assert.ok(Array.isArray(initialProjects), 'Projects list should be an array');
+  assert.ok(initialProjects.length >= 6, 'Should have initial client projects seeded');
+
+  // Test creating a new client project record
+  const created = await createClientProjectRecord({
+    clientName: 'Test Tech Park Diagnostic Lab',
+    sector: 'Healthcare & Hospitals',
+    location: 'Madhapur, Hyderabad',
+    systemInstalled: '15kVA Online Double Conversion UPS',
+    scopeDescription: 'Clean power protection for laboratory blood analyzers and cold chain storage.',
+    completionYear: '2025',
+    imageUrl: '/products/bpe-online-ups-hq.png',
+    rating: 5,
+    testimonial: 'Exceptional zero-delay handover.',
+    isFeatured: true,
+  });
+
+  assert.ok(created.id, 'Created project must have an ID');
+  assert.strictEqual(created.clientName, 'Test Tech Park Diagnostic Lab');
+  assert.strictEqual(created.sector, 'Healthcare & Hospitals');
+
+  // Test finding by ID
+  const found = await findClientProjectById(created.id);
+  assert.ok(found, 'Should find newly created project by ID');
+  assert.strictEqual(found?.location, 'Madhapur, Hyderabad');
+
+  // Test updating
+  const updated = await updateClientProjectRecord(created.id, {
+    systemInstalled: '20kVA Online Modular UPS Stack',
+    isFeatured: false,
+  });
+  assert.strictEqual(updated?.systemInstalled, '20kVA Online Modular UPS Stack');
+  assert.strictEqual(updated?.isFeatured, false);
+
+  // Test deleting
+  const deleteSuccess = await deleteClientProjectRecord(created.id);
+  assert.strictEqual(deleteSuccess, true, 'Project record should be deleted');
+
+  const afterDelete = await findClientProjectById(created.id);
+  assert.strictEqual(afterDelete, null, 'Deleted project should no longer exist');
+});
+
+test('DATASTORE: Category and Brand sorting configuration integrity', async () => {
+  const { getCategorySortConfig, saveCategorySortConfig, listProducts } = await import('../lib/db/data-store');
+
+  const initialUps = await getCategorySortConfig('ups');
+  assert.ok(initialUps, 'UPS category sort config should exist');
+  assert.strictEqual(initialUps.brandOrder[0], 'BPE', 'BPE must be the #1 prioritized brand for UPS');
+
+  // Verify saveCategorySortConfig correctly sorts BPE products first
+  await saveCategorySortConfig({
+    categoryId: 'ups',
+    brandOrder: ['BPE', 'Microtek'],
+    productOrder: {
+      'bpe-mf-1101lb16': 1,
+      'bpe-mf-1106lb16': 2,
+    },
+  });
+
+  const sortedUpsProducts = await listProducts({ category: 'ups' });
+  assert.ok(sortedUpsProducts.length > 0, 'Should have UPS products');
+  // First product must be BPE
+  assert.strictEqual(sortedUpsProducts[0].brand.toLowerCase(), 'bpe', 'First product in UPS category must be BPE');
 });

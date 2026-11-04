@@ -143,7 +143,21 @@ function ShopContent() {
     } else if (sortBy === 'name') {
       return list.sort((a, b) => a.name.localeCompare(b.name));
     }
-    return list;
+    // Default 'featured': Respect category brand priority, owner's custom sortOrder (1, 2, 3...) then newest
+    return list.sort((a, b) => {
+      if (selectedCategory.toLowerCase() === 'ups') {
+        const brandA = (a.brand || '').trim().toLowerCase();
+        const brandB = (b.brand || '').trim().toLowerCase();
+        const isBpeA = brandA === 'bpe';
+        const isBpeB = brandB === 'bpe';
+        if (isBpeA && !isBpeB) return -1;
+        if (!isBpeA && isBpeB) return 1;
+      }
+      const orderA = typeof a.sortOrder === 'number' ? a.sortOrder : 999;
+      const orderB = typeof b.sortOrder === 'number' ? b.sortOrder : 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
   })();
 
   const handleBrandChange = (brandId: string) => {

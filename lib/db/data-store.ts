@@ -1,14 +1,16 @@
 import { getDatabase, isMongoConfigured, registerDatabaseInitHook } from '@/lib/mongodb';
 import { User, UserWithCredentials } from '@/types/auth';
 import { Vendor } from '@/types/vendor';
-import { Product, SolutionCategoryItem } from '@/types/product';
+import { Product, SolutionCategoryItem, CategorySortConfig } from '@/types/product';
 import { Order, OrderItem, ItemFulfilmentStatus } from '@/types/order';
 import { QuotationRequest, QuotationStatus } from '@/types/quotation';
 import { Certification } from '@/types/certification';
 import { PlatformSettings, EligiblePincodeRule } from '@/types/settings';
 import { PaymentRecord } from '@/types/payment';
 import { OrderNotificationEvent } from '@/types/notification';
+import { ClientProject } from '@/types/client-project';
 import { DEMO_FEATURED_PRODUCTS } from '@/lib/demo-data';
+import { INITIAL_CLIENT_PROJECTS } from '@/lib/clients-data';
 
 // ==========================================
 // In-Memory Dev Store (Restricted strictly to local development)
@@ -22,8 +24,10 @@ interface DevStore {
   orders: Map<string, Order>;
   quotations: Map<string, QuotationRequest>;
   certifications: Map<string, Certification>;
+  clientProjects: Map<string, ClientProject>;
   payments: Map<string, PaymentRecord>;
   notifications: Map<string, OrderNotificationEvent>;
+  categorySortConfigs?: Map<string, CategorySortConfig>;
   settings: PlatformSettings;
   initialized: boolean;
 }
@@ -75,6 +79,7 @@ const devStore: DevStore = globalThis._rpsDevStore ?? {
   orders: new Map(),
   quotations: new Map(),
   certifications: new Map(),
+  clientProjects: new Map(),
   payments: new Map(),
   notifications: new Map(),
   settings: defaultDevSettings,
@@ -121,6 +126,41 @@ function ensureCategoriesSeeded() {
   }
 }
 ensureCategoriesSeeded();
+
+function ensureCategorySortConfigsSeeded() {
+  if (!devStore.categorySortConfigs) {
+    devStore.categorySortConfigs = new Map();
+  }
+  if (devStore.categorySortConfigs.size === 0) {
+    devStore.categorySortConfigs.set('ups', {
+      categoryId: 'ups',
+      brandOrder: ['BPE', 'Microtek'],
+      productOrder: {
+        'bpe-mf-1101lb16': 1,
+        'bpe-mf-1102lb16': 2,
+        'bpe-mf-1103lb16': 3,
+        'bpe-mf-1106lb16': 4,
+        'microtek-hf-max-plus-1k': 1,
+        'microtek-on-line-ups-3kva-max-plus': 2,
+        'microtek-on-line-ups-3kva-ib-max-plus': 3,
+      },
+      updatedAt: new Date().toISOString(),
+    });
+    devStore.categorySortConfigs.set('batteries', {
+      categoryId: 'batteries',
+      brandOrder: ['Amaron Quanta', 'Exide Powersafe'],
+      productOrder: {},
+      updatedAt: new Date().toISOString(),
+    });
+    devStore.categorySortConfigs.set('inverters', {
+      categoryId: 'inverters',
+      brandOrder: ['Microtek', 'Luminous'],
+      productOrder: {},
+      updatedAt: new Date().toISOString(),
+    });
+  }
+}
+ensureCategorySortConfigsSeeded();
 
 const devUsers = devStore.users;
 const devVendors = devStore.vendors;
@@ -542,6 +582,43 @@ registerDatabaseInitHook(async (db) => {
       },
     ]);
   }
+
+  // 6. Seed Default Category Sort Configs if empty
+  const sortConfigCount = await db.collection('category_sort_configs').countDocuments();
+  if (sortConfigCount === 0) {
+    await db.collection('category_sort_configs').insertMany([
+      {
+        categoryId: 'ups',
+        brandOrder: ['BPE', 'Microtek'],
+        productOrder: {},
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        categoryId: 'batteries',
+        brandOrder: ['Amaron Quanta', 'Exide'],
+        productOrder: {},
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        categoryId: 'inverters',
+        brandOrder: ['Microtek'],
+        productOrder: {},
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        categoryId: 'lithium',
+        brandOrder: ['Microtek'],
+        productOrder: {},
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        categoryId: 'high-capacity-ups',
+        brandOrder: ['Microtek'],
+        productOrder: {},
+        updatedAt: new Date().toISOString(),
+      },
+    ]);
+  }
 });
 
 // ==========================================
@@ -793,31 +870,173 @@ export async function createCategory(cat: SolutionCategoryItem): Promise<Solutio
 }
 
 // ==========================================
+// CATEGORY & BRAND SORTING REPOSITORY
+// ==========================================
+
+export async function getCategorySortConfig(categoryId: string): Promise<CategorySortConfig | null> {
+  if (isMongoConfigured()) {
+    try {
+      const db = await getDatabase();
+      const doc = await db.collection<CategorySortConfig>('category_sort_configs').findOne({ categoryId });
+      if (doc) return toPlainObject<CategorySortConfig>(doc);
+    } catch (err) {
+      console.warn('MongoDB query failed for category_sort_configs, falling back to local store:', err);
+    }
+  }
+
+  initDevStore();
+  ensureCategorySortConfigsSeeded();
+  if (!devStore.categorySortConfigs) devStore.categorySortConfigs = new Map();
+  return devStore.categorySortConfigs.get(categoryId) || null;
+}
+
+export async function listCategorySortConfigs(): Promise<CategorySortConfig[]> {
+  if (isMongoConfigured()) {
+    try {
+      const db = await getDatabase();
+      const docs = await db.collection<CategorySortConfig>('category_sort_configs').find().toArray();
+      if (docs && docs.length > 0) {
+        return docs.map((d) => toPlainObject<CategorySortConfig>(d));
+      }
+    } catch (err) {
+      console.warn('MongoDB query failed for listCategorySortConfigs, falling back to local store:', err);
+    }
+  }
+
+  assertStorageMode('listCategorySortConfigs');
+  initDevStore();
+  ensureCategorySortConfigsSeeded();
+  if (!devStore.categorySortConfigs) devStore.categorySortConfigs = new Map();
+  return Array.from(devStore.categorySortConfigs.values());
+}
+
+export async function saveCategorySortConfig(config: CategorySortConfig): Promise<CategorySortConfig> {
+  const payload: CategorySortConfig = {
+    ...config,
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (isMongoConfigured()) {
+    const db = await getDatabase();
+    await db.collection('category_sort_configs').updateOne(
+      { categoryId: config.categoryId },
+      { $set: payload },
+      { upsert: true }
+    );
+  } else {
+    assertStorageMode('saveCategorySortConfig');
+    initDevStore();
+    ensureCategorySortConfigsSeeded();
+    if (!devStore.categorySortConfigs) devStore.categorySortConfigs = new Map();
+    devStore.categorySortConfigs.set(config.categoryId, payload);
+  }
+
+  // Automatically synchronize continuous product sortOrder in this category
+  try {
+    const categoryProducts = await listProducts({ category: config.categoryId });
+    if (categoryProducts.length > 0) {
+      categoryProducts.sort((a, b) => {
+        const brandA = (a.brand || '').trim();
+        const brandB = (b.brand || '').trim();
+        const bIdxA = config.brandOrder.findIndex((b) => b.toLowerCase() === brandA.toLowerCase());
+        const bIdxB = config.brandOrder.findIndex((b) => b.toLowerCase() === brandB.toLowerCase());
+        const effectiveBIdxA = bIdxA === -1 ? 999 : bIdxA;
+        const effectiveBIdxB = bIdxB === -1 ? 999 : bIdxB;
+        if (effectiveBIdxA !== effectiveBIdxB) return effectiveBIdxA - effectiveBIdxB;
+
+        const pOrdA = typeof config.productOrder?.[a.id] === 'number' ? config.productOrder[a.id] : 999;
+        const pOrdB = typeof config.productOrder?.[b.id] === 'number' ? config.productOrder[b.id] : 999;
+        if (pOrdA !== pOrdB) return pOrdA - pOrdB;
+
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      });
+
+      if (isMongoConfigured()) {
+        const db = await getDatabase();
+        const bulkOps = categoryProducts.map((p, idx) => ({
+          updateOne: {
+            filter: { id: p.id },
+            update: { $set: { sortOrder: idx + 1, updatedAt: new Date().toISOString() } },
+          },
+        }));
+        if (bulkOps.length > 0) {
+          await db.collection('products').bulkWrite(bulkOps);
+        }
+      } else {
+        for (let i = 0; i < categoryProducts.length; i++) {
+          await updateProductRecord(categoryProducts[i].id, { sortOrder: i + 1 });
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Failed to sync product sortOrders for category:', config.categoryId, err);
+  }
+
+  return payload;
+}
+
+// ==========================================
 // PRODUCTS REPOSITORY (Multi-Vendor Isolated)
 // ==========================================
 
 export async function listProducts(filter?: { vendorId?: string; category?: string; isPublished?: boolean }): Promise<Product[]> {
+  let list: Product[] = [];
+
   if (isMongoConfigured()) {
     const db = await getDatabase();
     const query: Record<string, unknown> = {};
     if (filter?.vendorId) query.vendorId = filter.vendorId;
     if (filter?.category) query.category = filter.category;
     if (filter?.isPublished !== undefined) query.isPublished = filter.isPublished;
-    const docs = await db.collection<Product>('products').find(query).sort({ createdAt: -1 }).toArray();
-    return docs.map((doc) => toPlainObject<Product>(doc));
+    const docs = await db.collection<Product>('products').find(query).toArray();
+    list = docs.map((doc) => toPlainObject<Product>(doc));
+  } else {
+    assertStorageMode('listProducts');
+    list = Array.from(devProducts.values());
+    if (filter?.vendorId) {
+      list = list.filter((p) => p.vendorId === filter.vendorId);
+    }
+    if (filter?.category) {
+      list = list.filter((p) => p.category === filter.category);
+    }
+    if (filter?.isPublished !== undefined) {
+      list = list.filter((p) => p.isPublished === filter.isPublished);
+    }
   }
 
-  assertStorageMode('listProducts');
-  let list = Array.from(devProducts.values());
-  if (filter?.vendorId) {
-    list = list.filter((p) => p.vendorId === filter.vendorId);
-  }
+  // Consistent sorting logic across storage engines:
   if (filter?.category) {
-    list = list.filter((p) => p.category === filter.category);
+    const catConfig = await getCategorySortConfig(filter.category);
+    const defaultBrandOrder = filter.category === 'ups' ? ['BPE', 'Microtek'] : filter.category === 'batteries' ? ['Amaron Quanta', 'Exide'] : [];
+    const brandOrder = (catConfig?.brandOrder && catConfig.brandOrder.length > 0) ? catConfig.brandOrder : defaultBrandOrder;
+    const productOrder = catConfig?.productOrder || {};
+
+    list.sort((a, b) => {
+      const brandA = (a.brand || '').trim();
+      const brandB = (b.brand || '').trim();
+      const bIdxA = brandOrder.findIndex((b) => b.toLowerCase() === brandA.toLowerCase());
+      const bIdxB = brandOrder.findIndex((b) => b.toLowerCase() === brandB.toLowerCase());
+      const effectiveBIdxA = bIdxA === -1 ? 999 : bIdxA;
+      const effectiveBIdxB = bIdxB === -1 ? 999 : bIdxB;
+      if (effectiveBIdxA !== effectiveBIdxB) return effectiveBIdxA - effectiveBIdxB;
+
+      // Within same brand: use explicit product sequence if set, otherwise product's sortOrder
+      const pOrdA = typeof productOrder[a.id] === 'number' ? productOrder[a.id] : (typeof a.sortOrder === 'number' ? a.sortOrder : 999);
+      const pOrdB = typeof productOrder[b.id] === 'number' ? productOrder[b.id] : (typeof b.sortOrder === 'number' ? b.sortOrder : 999);
+      if (pOrdA !== pOrdB) return pOrdA - pOrdB;
+
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
+  } else {
+    // Cross-category listing: respect numeric sortOrder ascending, undefined treated as 999 (never top!)
+    list.sort((a, b) => {
+      const orderA = typeof a.sortOrder === 'number' ? a.sortOrder : 999;
+      const orderB = typeof b.sortOrder === 'number' ? b.sortOrder : 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
   }
-  if (filter?.isPublished !== undefined) {
-    list = list.filter((p) => p.isPublished === filter.isPublished);
-  }
+
   return list;
 }
 
@@ -1365,4 +1584,141 @@ export async function updatePlatformSettings(updates: Partial<PlatformSettings>,
   assertStorageMode('updatePlatformSettings');
   devStore.settings = updated;
   return devStore.settings;
+}
+
+// ==========================================
+// CLIENT PROJECTS REPOSITORY
+// ==========================================
+
+export function ensureClientProjectsSeeded() {
+  if (!devStore.clientProjects) {
+    devStore.clientProjects = new Map();
+  }
+  for (const proj of INITIAL_CLIENT_PROJECTS) {
+    if (!devStore.clientProjects.has(proj.id)) {
+      devStore.clientProjects.set(proj.id, proj);
+    }
+  }
+}
+ensureClientProjectsSeeded();
+
+let _clientProjectsSeededInMongo = false;
+
+export async function listClientProjects(filter?: { sector?: string; featuredOnly?: boolean }): Promise<ClientProject[]> {
+  if (isMongoConfigured()) {
+    try {
+      const db = await getDatabase();
+      if (!_clientProjectsSeededInMongo) {
+        _clientProjectsSeededInMongo = true;
+        const count = await db.collection('client_projects').countDocuments();
+        if (count === 0) {
+          await db.collection('client_projects').insertMany(INITIAL_CLIENT_PROJECTS as any);
+        }
+      }
+      const query: Record<string, any> = {};
+      if (filter?.sector && filter.sector !== 'all') {
+        query.sector = filter.sector;
+      }
+      if (filter?.featuredOnly) {
+        query.isFeatured = true;
+      }
+      const docs = await db.collection<ClientProject>('client_projects').find(query).sort({ createdAt: -1 }).toArray();
+      return docs.map((d) => {
+        const { _id, ...rest } = d as any;
+        return rest as ClientProject;
+      });
+    } catch (err) {
+      console.warn('MongoDB query failed for client_projects, falling back to local store:', err instanceof Error ? err.message : err);
+    }
+  }
+
+  ensureClientProjectsSeeded();
+  let list = Array.from(devStore.clientProjects.values());
+  if (filter?.sector && filter.sector !== 'all') {
+    list = list.filter((p) => p.sector.toLowerCase() === filter.sector!.toLowerCase());
+  }
+  if (filter?.featuredOnly) {
+    list = list.filter((p) => p.isFeatured);
+  }
+  return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function findClientProjectById(id: string): Promise<ClientProject | null> {
+  if (isMongoConfigured()) {
+    try {
+      const db = await getDatabase();
+      const doc = await db.collection<ClientProject>('client_projects').findOne({ id });
+      if (doc) {
+        const { _id, ...rest } = doc as any;
+        return rest as ClientProject;
+      }
+      return null;
+    } catch (err) {
+      console.warn('MongoDB find failed for client_projects, falling back to local store:', err instanceof Error ? err.message : err);
+    }
+  }
+
+  ensureClientProjectsSeeded();
+  return devStore.clientProjects.get(id) || null;
+}
+
+export async function createClientProjectRecord(proj: Omit<ClientProject, 'id' | 'createdAt'> & { id?: string }): Promise<ClientProject> {
+  const newProject: ClientProject = {
+    ...proj,
+    id: proj.id || `proj-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (isMongoConfigured()) {
+    try {
+      const db = await getDatabase();
+      await db.collection('client_projects').insertOne(newProject as any);
+      return newProject;
+    } catch (err) {
+      console.warn('MongoDB insert failed for client_projects, falling back to local store:', err instanceof Error ? err.message : err);
+    }
+  }
+
+  ensureClientProjectsSeeded();
+  devStore.clientProjects.set(newProject.id, newProject);
+  return newProject;
+}
+
+export async function updateClientProjectRecord(id: string, updates: Partial<ClientProject>): Promise<ClientProject | null> {
+  if (isMongoConfigured()) {
+    try {
+      const db = await getDatabase();
+      const cleanUpdates = { ...updates, updatedAt: new Date().toISOString() };
+      await db.collection('client_projects').updateOne({ id }, { $set: cleanUpdates });
+      return findClientProjectById(id);
+    } catch (err) {
+      console.warn('MongoDB update failed for client_projects, falling back to local store:', err instanceof Error ? err.message : err);
+    }
+  }
+
+  ensureClientProjectsSeeded();
+  const existing = devStore.clientProjects.get(id);
+  if (!existing) return null;
+  const updated: ClientProject = {
+    ...existing,
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  devStore.clientProjects.set(id, updated);
+  return updated;
+}
+
+export async function deleteClientProjectRecord(id: string): Promise<boolean> {
+  if (isMongoConfigured()) {
+    try {
+      const db = await getDatabase();
+      const res = await db.collection('client_projects').deleteOne({ id });
+      return res.deletedCount > 0;
+    } catch (err) {
+      console.warn('MongoDB delete failed for client_projects, falling back to local store:', err instanceof Error ? err.message : err);
+    }
+  }
+
+  ensureClientProjectsSeeded();
+  return devStore.clientProjects.delete(id);
 }

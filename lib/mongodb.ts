@@ -11,6 +11,8 @@ try {
 }
 
 function getSanitizedMongoUri(): string | null {
+  const isTest = process.env.NODE_ENV === 'test' || process.argv.includes('--test') || process.execArgv.includes('--test');
+  if (isTest) return null;
   let raw = process.env.MONGODB_URI;
   try {
     const envPath = path.resolve(process.cwd(), '.env.local');

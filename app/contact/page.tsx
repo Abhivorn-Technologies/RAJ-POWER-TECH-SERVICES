@@ -208,7 +208,7 @@ function ContactPageContent() {
 
       setSubmissionSuccess({
         quotationNumber: qNum,
-        message: 'Your inquiry has been logged in our store Admin desk and dispatched to WhatsApp.',
+        message: 'Your inquiry has been received and forwarded to our technical team via WhatsApp.',
         whatsappUrl: waUrl,
       });
 

@@ -49,6 +49,22 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       const { _id: _unusedId, ...rest } = p as unknown as Record<string, unknown>;
       return JSON.parse(JSON.stringify(rest)) as Product;
     });
+
+    // Safeguard tiebreaker: For Online UPS, guarantee BPE is displayed first
+    if (category.id.toLowerCase() === 'ups') {
+      categoryProducts.sort((a, b) => {
+        const brandA = (a.brand || '').trim().toLowerCase();
+        const brandB = (b.brand || '').trim().toLowerCase();
+        const isBpeA = brandA === 'bpe';
+        const isBpeB = brandB === 'bpe';
+        if (isBpeA && !isBpeB) return -1;
+        if (!isBpeA && isBpeB) return 1;
+        const ordA = typeof a.sortOrder === 'number' ? a.sortOrder : 999;
+        const ordB = typeof b.sortOrder === 'number' ? b.sortOrder : 999;
+        if (ordA !== ordB) return ordA - ordB;
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      });
+    }
   } catch (err) {
     console.error('Failed to load category products:', err);
   }

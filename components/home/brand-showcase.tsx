@@ -43,7 +43,7 @@ const AUTHORIZED_BRANDS: BrandCardItem[] = [
     glowColor: 'hover:border-red-500/50 hover:shadow-red-500/20',
     tagline: 'Sealed Maintenance Free (SMF) AGM Batteries',
     description: 'Exide Industries Powersafe Plus range with Absorbent Glass Mat (AGM) technology, deep discharge recovery, and long float life for commercial UPS.',
-    image: '/products/exide-powersafe-hq.png',
+    image: '/products/exide-powersafe-ep65-clean.png',
     seriesTag: 'Factory Certified',
     shopUrl: '/shop?brand=Exide',
     keyHighlights: ['26Ah to 150Ah Capacities', 'Flame-Retardant ABS Container', 'Zero Maintenance Required'],
@@ -132,6 +132,7 @@ export function BrandShowcase() {
                   src={brand.image}
                   alt={brand.name}
                   fill
+                  unoptimized
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 280px"
                   className="object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-110"
                 />

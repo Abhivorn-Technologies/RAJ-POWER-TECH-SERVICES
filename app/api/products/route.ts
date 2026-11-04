@@ -1,12 +1,13 @@
-import { NextResponse } from 'next/server';
-import { listProducts } from '@/lib/db/data-store';
+import { NextRequest, NextResponse, connection } from 'next/server';
+import { listProducts, getCategorySortConfig } from '@/lib/db/data-store';
 import { DEMO_FEATURED_PRODUCTS } from '@/lib/demo-data';
 import { Product } from '@/types/product';
 import { getLatestProductPerBrand } from '@/lib/products-helper';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  await connection();
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const featured = searchParams.get('featured');
     const category = searchParams.get('category') || undefined;
     const brand = searchParams.get('brand') || undefined;
@@ -58,6 +59,38 @@ export async function GET(request: Request) {
       allProducts = allProducts.filter((p) => (p.category || '').toLowerCase() === cLower);
     }
 
+    // Sort products: if a category filter is active, respect CategorySortConfig brand & product sequence
+    if (category && category !== 'all') {
+      const catConfig = await getCategorySortConfig(category);
+      const defaultBrandOrder = category.toLowerCase() === 'ups' ? ['BPE', 'Microtek'] : [];
+      const brandOrder = (catConfig?.brandOrder && catConfig.brandOrder.length > 0) ? catConfig.brandOrder : defaultBrandOrder;
+      const productOrder = catConfig?.productOrder || {};
+
+      allProducts.sort((a, b) => {
+        const brandA = (a.brand || '').trim();
+        const brandB = (b.brand || '').trim();
+        const bIdxA = brandOrder.findIndex((b) => b.toLowerCase() === brandA.toLowerCase());
+        const bIdxB = brandOrder.findIndex((b) => b.toLowerCase() === brandB.toLowerCase());
+        const effectiveBIdxA = bIdxA === -1 ? 999 : bIdxA;
+        const effectiveBIdxB = bIdxB === -1 ? 999 : bIdxB;
+        if (effectiveBIdxA !== effectiveBIdxB) return effectiveBIdxA - effectiveBIdxB;
+
+        const pOrdA = typeof productOrder[a.id] === 'number' ? productOrder[a.id] : (typeof a.sortOrder === 'number' ? a.sortOrder : 999);
+        const pOrdB = typeof productOrder[b.id] === 'number' ? productOrder[b.id] : (typeof b.sortOrder === 'number' ? b.sortOrder : 999);
+        if (pOrdA !== pOrdB) return pOrdA - pOrdB;
+
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      });
+    } else {
+      // Overall catalog sorting: numeric sortOrder (1, 2, 3...), undefined sortOrder at bottom (999)
+      allProducts.sort((a, b) => {
+        const orderA = typeof a.sortOrder === 'number' ? a.sortOrder : 999;
+        const orderB = typeof b.sortOrder === 'number' ? b.sortOrder : 999;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      });
+    }
+
     // If featured=latest-by-brand requested, return exactly 1 product per brand
     if (featured === 'latest-by-brand') {
       const latestByBrand = getLatestProductPerBrand(allProducts);
@@ -78,6 +111,9 @@ export async function GET(request: Request) {
       availableCategories,
     });
   } catch (error) {
+    if ((error as any)?.digest?.startsWith('NEXT_')) {
+      throw error;
+    }
     const message = error instanceof Error ? error.message : 'Failed to retrieve products';
     return NextResponse.json({ error: message }, { status: 500 });
   }

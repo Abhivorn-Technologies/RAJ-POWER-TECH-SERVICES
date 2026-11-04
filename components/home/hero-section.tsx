@@ -30,6 +30,25 @@ interface BrandSpotlight {
 
 const BRAND_SPOTLIGHTS: BrandSpotlight[] = [
   {
+    id: 'exide',
+    brandName: 'Exide Powersafe Plus',
+    brandPill: 'Exide Powersafe',
+    pillActiveColor: 'border-red-500 bg-red-950/80 text-red-200 shadow-red-500/25',
+    badge: 'ALL STARS Gold Dealer (Code: 92884)',
+    headlineAccent: 'Heavy-Duty Sealed AGM VRLA Storage',
+    gradientText: 'from-rose-300 via-red-200 to-amber-200',
+    description: 'Absorbent Glass Mat (AGM) valve-regulated lead-acid batteries with rapid deep-discharge recovery and leak-proof containers for commercial UPS installations.',
+    productName: 'Exide Powersafe Plus EP 65-12 (12V 65Ah)',
+    productType: 'Flame-Retardant SMF AGM VRLA',
+    productImage: '/products/exide-powersafe-ep65-clean.png',
+    specHighlight: '12V 65Ah High-Rate AGM',
+    keyMetric: 'EP 65-12 Commercial VRLA',
+    glowColor: 'rgba(239, 68, 68, 0.45)',
+    waveColor: '#ef4444',
+    bgGlow: 'bg-red-500/15',
+    accentBorder: 'border-red-500/40',
+  },
+  {
     id: 'bpe',
     brandName: 'BPE (Best Power Equipments)',
     brandPill: 'BPE Online UPS',
@@ -47,25 +66,6 @@ const BRAND_SPOTLIGHTS: BrandSpotlight[] = [
     waveColor: '#06b6d4',
     bgGlow: 'bg-cyan-500/15',
     accentBorder: 'border-cyan-500/40',
-  },
-  {
-    id: 'exide',
-    brandName: 'Exide Powersafe Plus',
-    brandPill: 'Exide Powersafe',
-    pillActiveColor: 'border-red-500 bg-red-950/80 text-red-200 shadow-red-500/25',
-    badge: 'ALL STARS Gold Dealer (Code: 92884)',
-    headlineAccent: 'Heavy-Duty Sealed AGM VRLA Storage',
-    gradientText: 'from-rose-300 via-red-200 to-amber-200',
-    description: 'Absorbent Glass Mat (AGM) valve-regulated lead-acid batteries with rapid deep-discharge recovery and leak-proof containers for commercial UPS installations.',
-    productName: 'Exide Powersafe Plus 26Ah - 150Ah',
-    productType: 'Flame-Retardant SMF AGM VRLA',
-    productImage: '/products/exide-powersafe-hq.png',
-    specHighlight: '1200+ Deep Cycles',
-    keyMetric: '12V / 150Ah High Float',
-    glowColor: 'rgba(239, 68, 68, 0.45)',
-    waveColor: '#ef4444',
-    bgGlow: 'bg-red-500/15',
-    accentBorder: 'border-red-500/40',
   },
   {
     id: 'amaron',
@@ -298,7 +298,7 @@ export function HeroSection() {
                     fill
                     priority
                     loading="eager"
-                    unoptimized={currentBrand.productImage.startsWith('http')}
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 420px"
                     className="object-contain filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.65)] select-none pointer-events-none p-2"
                   />

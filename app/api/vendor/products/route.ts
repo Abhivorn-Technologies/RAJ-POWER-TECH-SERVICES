@@ -218,6 +218,7 @@ export async function POST(request: Request) {
       ],
       technicalSpecs,
       customAttributes: body.customAttributes,
+      sortOrder: typeof body.sortOrder === 'number' ? body.sortOrder : 999,
       isPublished: true, // Immediate publish after successful validation
       createdAt: now,
       updatedAt: now,

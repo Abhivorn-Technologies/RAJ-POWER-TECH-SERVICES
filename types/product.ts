@@ -89,6 +89,7 @@ export interface Product {
   // Status flags
   isPublished?: boolean;
   isFeatured?: boolean;
+  sortOrder?: number;
   warrantyPeriod?: string;
   capacity?: string;
   isDemo?: boolean;
@@ -123,4 +124,13 @@ export interface CreateProductInput {
   keySpecs?: ProductSpecification[];
   technicalSpecs?: CategorySpecificSpecs;
   customAttributes?: Record<string, string | number | boolean>;
+  sortOrder?: number;
+}
+
+export interface CategorySortConfig {
+  categoryId: string;
+  brandOrder: string[];
+  productOrder: Record<string, number>;
+  updatedAt?: string;
+  updatedBy?: string;
 }
