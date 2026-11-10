@@ -580,7 +580,7 @@ function ContactPageContent() {
                 <h2 className="text-xl sm:text-2xl font-black text-slate-900">
                   Request a Product Quotation or Service
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                <p suppressHydrationWarning className="text-xs sm:text-sm text-slate-600 mt-1">
                   Choose your requirement below. Products from our live catalogue automatically appear in the list.
                 </p>
               </div>
@@ -683,6 +683,7 @@ function ContactPageContent() {
                       </span>
                     </label>
                     <select
+                      suppressHydrationWarning
                       value={selectedProductName}
                       onChange={(e) => {
                         const val = e.target.value;
