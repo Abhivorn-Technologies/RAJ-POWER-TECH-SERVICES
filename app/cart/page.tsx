@@ -509,6 +509,18 @@ export default function CartPage() {
                           </span>
                           <span className="text-[11px] text-slate-500 font-medium">per unit</span>
                         </div>
+                        {item.stock !== undefined && item.stock <= 5 && (
+                          <div className="mt-1">
+                            <span className="text-[10px] text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-flex items-center gap-1">
+                              ⚡ Low Stock: Only {item.stock} left in Hub
+                            </span>
+                          </div>
+                        )}
+                        {item.quantity >= (item.stock || 99) && (
+                          <span className="text-[10px] text-amber-700 font-semibold block mt-0.5">
+                            Max available stock ({item.stock} units) reached
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -526,8 +538,9 @@ export default function CartPage() {
                         <span className="px-3 text-xs font-bold text-slate-900 font-mono">{item.quantity}</span>
                         <button
                           type="button"
+                          disabled={item.quantity >= (item.stock || 99)}
                           onClick={() => updateGuestCartQuantity(item.productId, item.quantity + 1)}
-                          className="p-2 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                          className="p-2 hover:bg-slate-200 text-slate-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                           aria-label="Increase quantity"
                         >
                           <Plus className="w-3.5 h-3.5" />

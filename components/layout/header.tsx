@@ -20,6 +20,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
+import { FacebookIcon, InstagramIcon } from '@/components/ui/social-icons';
 import { NAV_LINKS, SOLUTIONS_LINKS, BUSINESS_INFO } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { getGuestCart, getCartTotalItems, openCartDrawer } from '@/lib/cart-store';
@@ -453,6 +454,30 @@ export function Header() {
                   <MessageSquare className="w-4 h-4" />
                   <span>Sales Desk Quotation</span>
                 </a>
+
+                {/* Mobile Social Links */}
+                <div className="flex items-center justify-center gap-4 pt-2">
+                  <a
+                    href={BUSINESS_INFO.social.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:text-[#1877F2] transition-colors"
+                    title="Follow RPS on Facebook"
+                    aria-label="Facebook"
+                  >
+                    <FacebookIcon className="w-4 h-4" />
+                  </a>
+                  <a
+                    href={BUSINESS_INFO.social.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:text-rose-600 transition-colors"
+                    title="Follow RPS on Instagram"
+                    aria-label="Instagram"
+                  >
+                    <InstagramIcon className="w-4 h-4" />
+                  </a>
+                </div>
               </div>
             </div>
           </motion.div>

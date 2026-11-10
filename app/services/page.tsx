@@ -785,15 +785,20 @@ Please confirm a site engineer visit. Thank you!`;
                       <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1 text-[11px]">
                         WhatsApp / Contact Mobile *
                       </label>
-                      <input
-                        type="tel"
-                        maxLength={10}
-                        required
-                        placeholder="93460XXXXX"
-                        value={auditPhone}
-                        onChange={(e) => setAuditPhone(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs focus:outline-none focus:border-[#142B55] text-slate-900"
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-2.5 text-slate-500 font-bold text-xs select-none">
+                          +91
+                        </span>
+                        <input
+                          type="tel"
+                          maxLength={10}
+                          required
+                          placeholder="98765 43210"
+                          value={auditPhone}
+                          onChange={(e) => setAuditPhone(e.target.value.replace(/\D/g, ''))}
+                          className="w-full pl-12 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs focus:outline-none focus:border-[#142B55] text-slate-900"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -840,16 +845,31 @@ Please confirm a site engineer visit. Thank you!`;
                     </div>
                   </div>
 
-                  <div className="pt-2 flex items-center justify-end">
+                  <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3.5">
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500 self-start sm:self-center">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Direct dispatch to RPS Engineers via WhatsApp &amp; Admin Desk</span>
+                    </div>
+
                     <Button
                       type="submit"
                       variant="primary"
                       size="md"
                       disabled={auditSubmitting}
-                      className="bg-[#142B55] hover:bg-[#0B172F] text-white font-bold px-6 py-2.5 rounded-xl shadow-md cursor-pointer flex items-center gap-2 whitespace-nowrap"
+                      className="w-full sm:w-auto bg-[#142B55] hover:bg-[#0B172F] text-white font-extrabold px-7 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2.5 group/btn shrink-0"
                     >
-                      <MessageSquare className="w-4 h-4 text-cyan-300" />
-                      <span>{auditSubmitting ? 'Sending Request...' : 'Book Power Audit'}</span>
+                      {auditSubmitting ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                          <span>Routing Request...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Calendar className="w-4 h-4 text-amber-400 group-hover/btn:scale-110 transition-transform" />
+                          <span>Schedule On-Site Power Audit</span>
+                          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                        </>
+                      )}
                     </Button>
                   </div>
                 </form>

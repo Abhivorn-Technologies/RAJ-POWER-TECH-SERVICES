@@ -1,5 +1,6 @@
 import React from 'react';
 import { Phone, MapPin, MessageSquareQuote } from 'lucide-react';
+import { FacebookIcon, InstagramIcon } from '@/components/ui/social-icons';
 import { BUSINESS_INFO } from '@/lib/constants';
 
 export function AnnouncementBar() {
@@ -44,6 +45,32 @@ export function AnnouncementBar() {
             <MessageSquareQuote className="w-3.5 h-3.5" />
             <span>Direct Technical Help</span>
           </a>
+
+          <div className="h-3 w-px bg-slate-700 hidden sm:block" />
+
+          {/* Social Links */}
+          <div className="flex items-center gap-2.5">
+            <a
+              href={BUSINESS_INFO.social.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-400 hover:text-white transition-colors"
+              title="Follow RPS on Facebook"
+              aria-label="Facebook"
+            >
+              <FacebookIcon className="w-3.5 h-3.5" />
+            </a>
+            <a
+              href={BUSINESS_INFO.social.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-400 hover:text-rose-400 transition-colors"
+              title="Follow RPS on Instagram"
+              aria-label="Instagram"
+            >
+              <InstagramIcon className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
       </div>
     </aside>

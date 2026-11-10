@@ -26,6 +26,10 @@ export const BUSINESS_INFO = {
     },
   },
   operatingTerritory: 'All Serviceable Regions, India',
+  social: {
+    facebook: 'https://www.facebook.com/share/18XVctGdFp/',
+    instagram: 'https://www.instagram.com/rps.1726?dlrf=MTlmdGpxdXF5c2VkYg==',
+  },
   categories: [
     {
       id: 'inverters',

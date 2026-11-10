@@ -24,7 +24,7 @@ export interface QuotationRequest {
   gstin?: string; // Client GSTIN for commercial tax invoice
   cityOrDistrict: string; // Customer City / District
   fullAddress?: string;
-  category: 'inverters' | 'batteries' | 'ups' | 'combo' | 'custom';
+  category: 'inverters' | 'batteries' | 'ups' | 'combo' | 'service' | 'custom';
   productId?: string;
   productName?: string;
   quantity?: number; // Commercial / Bulk units required

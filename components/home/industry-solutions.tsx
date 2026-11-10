@@ -63,7 +63,7 @@ const SECTOR_SOLUTIONS: SectorSolution[] = [
       brand: 'BPE & Exide',
       model: 'BPE True Online Double-Conversion UPS + Exide Powersafe Plus VRLA',
       specs: '1kVA - 20kVA Online • 0ms Latency • Flame Retardant ABS',
-      image: '/products/bpe-online-ups-hq.png',
+      image: '/products/bpe-tower-ups-hq.png',
       link: '/shop?category=ups',
     },
     targetApplications: [
@@ -326,6 +326,7 @@ export function IndustrySolutionsSection() {
                     src={currentSector.recommendedEquipment.image}
                     alt={currentSector.recommendedEquipment.model}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, 380px"
                     className="object-contain p-2"
                   />

@@ -76,3 +76,39 @@ test('UTILS: buildDetailedQuotationWhatsAppUrl generates structured commercial R
   assert.ok(decoded.includes('Secunderabad'));
   assert.ok(decoded.includes('Require 2 hours battery bank backup'));
 });
+
+test('UTILS: buildDetailedQuotationWhatsAppUrl formats service scope and battery scrap exchange', () => {
+  const serviceQuoteDetails = {
+    quotationNumber: 'RPS-QT-2026-0099',
+    customerName: 'Dr. Radhika',
+    customerPhone: '9849123456',
+    productName: 'On-Site Power Audit & Load Analysis',
+    category: 'On-Site Power Audit & Engineering Service',
+    cityOrDistrict: 'Banjara Hills, Hyderabad',
+    facilityType: 'Hospital / Diagnostic Clinic',
+    serviceUrgency: 'Emergency (Within 24 Hours / Power Issue)',
+    notes: 'Power backup tripping during heavy MRI cycles.',
+  };
+
+  const serviceUrl = buildDetailedQuotationWhatsAppUrl(serviceQuoteDetails);
+  const decodedService = decodeURIComponent(serviceUrl);
+  assert.ok(decodedService.includes('On-Site Power Audit & Load Analysis'));
+  assert.ok(decodedService.includes('Hospital / Diagnostic Clinic'));
+  assert.ok(decodedService.includes('Emergency (Within 24 Hours / Power Issue)'));
+
+  const batteryQuoteDetails = {
+    quotationNumber: 'RPS-QT-2026-0100',
+    customerName: 'Suresh Kumar',
+    customerPhone: '9876543210',
+    productName: 'Exide Powersafe Plus EP 150-12 (12V 150Ah)',
+    category: 'Tall Tubular Inverter Batteries Only',
+    cityOrDistrict: 'Kukatpally, Hyderabad',
+    scrapExchange: true,
+    oldBatteryModel: 'Exide 150Ah old tubular',
+  };
+
+  const batteryUrl = buildDetailedQuotationWhatsAppUrl(batteryQuoteDetails);
+  const decodedBattery = decodeURIComponent(batteryUrl);
+  assert.ok(decodedBattery.includes('Old Battery Scrap Trade-in'));
+  assert.ok(decodedBattery.includes('Exide 150Ah old tubular'));
+});

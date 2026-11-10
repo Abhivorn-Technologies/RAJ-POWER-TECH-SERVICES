@@ -38,6 +38,10 @@ export function buildDetailedQuotationWhatsAppUrl(details: {
   cityOrDistrict?: string;
   notes?: string;
   companyName?: string;
+  facilityType?: string;
+  serviceUrgency?: string;
+  scrapExchange?: boolean;
+  oldBatteryModel?: string;
 }): string {
   const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || '919346021289';
   const lines: string[] = [
@@ -52,11 +56,27 @@ export function buildDetailedQuotationWhatsAppUrl(details: {
   }
 
   if (details.productName) {
-    lines.push(`📦 *Product:* ${details.productName}`);
+    lines.push(`📦 *Equipment / Scope:* ${details.productName}`);
   }
 
   if (details.category) {
     lines.push(`🏷️ *Category:* ${details.category.toUpperCase()}`);
+  }
+
+  if (details.facilityType) {
+    lines.push(`🏥 *Facility / Property:* ${details.facilityType}`);
+  }
+
+  if (details.scrapExchange) {
+    lines.push(
+      `♻️ *Old Battery Scrap Trade-in:* Yes${
+        details.oldBatteryModel ? ` (${details.oldBatteryModel})` : ''
+      }`
+    );
+  }
+
+  if (details.serviceUrgency) {
+    lines.push(`⏰ *Preferred Schedule:* ${details.serviceUrgency}`);
   }
 
   if (details.price && details.price > 0) {

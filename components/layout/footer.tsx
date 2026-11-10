@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Mail, Phone, MapPin, MessageSquare, ShieldCheck, ArrowUpRight, Zap } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
+import { FacebookIcon, InstagramIcon } from '@/components/ui/social-icons';
 import { BUSINESS_INFO } from '@/lib/constants';
 import { ScrollRevealCard } from '@/components/ui/scroll-reveal-card';
 
@@ -80,6 +81,36 @@ export function Footer() {
                 <Mail className="w-4 h-4 text-[#D52B30] shrink-0" />
                 <a href={`mailto:${BUSINESS_INFO.email}`} className="hover:text-white transition-colors">
                   {BUSINESS_INFO.email}
+                </a>
+              </div>
+            </div>
+
+            {/* Social Media Channels */}
+            <div className="pt-2">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 block mb-2 font-bold">
+                Follow RPS on Social Media:
+              </span>
+              <div className="flex items-center gap-2.5">
+                <a
+                  href={BUSINESS_INFO.social.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-xl bg-[#142B55] hover:bg-[#1877F2] text-slate-300 hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs hover:scale-110 border border-slate-700/60"
+                  title="Follow Raj Power Tech Services on Facebook"
+                  aria-label="Follow RPS on Facebook"
+                >
+                  <FacebookIcon className="w-4 h-4" />
+                </a>
+
+                <a
+                  href={BUSINESS_INFO.social.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-xl bg-[#142B55] hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] text-slate-300 hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs hover:scale-110 border border-slate-700/60"
+                  title="Follow Raj Power Tech Services on Instagram"
+                  aria-label="Follow RPS on Instagram"
+                >
+                  <InstagramIcon className="w-4 h-4" />
                 </a>
               </div>
             </div>

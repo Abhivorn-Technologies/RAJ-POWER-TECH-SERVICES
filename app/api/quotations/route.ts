@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       fullAddress,
       category,
       productId,
+      productName: directProductName,
       estimatedRunningWatts,
       expectedBackupHours,
       notes,
@@ -80,6 +81,10 @@ export async function POST(request: Request) {
           assignedVendorIds.push(prod.vendorId);
         }
       }
+    }
+
+    if (!productName && directProductName && typeof directProductName === 'string') {
+      productName = directProductName.trim();
     }
 
     // By default, include primary RPS vendor

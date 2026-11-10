@@ -189,9 +189,16 @@ Please provide GST invoice terms and installation scheduling. Thank you!`;
                         <h4 className="text-xs font-bold text-slate-900 truncate">
                           {item.name}
                         </h4>
-                        <p className="text-[11px] font-mono font-extrabold text-[#142B55] mt-0.5">
-                          ₹{item.price.toLocaleString('en-IN')}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[11px] font-mono font-extrabold text-[#142B55]">
+                            ₹{item.price.toLocaleString('en-IN')}
+                          </span>
+                          {item.stock !== undefined && item.stock <= 5 && (
+                            <span className="text-[9px] font-black uppercase text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded">
+                              Only {item.stock} Left!
+                            </span>
+                          )}
+                        </div>
 
                         {/* Quantity Stepper */}
                         <div className="flex items-center gap-2 mt-2">
@@ -209,8 +216,9 @@ Please provide GST invoice terms and installation scheduling. Thank you!`;
                             </span>
                             <button
                               type="button"
+                              disabled={item.quantity >= (item.stock || 99)}
                               onClick={() => updateGuestCartQuantity(item.productId, item.quantity + 1)}
-                              className="p-1 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 rounded-r-lg cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 rounded-r-lg disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                               aria-label="Increase quantity"
                             >
                               <Plus className="w-3 h-3" />
@@ -226,6 +234,11 @@ Please provide GST invoice terms and installation scheduling. Thank you!`;
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
+                        {item.quantity >= (item.stock || 99) && (
+                          <span className="text-[10px] text-amber-600 block mt-0.5">
+                            Max available stock reached
+                          </span>
+                        )}
                       </div>
 
                       {/* Item Total */}

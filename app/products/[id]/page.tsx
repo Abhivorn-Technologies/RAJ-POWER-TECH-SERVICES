@@ -198,8 +198,8 @@ function ProductDetailView() {
                 }}
               />
               <div className="absolute top-3 left-3">
-                <Badge variant={product.stock && product.stock > 0 ? 'success' : 'warning'}>
-                  {product.availability || 'In Stock'}
+                <Badge variant={product.stock !== undefined && product.stock <= 0 ? 'red' : product.stock && product.stock <= 5 ? 'warning' : 'success'}>
+                  {product.stock !== undefined && product.stock <= 0 ? 'Out of Stock' : product.stock && product.stock <= 5 ? `Only ${product.stock} Left` : (product.availability || 'In Stock')}
                 </Badge>
               </div>
             </div>
@@ -296,6 +296,57 @@ function ProductDetailView() {
                 </div>
               </div>
 
+              {/* Live Inventory Status & Low-Stock Alerts */}
+              {product.stock !== undefined && product.stock <= 0 ? (
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs space-y-1.5 shadow-2xs">
+                  <div className="flex items-center gap-2 font-black text-rose-700">
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span>Currently Out of Stock at Secunderabad Central</span>
+                  </div>
+                  <p className="text-xs text-rose-700 leading-relaxed">
+                    The next fresh OEM shipment is in transit. Click &quot;Request Official Quotation&quot; below to book your unit with priority dispatch.
+                  </p>
+                </div>
+              ) : product.stock !== undefined && product.stock <= 5 ? (
+                <div className="p-4 rounded-2xl bg-amber-50/90 border-2 border-amber-300 text-amber-950 text-xs space-y-2.5 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-black text-amber-900">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-600"></span>
+                      </span>
+                      <span>High Demand — Limited Inventory Available</span>
+                    </div>
+                    <span className="font-mono font-black text-white bg-[#D52B30] px-2.5 py-0.5 rounded-full text-[11px] shadow-xs">
+                      Only {product.stock} Left!
+                    </span>
+                  </div>
+                  {/* Visual Inventory Bar */}
+                  <div className="w-full h-2 bg-amber-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-amber-500 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.max(18, ((product.stock || 1) / 5) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-amber-800 font-medium">
+                    Order now to reserve your allocation before current batch is claimed.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/90 text-emerald-900 text-xs shadow-2xs">
+                  <div className="flex items-center gap-2.5">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+                    </span>
+                    <span className="font-bold">In Stock &amp; Ready for Immediate Dispatch</span>
+                  </div>
+                  <span className="font-mono font-bold bg-white/90 px-2.5 py-1 rounded-lg border border-emerald-200 text-emerald-800 shadow-2xs">
+                    {product.stock ?? 12} Units Ready
+                  </span>
+                </div>
+              )}
+
               {/* Key Features / Specs Pills */}
               {product.keySpecs && product.keySpecs.length > 0 && (
                 <div className="space-y-2">
@@ -357,44 +408,76 @@ function ProductDetailView() {
 
             {/* Purchase & Action Controls */}
             <div className="pt-4 border-t border-slate-100 space-y-3">
-              <div className="flex items-center gap-3">
-                {/* Quantity Controls */}
-                <div className="flex items-center border border-slate-200 rounded-xl bg-white p-1 shrink-0">
-                  <button
+              {product.stock !== undefined && product.stock <= 0 ? (
+                /* Out of stock action block */
+                <div className="space-y-2">
+                  <Button
                     type="button"
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                    variant="outline"
+                    size="md"
+                    fullWidth
+                    disabled
+                    className="text-sm font-bold py-3 rounded-xl bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                    icon={<AlertCircle className="w-4 h-4 text-slate-400" />}
                   >
-                    -
-                  </button>
-                  <span className="w-10 text-center font-bold text-xs">{quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => setQuantity((q) => Math.min(product.stock || 99, q + 1))}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
-                  >
-                    +
-                  </button>
+                    Currently Out of Stock
+                  </Button>
+                  <p className="text-[11px] text-slate-500 text-center">
+                    Use &quot;Request Official Quotation&quot; below to pre-book next shipment.
+                  </p>
                 </div>
+              ) : (
+                /* In-stock purchasing action block */
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    {/* Quantity Controls */}
+                    <div className="flex items-center border border-slate-200 rounded-xl bg-white p-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                        aria-label="Decrease quantity"
+                      >
+                        -
+                      </button>
+                      <span className="w-10 text-center font-bold text-xs">{quantity}</span>
+                      <button
+                        type="button"
+                        disabled={quantity >= (product.stock ?? 99)}
+                        onClick={() => setQuantity((q) => Math.min(product.stock || 99, q + 1))}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                        aria-label="Increase quantity"
+                      >
+                        +
+                      </button>
+                    </div>
 
-                {/* Add to Bag Button */}
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="md"
-                  fullWidth
-                  onClick={handleAddToCart}
-                  className={cn(
-                    'text-sm font-bold py-3 rounded-xl transition-all shadow-md',
-                    added
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
-                      : 'bg-[#142B55] hover:bg-[#0B172F] text-white shadow-[#142B55]/20'
+                    {/* Add to Bag Button */}
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="md"
+                      fullWidth
+                      onClick={handleAddToCart}
+                      className={cn(
+                        'text-sm font-bold py-3 rounded-xl transition-all shadow-md',
+                        added
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                          : 'bg-[#142B55] hover:bg-[#0B172F] text-white shadow-[#142B55]/20'
+                      )}
+                      icon={added ? <Check className="w-4 h-4 animate-bounce" /> : <ShoppingBag className="w-4 h-4" />}
+                    >
+                      {added ? 'Added to Bag ✓' : `Add to Bag (${quantity} Unit${quantity > 1 ? 's' : ''})`}
+                    </Button>
+                  </div>
+
+                  {quantity >= (product.stock ?? 99) && (product.stock ?? 99) > 0 && (
+                    <span className="text-[11px] text-amber-700 font-bold block pt-1">
+                      ⚠️ Maximum available stock selected ({product.stock} units in hub).
+                    </span>
                   )}
-                  icon={added ? <Check className="w-4 h-4 animate-bounce" /> : <ShoppingBag className="w-4 h-4" />}
-                >
-                  {added ? 'Added to Bag ✓' : `Add to Bag (${quantity} Unit${quantity > 1 ? 's' : ''})`}
-                </Button>
-              </div>
+                </div>
+              )}
 
               {/* Consultation & Commercial Quote Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">

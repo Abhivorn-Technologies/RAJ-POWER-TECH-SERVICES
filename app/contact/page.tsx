@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -15,92 +15,235 @@ import {
   ShieldCheck,
   Compass,
   ExternalLink,
+  Zap,
+  Cpu,
+  BatteryCharging,
+  Server,
+  Wrench,
 } from 'lucide-react';
 import { BUSINESS_INFO } from '@/lib/constants';
+import { FacebookIcon, InstagramIcon } from '@/components/ui/social-icons';
 import { Button } from '@/components/ui/button';
 import { ScrollRevealCard } from '@/components/ui/scroll-reveal-card';
 import { buildDetailedQuotationWhatsAppUrl } from '@/lib/utils';
+import { Product } from '@/types/product';
 
-const INQUIRY_TYPES = [
-  { id: 'combo', label: 'Inverter + Battery Setup', category: 'Inverters & Battery Combo' },
-  { id: 'inverters', label: 'Inverter Only', category: 'Pure Sine Wave Inverters Only' },
-  { id: 'batteries', label: 'Battery Only / Exchange', category: 'Tall Tubular Inverter Batteries Only' },
-  { id: 'ups', label: 'UPS System', category: 'Online / Line-Interactive UPS Systems' },
+interface InquiryTypeConfig {
+  id: string;
+  label: string;
+  category: 'combo' | 'inverters' | 'batteries' | 'ups' | 'service';
+  categoryTitle: string;
+  icon: React.ComponentType<{ className?: string }>;
+  fieldLabel: string;
+}
+
+const INQUIRY_TYPES: InquiryTypeConfig[] = [
+  {
+    id: 'combo',
+    label: 'Inverter + Battery Combo',
+    category: 'combo',
+    categoryTitle: 'Inverters & Battery Combo',
+    icon: Zap,
+    fieldLabel: 'Select Inverter + Battery Package',
+  },
+  {
+    id: 'inverters',
+    label: 'Inverter Only',
+    category: 'inverters',
+    categoryTitle: 'Pure Sine Wave Inverters Only',
+    icon: Cpu,
+    fieldLabel: 'Select Pure Sine Wave Inverter Model',
+  },
+  {
+    id: 'batteries',
+    label: 'Battery Only',
+    category: 'batteries',
+    categoryTitle: 'Tall Tubular Inverter Batteries Only',
+    icon: BatteryCharging,
+    fieldLabel: 'Select Battery Model & Capacity',
+  },
+  {
+    id: 'ups',
+    label: 'Online UPS System',
+    category: 'ups',
+    categoryTitle: 'Online / Line-Interactive UPS Systems',
+    icon: Server,
+    fieldLabel: 'Select Online UPS Model',
+  },
+  {
+    id: 'service',
+    label: 'Power Audit & Service',
+    category: 'service',
+    categoryTitle: 'On-Site Power Audit & Engineering Service',
+    icon: Wrench,
+    fieldLabel: 'Select Engineering Service Scope',
+  },
 ];
 
-const CONTACT_PRODUCT_OPTIONS = [
-  {
-    group: '✨ Recommendations',
-    items: ['Let RPS Engineer Recommend Best Match for My Setup'],
-  },
-  {
-    group: '⚡ Inverter & Battery Complete Combos',
-    items: [
-      'Microtek vTURBO 1550 + Exide 150Ah Battery Combo (Popular)',
-      'Microtek Smart Hybrid 1275 + Amaron 150Ah Battery Combo',
-      'Microtek vTURBO 2000 24V + 2x Exide 150Ah Commercial Combo',
-    ],
-  },
-  {
-    group: '⚡ Microtek Pure Sine Wave Inverters',
-    items: [
-      'Microtek Heavy Duty vTURBO 1550 Pure Sine Inverter (1400VA)',
-      'Microtek Smart Hybrid 1275 Pure Sine Inverter (1125VA)',
-      'Microtek Heavy Duty vTURBO 2000 24V Commercial Inverter',
-      'Microtek Super Power 1100 Advanced Inverter',
-    ],
-  },
-  {
-    group: '🔋 Exide Powersafe Plus SMF VRLA Batteries',
-    items: [
-      'Exide Powersafe Plus EP 150-12 (12V 150Ah)',
-      'Exide Powersafe Plus EP 100-12 (12V 100Ah)',
-      'Exide Powersafe Plus EP 65-12 (12V 65Ah)',
-      'Exide Powersafe Plus EP 42-12 (12V 42Ah)',
-      'Exide Powersafe Plus EP 26-12 (12V 26Ah)',
-    ],
-  },
-  {
-    group: '🔋 Amaron Quanta Industrial VRLA Batteries',
-    items: [
-      'Amaron Quanta 12AL150 (12V 150Ah Radgrid™)',
-      'Amaron Quanta 12AL100 (12V 100Ah Radgrid™)',
-      'Amaron Quanta 12AL065 (12V 65Ah Radgrid™)',
-      'Amaron Quanta 12AL042 (12V 42Ah Radgrid™)',
-      'Amaron Quanta 12AL026 (12V 26Ah Radgrid™)',
-    ],
-  },
-  {
-    group: '🖥️ BPE Online & Line-Interactive UPS',
-    items: [
-      'BPE MF-1kVA True Online UPS (0ms Transfer)',
-      'BPE MF-2kVA True Online UPS (Double Conversion)',
-      'BPE MF-3kVA High Frequency Online UPS',
-      'BPE BP-650 (650VA Line-Interactive UPS)',
-    ],
-  },
+const DEFAULT_RECOMMENDATIONS: Record<string, string> = {
+  combo: '✨ Let RPS Engineer Recommend Best Inverter + Battery Combo',
+  inverters: '✨ Let RPS Engineer Calculate Required VA / Sizing for My Load',
+  batteries: '✨ Let RPS Engineer Recommend Battery Capacity (Ah) for Required Backup',
+  ups: '✨ Let RPS Technical Team Size Online UPS (kVA) for Critical Equipment',
+  service: '✨ Free Initial Power Consultation & Sizing',
+};
+
+const SERVICE_OPTIONS = [
+  '✨ Free Initial Power Consultation & Sizing',
+  'On-Site Power Audit & Load Analysis (Home / Office / Hospital)',
+  'Annual Maintenance Contract (AMC) for Online UPS Systems',
+  'Annual Maintenance Contract (AMC) for Inverter & Battery Bank',
+  'Battery Bank Health Diagnostics & Testing',
+  'Emergency Breakdown Assistance & Inverter Repair',
 ];
+
+const FALLBACK_PRODUCTS_BY_CATEGORY: Record<string, string[]> = {
+  combo: [
+    'Microtek vTURBO 1550 + Exide 150Ah Tall Tubular Combo (Popular Home)',
+    'Microtek Smart Hybrid 1275 + Amaron 150Ah Tubular Combo',
+    'Microtek vTURBO 2000 (24V) + 2x Exide 150Ah Heavy Duty Combo',
+    'Microtek Super Power 1100 + 100Ah Tubular Budget Combo',
+    'Custom High-Capacity Hybrid Inverter + Battery Setup',
+  ],
+  inverters: [
+    'Microtek Heavy Duty vTURBO 1550 Pure Sine Inverter (1400VA / 1120W)',
+    'Microtek Smart Hybrid 1275 Pure Sine Inverter (1125VA / 900W)',
+    'Microtek Heavy Duty vTURBO 2000 24V Commercial Inverter (2000VA / 1600W)',
+    'Microtek Super Power 1100 Advanced Inverter (950VA / 760W)',
+    'High-Capacity Sine Wave Inverter (3.5kVA – 5kVA System)',
+  ],
+  batteries: [
+    'Exide Powersafe Plus EP 150-12 (12V 150Ah)',
+    'Exide Powersafe Plus EP 100-12 (12V 100Ah)',
+    'Exide Powersafe Plus EP 65-12 (12V 65Ah)',
+    'Amaron Quanta 12AL150 (12V 150Ah Radgrid™)',
+    'Amaron Quanta 12AL100 (12V 100Ah Radgrid™)',
+    'Amaron Quanta 12AL065 (12V 65Ah Radgrid™)',
+  ],
+  ups: [
+    'BPE MF-1kVA True Online UPS (1kVA / 900W, 0ms Transfer)',
+    'BPE MF-2kVA True Online UPS (2kVA / 1800W, Pure Double Conversion)',
+    'BPE MF-3kVA High-Frequency Online UPS (3kVA / 2700W)',
+    'BPE MF-6kVA / 10kVA 3-Phase Industrial Online UPS',
+    'BPE BP-650 (650VA Line-Interactive UPS for PC & Router)',
+  ],
+};
 
 function ContactPageContent() {
   const searchParams = useSearchParams();
 
   const urlProductId = searchParams.get('productId') || '';
   const urlProductName = searchParams.get('name') || '';
-  const urlCategory = searchParams.get('category') || '';
+  const urlCategory = searchParams.get('category')?.toLowerCase() || '';
 
-  // Core Customer State
-  const [selectedProductId, setSelectedProductId] = useState(urlProductId);
-  const [selectedProductName, setSelectedProductName] = useState(urlProductName);
-  const [inquiryType, setInquiryType] = useState<string>(
-    urlCategory === 'inverters'
+  // Determine initial inquiry type from URL if provided
+  const initialInquiryType =
+    urlCategory === 'inverters' || urlCategory === 'inverter'
       ? 'inverters'
-      : urlCategory === 'batteries'
+      : urlCategory === 'batteries' || urlCategory === 'battery'
       ? 'batteries'
-      : urlCategory === 'ups'
+      : urlCategory === 'ups' || urlCategory === 'online-ups'
       ? 'ups'
-      : 'combo'
+      : urlCategory === 'service' || urlCategory === 'services' || urlCategory === 'audit'
+      ? 'service'
+      : 'combo';
+
+  const [inquiryType, setInquiryType] = useState<string>(initialInquiryType);
+
+  // Selected product / service
+  const [selectedProductId, setSelectedProductId] = useState(urlProductId);
+  const [selectedProductName, setSelectedProductName] = useState(
+    urlProductName || DEFAULT_RECOMMENDATIONS[initialInquiryType] || ''
   );
 
+  // Live products fetched dynamically from database (automatically includes newly added admin/vendor products)
+  const [liveProducts, setLiveProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadLiveProducts() {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && Array.isArray(data.products)) {
+            setLiveProducts(data.products);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load live products for contact form:', err);
+      }
+    }
+    loadLiveProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Filter products matching current category from live database
+  const categoryProducts = useMemo(() => {
+    if (inquiryType === 'service') return [];
+
+    return liveProducts.filter((p) => {
+      const pCat = (p.category || '').toLowerCase();
+      if (inquiryType === 'inverters') return pCat === 'inverters' || pCat === 'inverter';
+      if (inquiryType === 'batteries') return pCat === 'batteries' || pCat === 'battery';
+      if (inquiryType === 'ups') return pCat === 'ups' || pCat === 'online-ups';
+      if (inquiryType === 'combo') return pCat === 'combo' || pCat.includes('combo');
+      return pCat === inquiryType;
+    });
+  }, [liveProducts, inquiryType]);
+
+  // Group dropdown items dynamically by brand so newly added products automatically show up under their brand
+  const groupedProductOptions = useMemo(() => {
+    const groups: { group: string; items: { id: string; name: string }[] }[] = [];
+
+    // 1. Top recommendation option
+    const rec = DEFAULT_RECOMMENDATIONS[inquiryType] || '✨ Let RPS Engineer Recommend Best Option';
+    groups.push({
+      group: '✨ Recommendations',
+      items: [{ id: '', name: rec }],
+    });
+
+    if (inquiryType === 'service') {
+      groups.push({
+        group: '🛠️ On-Site Engineering Services',
+        items: SERVICE_OPTIONS.slice(1).map((s) => ({ id: '', name: s })),
+      });
+      return groups;
+    }
+
+    if (categoryProducts.length > 0) {
+      // Dynamically group live database products by brand (e.g. Microtek, Exide, Amaron, BPE, etc.)
+      const brandMap = new Map<string, { id: string; name: string }[]>();
+      categoryProducts.forEach((prod) => {
+        const b = prod.brand?.trim() || 'Other Products';
+        if (!brandMap.has(b)) brandMap.set(b, []);
+        const displayName = prod.capacity ? `${prod.name} (${prod.capacity})` : prod.name;
+        brandMap.get(b)!.push({ id: prod.id, name: displayName });
+      });
+
+      brandMap.forEach((items, brandName) => {
+        groups.push({
+          group: `${brandName} Products`,
+          items,
+        });
+      });
+    } else {
+      // Fallback default list if database catalog is still loading
+      const fallbacks = FALLBACK_PRODUCTS_BY_CATEGORY[inquiryType] || [];
+      if (fallbacks.length > 0) {
+        groups.push({
+          group: '⚡ Catalog Products',
+          items: fallbacks.map((name) => ({ id: '', name })),
+        });
+      }
+    }
+
+    return groups;
+  }, [inquiryType, categoryProducts]);
+
+  // Customer Contact State
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [cityOrDistrict, setCityOrDistrict] = useState('Hyderabad / Secunderabad');
@@ -129,6 +272,13 @@ function ContactPageContent() {
   const directWhatsAppUrl = `https://wa.me/${BUSINESS_INFO.whatsappIntl}?text=${encodeURIComponent(
     'Hello Mr. Raja Shekar Reddy (RPS), I would like to consult on power backup equipment.'
   )}`;
+
+  // When switching solutions, automatically update the product selection so cross-solution mismatch is impossible
+  const handleInquiryTypeChange = (newTypeId: string) => {
+    setInquiryType(newTypeId);
+    setSelectedProductName(DEFAULT_RECOMMENDATIONS[newTypeId] || '');
+    setSelectedProductId(''); // Clear specific product ID since category changed
+  };
 
   const handleQuotationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,7 +320,9 @@ function ContactPageContent() {
     setContactErrors({});
     setSubmitting(true);
 
-    const activeCat = INQUIRY_TYPES.find((t) => t.id === inquiryType)?.category || 'Inverters & Battery Combo';
+    const activeConfig = INQUIRY_TYPES.find((t) => t.id === inquiryType);
+    const activeCat = activeConfig?.category || 'combo';
+    const activeCatTitle = activeConfig?.categoryTitle || 'Inverters & Battery Combo';
 
     try {
       const res = await fetch('/api/quotations', {
@@ -185,6 +337,7 @@ function ContactPageContent() {
           cityOrDistrict: trimmedLocation,
           category: activeCat,
           productId: selectedProductId || undefined,
+          productName: selectedProductName || undefined,
           notes: notes.trim() || undefined,
         }),
       });
@@ -200,7 +353,7 @@ function ContactPageContent() {
         customerName: trimmedName,
         customerPhone: cleanPhone,
         productName: selectedProductName || undefined,
-        category: activeCat,
+        category: activeCatTitle,
         cityOrDistrict: trimmedLocation,
         notes: notes.trim() || undefined,
         companyName: isBusinessCustomer && companyName.trim() ? companyName.trim() : undefined,
@@ -223,6 +376,12 @@ function ContactPageContent() {
       setSubmitting(false);
     }
   };
+
+  const activeInquiryConfig = INQUIRY_TYPES.find((t) => t.id === inquiryType) || INQUIRY_TYPES[0];
+
+  // Check if current selectedProductName is in options list
+  const allCurrentNames = groupedProductOptions.flatMap((g) => g.items.map((i) => i.name));
+  const isCustomOrUrlItem = selectedProductName && !allCurrentNames.includes(selectedProductName);
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen py-10 sm:py-16">
@@ -249,7 +408,7 @@ function ContactPageContent() {
                   Get in Touch
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
-                  Providing authorized industrial &amp; residential power backup systems, genuine factory warranties, and certified technician installation.
+                  Providing authorized industrial &amp; residential power backup systems, genuine factory warranties, and certified technician installation across Telangana &amp; Andhra Pradesh.
                 </p>
               </div>
 
@@ -327,6 +486,40 @@ function ContactPageContent() {
                   <span>Official Warranty</span>
                 </div>
               </div>
+
+              {/* Social Media Connect */}
+              <div className="pt-4 border-t border-slate-100 space-y-2">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-bold block">
+                  Connect on Social Media:
+                </span>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <a
+                    href={BUSINESS_INFO.social.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 rounded-xl bg-slate-50 hover:bg-[#1877F2]/10 border border-slate-200/80 hover:border-[#1877F2]/40 flex items-center gap-2.5 text-xs font-bold text-slate-700 hover:text-[#1877F2] transition-all group"
+                    title="Follow RPS on Facebook"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-[#1877F2] text-white flex items-center justify-center shrink-0">
+                      <FacebookIcon className="w-3.5 h-3.5" />
+                    </div>
+                    <span>Facebook</span>
+                  </a>
+
+                  <a
+                    href={BUSINESS_INFO.social.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 rounded-xl bg-slate-50 hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 flex items-center gap-2.5 text-xs font-bold text-slate-700 hover:text-rose-600 transition-all group"
+                    title="Follow RPS on Instagram"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white flex items-center justify-center shrink-0">
+                      <InstagramIcon className="w-3.5 h-3.5" />
+                    </div>
+                    <span>Instagram</span>
+                  </a>
+                </div>
+              </div>
             </ScrollRevealCard>
 
             {/* Interactive Google Maps Card */}
@@ -388,32 +581,8 @@ function ContactPageContent() {
                   Request a Product Quotation or Service
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 mt-1">
-                  Fill in your basic details below. Our technical team will calculate the right capacity and share an official product quotation.
+                  Choose your requirement below. Products from our live catalogue automatically appear in the list.
                 </p>
-
-                {/* Pre-selected Product Banner */}
-                {selectedProductName && (
-                  <div className="mt-4 p-3.5 bg-blue-50/80 border border-blue-200 rounded-2xl flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block">
-                        Inquiring About
-                      </span>
-                      <span className="text-sm font-extrabold text-[#142B55] block">
-                        {selectedProductName}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedProductId('');
-                        setSelectedProductName('');
-                      }}
-                      className="text-xs font-bold text-slate-500 hover:text-red-600 px-2 py-1 rounded bg-white border border-slate-200"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                )}
               </div>
 
               {submissionSuccess ? (
@@ -422,7 +591,7 @@ function ContactPageContent() {
                     <CheckCircle2 className="w-7 h-7 text-emerald-600 shrink-0" />
                     <div>
                       <h4 className="font-bold text-base text-emerald-950">
-                        Product Quotation Request Received
+                        Quotation Request Received
                       </h4>
                       <p className="text-xs text-emerald-800">
                         Reference ID: <strong className="font-mono text-sm">{submissionSuccess.quotationNumber}</strong>
@@ -430,14 +599,14 @@ function ContactPageContent() {
                     </div>
                   </div>
                   <p className="text-xs text-emerald-800 leading-relaxed">
-                    Thank you, <strong>{customerName}</strong>. Our team in Secunderabad will review your power requirements and contact you at <strong>{customerPhone}</strong> with a formal product quotation.
+                    Thank you, <strong>{customerName}</strong>. Our team in Secunderabad has received your inquiry for <strong>{selectedProductName}</strong> and will contact you directly at <strong>{customerPhone}</strong>.
                   </p>
                   <div className="p-3 bg-white/80 rounded-xl border border-emerald-200 text-xs space-y-1 text-slate-700">
                     <p>
-                      • <strong>Central Technical Desk:</strong> Inward inquiry registered for engineering verification.
+                      • <strong>Official Desk:</strong> Inward inquiry registered for pricing &amp; installation verification.
                     </p>
                     <p>
-                      • <strong>Official WhatsApp:</strong> Sent to RPS Technical Desk ({BUSINESS_INFO.phoneFormatted}).
+                      • <strong>WhatsApp:</strong> Sent to RPS Desk ({BUSINESS_INFO.phoneFormatted}).
                     </p>
                   </div>
 
@@ -475,48 +644,69 @@ function ContactPageContent() {
                     </div>
                   )}
 
-                  {/* 1. What are you looking for? (Visual Selector) */}
+                  {/* 1. What are you looking for? (Clean Solution Tabs) */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                      What are you looking for?
+                      What are you looking for? *
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {INQUIRY_TYPES.map((type) => (
-                        <button
-                          key={type.id}
-                          type="button"
-                          onClick={() => setInquiryType(type.id)}
-                          className={`p-2.5 text-center rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                            inquiryType === type.id
-                              ? 'bg-[#142B55] text-white border-[#142B55] shadow-xs'
-                              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-                          }`}
-                        >
-                          {type.label}
-                        </button>
-                      ))}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                      {INQUIRY_TYPES.map((type) => {
+                        const Icon = type.icon;
+                        const isSelected = inquiryType === type.id;
+                        return (
+                          <button
+                            key={type.id}
+                            type="button"
+                            onClick={() => handleInquiryTypeChange(type.id)}
+                            className={`p-2.5 rounded-xl text-center border transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${
+                              isSelected
+                                ? 'bg-[#142B55] text-white border-[#142B55] shadow-xs'
+                                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                            }`}
+                          >
+                            <Icon className={`w-4 h-4 ${isSelected ? 'text-amber-300' : 'text-[#142B55]'}`} />
+                            <span className="text-xs font-bold leading-tight">
+                              {type.label}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  {/* Specific Product / Model Selector */}
+                  {/* 2. Specific Product / Equipment Model (Filtered by Selected Solution & Live Database) */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                      <span>Specific Product / Equipment Model</span>
-                      <span className="text-[11px] text-blue-600 font-semibold lowercase">Official 4-brand stock</span>
+                      <span>{activeInquiryConfig.fieldLabel} *</span>
+                      <span className="text-[11px] text-blue-600 font-semibold lowercase">
+                        {activeInquiryConfig.label}
+                      </span>
                     </label>
                     <select
-                      value={selectedProductName || 'Let RPS Engineer Recommend Best Match for My Setup'}
+                      value={selectedProductName}
                       onChange={(e) => {
                         const val = e.target.value;
                         setSelectedProductName(val);
+                        // Also associate the specific live product ID if matched
+                        const matched = categoryProducts.find(
+                          (p) => p.name === val || `${p.name} (${p.capacity})` === val || p.id === val
+                        );
+                        setSelectedProductId(matched ? matched.id : '');
                       }}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#142B55] cursor-pointer"
                     >
-                      {CONTACT_PRODUCT_OPTIONS.map((group) => (
+                      {/* If user arrived with a specific catalogue model from another page */}
+                      {isCustomOrUrlItem && (
+                        <optgroup label="Selected Model">
+                          <option value={selectedProductName}>{selectedProductName}</option>
+                        </optgroup>
+                      )}
+
+                      {groupedProductOptions.map((group) => (
                         <optgroup key={group.group} label={group.group}>
                           {group.items.map((prod) => (
-                            <option key={prod} value={prod}>
-                              {prod}
+                            <option key={prod.name} value={prod.name}>
+                              {prod.name}
                             </option>
                           ))}
                         </optgroup>
@@ -524,7 +714,7 @@ function ContactPageContent() {
                     </select>
                   </div>
 
-                  {/* 2. Customer Name & Mobile */}
+                  {/* 3. Customer Name & Mobile */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
@@ -532,6 +722,7 @@ function ContactPageContent() {
                       </label>
                       <input
                         type="text"
+                        placeholder="e.g. Ramesh Kumar"
                         value={customerName}
                         onChange={(e) => {
                           setCustomerName(e.target.value);
@@ -552,28 +743,34 @@ function ContactPageContent() {
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                         Phone / WhatsApp Number *
                       </label>
-                      <input
-                        type="tel"
-                        maxLength={10}
-                        value={customerPhone}
-                        onChange={(e) => {
-                          const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-                          setCustomerPhone(digits);
-                          if (contactErrors.phone) setContactErrors((p) => ({ ...p, phone: '' }));
-                        }}
-                        className={`w-full px-3.5 py-2.5 rounded-xl border text-sm bg-slate-50 focus:bg-white focus:outline-none transition-all ${
-                          contactErrors.phone
-                            ? 'border-red-500 bg-red-50/20 text-red-900'
-                            : 'border-slate-200 focus:ring-2 focus:ring-[#142B55]'
-                        }`}
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                          +91
+                        </span>
+                        <input
+                          type="tel"
+                          maxLength={10}
+                          placeholder="93460XXXXX"
+                          value={customerPhone}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setCustomerPhone(digits);
+                            if (contactErrors.phone) setContactErrors((p) => ({ ...p, phone: '' }));
+                          }}
+                          className={`w-full pl-12 pr-3.5 py-2.5 rounded-xl border text-sm bg-slate-50 focus:bg-white focus:outline-none transition-all ${
+                            contactErrors.phone
+                              ? 'border-red-500 bg-red-50/20 text-red-900'
+                              : 'border-slate-200 focus:ring-2 focus:ring-[#142B55]'
+                          }`}
+                        />
+                      </div>
                       {contactErrors.phone && (
                         <p className="text-[11px] text-red-600 font-medium mt-1">{contactErrors.phone}</p>
                       )}
                     </div>
                   </div>
 
-                  {/* 3. Delivery Area / City / Pincode */}
+                  {/* 4. Delivery Area / City & Email */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
@@ -581,6 +778,7 @@ function ContactPageContent() {
                       </label>
                       <input
                         type="text"
+                        placeholder="e.g. Begumpet, Secunderabad - 500003"
                         value={cityOrDistrict}
                         onChange={(e) => {
                           setCityOrDistrict(e.target.value);
@@ -603,6 +801,7 @@ function ContactPageContent() {
                       </label>
                       <input
                         type="email"
+                        placeholder="name@company.com"
                         value={customerEmail}
                         onChange={(e) => {
                           setCustomerEmail(e.target.value);
@@ -616,20 +815,21 @@ function ContactPageContent() {
                     </div>
                   </div>
 
-                  {/* 4. Requirements / Appliances to Power */}
+                  {/* 5. Requirements / Notes */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Appliances to Run or Requirements (Optional)
+                      Requirements or Appliances to Power (Optional)
                     </label>
                     <textarea
                       rows={3}
+                      placeholder="e.g. 3 fans, 4 lights, 1 TV, 1 fridge, or general requirements"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#142B55] transition-all"
                     />
                   </div>
 
-                  {/* 5. Clean GST & Business Toggle */}
+                  {/* 6. Clean GST & Business Toggle */}
                   <div className="pt-1">
                     <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none">
                       <input
@@ -649,6 +849,7 @@ function ContactPageContent() {
                           </label>
                           <input
                             type="text"
+                            placeholder="e.g. Care Diagnostics Pvt Ltd"
                             value={companyName}
                             onChange={(e) => setCompanyName(e.target.value)}
                             className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#142B55]"
@@ -661,6 +862,7 @@ function ContactPageContent() {
                           <input
                             type="text"
                             maxLength={15}
+                            placeholder="36AAAAA0000A1Z5"
                             value={gstin}
                             onChange={(e) => setGstin(e.target.value.toUpperCase())}
                             className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[#142B55]"
@@ -670,18 +872,18 @@ function ContactPageContent() {
                     )}
                   </div>
 
-                  {/* 6. Submit Button & Quick Chat Alternative */}
-                  <div className="pt-3 space-y-3">
+                  {/* 7. Submit Button & Quick Chat Alternative */}
+                  <div className="pt-2 space-y-3">
                     <Button
                       type="submit"
                       size="lg"
                       variant="primary"
                       disabled={submitting}
                       fullWidth
-                      className="bg-[#142B55] hover:bg-[#0B172F] text-white font-bold py-3.5 rounded-xl shadow-md transition-all"
+                      className="bg-[#142B55] hover:bg-[#0B172F] text-white font-bold py-3.5 rounded-xl shadow-md transition-all cursor-pointer"
                       icon={<Send className="w-4 h-4 ml-1.5" />}
                     >
-                      {submitting ? 'Submitting Inquiry...' : 'Submit Inquiry & Request Product Quotation'}
+                      {submitting ? 'Submitting Inquiry...' : 'Submit Inquiry & Request Quotation →'}
                     </Button>
 
                     <a
@@ -695,10 +897,10 @@ function ContactPageContent() {
                         size="md"
                         variant="outline"
                         fullWidth
-                        className="text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-bold rounded-xl py-2.5 transition-all"
+                        className="text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-bold rounded-xl py-2.5 transition-all cursor-pointer"
                         icon={<MessageSquare className="w-4 h-4 text-emerald-600" />}
                       >
-                        Or Chat with Engineer on WhatsApp
+                        Or Chat Directly with Technical Engineer on WhatsApp
                       </Button>
                     </a>
                   </div>

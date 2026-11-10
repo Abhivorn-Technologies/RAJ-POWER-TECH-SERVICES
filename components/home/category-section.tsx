@@ -29,7 +29,7 @@ const CATEGORIES: CategoryItem[] = [
     subtitle: 'Microcontroller DSP Technology',
     tagline: '900VA to 5kVA Capacity',
     description: 'Clean 50Hz pure sinusoidal output engineered to safeguard televisions, motors, sensitive computing equipment, and home appliances.',
-    image: '/images/cat-inverters.jpg',
+    image: '/products/microtek-vturbo-clean.png',
     accentBg: 'bg-blue-50 text-blue-700 border-blue-200',
     icon: <Zap className="w-5 h-5 text-[#142B55]" />,
     specs: [
@@ -45,7 +45,7 @@ const CATEGORIES: CategoryItem[] = [
     subtitle: 'Heavy-Duty C10 Deep Cycle',
     tagline: '100Ah to 220Ah Energy Storage',
     description: 'High-pressure spine cast tubular plates designed for harsh tropical ambient temperatures and repetitive deep discharges.',
-    image: '/images/cat-batteries.jpg',
+    image: '/products/amaron-quanta-tubular-hq.png',
     accentBg: 'bg-amber-50 text-amber-700 border-amber-200',
     icon: <BatteryCharging className="w-5 h-5 text-amber-600" />,
     specs: [
@@ -61,7 +61,7 @@ const CATEGORIES: CategoryItem[] = [
     subtitle: '0ms True Double-Conversion',
     tagline: '1kVA to 20kVA Heavy-Duty',
     description: 'Continuous uninterrupted power with zero transfer latency, isolating sensitive servers and medical diagnostics from voltage surges.',
-    image: '/images/cat-ups.jpg',
+    image: '/products/bpe-tower-ups-clean.png',
     accentBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     icon: <ShieldAlert className="w-5 h-5 text-emerald-600" />,
     specs: [
@@ -129,24 +129,42 @@ export function CategorySection() {
                 className="relative flex flex-col h-full rounded-2xl bg-white border border-slate-200/90 hover:border-[#142B55] transition-all duration-300 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1.5"
               >
                 {/* Photo Header */}
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
+                <div
+                  className={`relative aspect-[16/10] w-full overflow-hidden ${
+                    cat.id === 'inverters'
+                      ? 'bg-gradient-to-br from-[#0B172F] via-[#142B55] to-[#1E3D78] flex items-center justify-center p-6'
+                      : cat.id === 'batteries'
+                      ? 'bg-gradient-to-br from-[#0B172F] via-[#192438] to-[#24334C] flex items-center justify-center p-5'
+                      : 'bg-gradient-to-br from-[#0B172F] via-[#0B2538] to-[#103A50] flex items-center justify-center p-4'
+                  }`}
+                >
+                  {cat.id === 'inverters' && (
+                    <div className="absolute w-44 h-44 rounded-full bg-amber-500/20 blur-3xl pointer-events-none" />
+                  )}
+                  {cat.id === 'batteries' && (
+                    <div className="absolute w-44 h-44 rounded-full bg-amber-500/25 blur-3xl pointer-events-none" />
+                  )}
+                  {cat.id === 'ups' && (
+                    <div className="absolute w-44 h-44 rounded-full bg-cyan-500/20 blur-3xl pointer-events-none" />
+                  )}
                   <Image
                     src={cat.image}
                     alt={cat.name}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 400px"
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-108"
+                    className="object-contain p-3 drop-shadow-[0_15px_25px_rgba(0,0,0,0.65)] transition-transform duration-700 ease-out group-hover:scale-108"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent pointer-events-none" />
 
                   {/* Floating Tech Pill Badge */}
-                  <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-200 flex items-center gap-2 shadow-sm">
+                  <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-200 flex items-center gap-2 shadow-sm z-10">
                     {cat.icon}
                     <span className="text-xs font-mono font-bold text-slate-900 tracking-wide">{cat.tagline}</span>
                   </div>
 
                   {/* Category Subtitle */}
-                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
+                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between z-10">
                     <span className="text-[11px] font-mono text-white uppercase tracking-widest bg-slate-900/80 px-2 py-0.5 rounded backdrop-blur-xs">
                       {cat.subtitle}
                     </span>
