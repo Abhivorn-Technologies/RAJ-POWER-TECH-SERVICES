@@ -898,7 +898,7 @@ function ContactPageContent() {
                         size="md"
                         variant="outline"
                         fullWidth
-                        className="text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-bold rounded-xl py-2.5 transition-all cursor-pointer"
+                        className="text-xs text-emerald-700 hover:text-emerald-900 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-bold rounded-xl py-2.5 transition-all cursor-pointer"
                         icon={<MessageSquare className="w-4 h-4 text-emerald-600" />}
                       >
                         Or Chat Directly with Technical Engineer on WhatsApp

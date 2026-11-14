@@ -1,12 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { connection } from 'next/server';
 import { ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { BUSINESS_INFO } from '@/lib/constants';
 
 interface PolicyPageProps {
   params: Promise<{ slug: string }>;
 }
+
+export const instant = false;
 
 interface PolicyDetail {
   title: string;
@@ -112,6 +115,7 @@ export function generateStaticParams() {
 }
 
 export default async function PolicyPage({ params }: PolicyPageProps) {
+  await connection();
   const { slug } = await params;
   const policy = POLICIES[slug];
 

@@ -5,6 +5,7 @@ import { ArrowLeft, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { connection } from 'next/server';
 import { BUSINESS_INFO } from '@/lib/constants';
 import { listProducts, listCategories } from '@/lib/db/data-store';
+import { DEMO_FEATURED_PRODUCTS } from '@/lib/demo-data';
 import { ProductCard } from '@/components/home/product-card';
 import { Product } from '@/types/product';
 
@@ -51,6 +52,13 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     });
   } catch (err) {
     console.error('Failed to load category products:', err);
+  }
+
+  // Resilient fallback to DEMO_FEATURED_PRODUCTS if database returned empty for this category
+  if (categoryProducts.length === 0) {
+    categoryProducts = DEMO_FEATURED_PRODUCTS.filter(
+      (p) => p.category === category.id || p.category === category.slug
+    );
   }
 
   return (

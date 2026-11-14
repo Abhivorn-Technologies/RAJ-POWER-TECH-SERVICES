@@ -20,7 +20,7 @@ test('DATASTORE: DEMO_FEATURED_PRODUCTS catalog integrity', () => {
     assert.ok(product.id, 'Every product must have an ID');
     assert.ok(product.name, 'Every product must have a name');
     assert.ok(product.brand, 'Every product must specify a brand');
-    assert.ok(['inverters', 'batteries', 'ups', 'lithium', 'high-capacity-ups'].includes(product.category), `Category ${product.category} must be one of inverters/batteries/ups/lithium/high-capacity-ups`);
+    assert.ok(['inverters', 'batteries', 'ups', 'lithium', 'high-capacity-ups', 'solar', 'combo'].includes(product.category), `Category ${product.category} must be one of inverters/batteries/ups/lithium/high-capacity-ups/solar/combo`);
     assert.ok(typeof product.price === 'number' && product.price > 0, `Product ${product.id} must have a valid positive price`);
     assert.ok(product.imageUrl, `Product ${product.id} must have an image path`);
   }

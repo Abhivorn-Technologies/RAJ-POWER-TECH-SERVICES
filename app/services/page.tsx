@@ -747,10 +747,10 @@ Please confirm a site engineer visit. Thank you!`;
                   </p>
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="white"
                     size="sm"
                     onClick={() => setAuditSuccess(false)}
-                    className="mt-2 text-xs font-bold border-slate-300 text-slate-700 hover:bg-slate-100 cursor-pointer whitespace-nowrap"
+                    className="mt-2 text-xs font-bold border-slate-300 text-slate-700 hover:text-[#142B55] hover:bg-slate-100 cursor-pointer whitespace-nowrap"
                   >
                     Submit Another Request
                   </Button>
@@ -845,32 +845,32 @@ Please confirm a site engineer visit. Thank you!`;
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3.5">
-                    <div className="flex items-center gap-2 text-[11px] text-slate-500 self-start sm:self-center">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>Direct dispatch to RPS Engineers via WhatsApp &amp; Admin Desk</span>
-                    </div>
-
+                  <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
                     <Button
                       type="submit"
                       variant="primary"
                       size="md"
                       disabled={auditSubmitting}
-                      className="w-full sm:w-auto bg-[#142B55] hover:bg-[#0B172F] text-white font-extrabold px-7 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2.5 group/btn shrink-0"
+                      className="w-full bg-[#142B55] hover:bg-[#0B172F] text-white font-bold py-3.5 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer inline-flex items-center justify-center gap-2.5 group/btn whitespace-nowrap"
                     >
                       {auditSubmitting ? (
                         <>
-                          <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                          <span>Routing Request...</span>
+                          <RefreshCw className="w-4 h-4 animate-spin text-white shrink-0" />
+                          <span className="whitespace-nowrap">Routing Request...</span>
                         </>
                       ) : (
                         <>
-                          <Calendar className="w-4 h-4 text-amber-400 group-hover/btn:scale-110 transition-transform" />
-                          <span>Schedule On-Site Power Audit</span>
-                          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                          <Calendar className="w-4 h-4 text-amber-400 shrink-0 group-hover/btn:scale-110 transition-transform" />
+                          <span className="whitespace-nowrap">Schedule On-Site Power Audit</span>
+                          <ArrowRight className="w-4 h-4 shrink-0 group-hover/btn:translate-x-1 transition-transform" />
                         </>
                       )}
                     </Button>
+
+                    <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 text-center">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Direct dispatch to RPS Engineers via WhatsApp &amp; Admin Desk</span>
+                    </div>
                   </div>
                 </form>
               )}

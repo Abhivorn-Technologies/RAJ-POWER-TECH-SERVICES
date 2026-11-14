@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
-  ShoppingBag,
+  ShoppingCart,
   Menu,
   X,
   Phone,
@@ -18,9 +18,11 @@ import {
   Server,
   Layers,
   Sparkles,
+  Sun,
+  Package,
 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
-import { FacebookIcon, InstagramIcon } from '@/components/ui/social-icons';
+import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '@/components/ui/social-icons';
 import { NAV_LINKS, SOLUTIONS_LINKS, BUSINESS_INFO } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { getGuestCart, getCartTotalItems, openCartDrawer } from '@/lib/cart-store';
@@ -35,6 +37,9 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [prevPathname, setPrevPathname] = useState(pathname);
   const [cartCount, setCartCount] = useState(0);
+  const [solutionsLinks, setSolutionsLinks] = useState<
+    Array<{ label: string; slug: string; href: string; description?: string }>
+  >([...SOLUTIONS_LINKS]);
 
   // Synchronize drawer and search overlay states on route changes without cascading effect renders
   if (prevPathname !== pathname) {
@@ -43,6 +48,36 @@ export function Header() {
     setSearchOpen(false);
     setSolutionsDropdownOpen(false);
   }
+
+  // Load dynamic solutions from DB so new admin categories appear in the header menu automatically
+  useEffect(() => {
+    let isMounted = true;
+    async function loadSolutions() {
+      try {
+        const res = await fetch('/api/categories');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.solutions && Array.isArray(data.solutions)) {
+            setSolutionsLinks(data.solutions);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch dynamic solutions for header:', err);
+      }
+    }
+
+    loadSolutions();
+
+    // Listen for custom event when categories are created in admin panel
+    const handleCategoryUpdate = () => {
+      loadSolutions();
+    };
+    window.addEventListener('rps-categories-updated', handleCategoryUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('rps-categories-updated', handleCategoryUpdate);
+    };
+  }, []);
 
   // Reactive guest cart counter synchronization
   useEffect(() => {
@@ -150,52 +185,71 @@ export function Header() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.98 }}
                           transition={{ duration: 0.15 }}
-                          className="absolute top-full left-0 w-56 bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 z-50 mt-1 space-y-0.5"
+                          className="absolute top-full left-0 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 z-50 mt-1 overflow-hidden"
                         >
-                          {SOLUTIONS_LINKS.map((sol) => {
-                            const isSubActive = pathname === sol.href;
-                            return (
-                              <Link
-                                key={sol.href}
-                                href={sol.href}
-                                onClick={() => setSolutionsDropdownOpen(false)}
-                                className={cn(
-                                  'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all',
-                                  isSubActive
-                                    ? 'bg-red-50 text-[#D52B30] font-bold'
-                                    : 'text-slate-700 hover:text-[#142B55] hover:bg-slate-50'
-                                )}
-                              >
-                                <span
+                          <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                              Our Solutions
+                            </span>
+                            <span className="text-[10px] font-bold bg-[#142B55]/10 text-[#142B55] px-2 py-0.5 rounded-full">
+                              {solutionsLinks.length} Categories
+                            </span>
+                          </div>
+
+                          <div className="max-h-56 overflow-y-auto custom-scrollbar p-1.5 space-y-0.5">
+                            {solutionsLinks.map((sol) => {
+                              const isSubActive = pathname === sol.href;
+                              return (
+                                <Link
+                                  key={sol.href}
+                                  href={sol.href}
+                                  onClick={() => setSolutionsDropdownOpen(false)}
                                   className={cn(
-                                    'w-6 h-6 rounded-lg flex items-center justify-center shrink-0',
-                                    sol.slug === 'inverters'
-                                      ? 'bg-red-50 text-[#D52B30]'
-                                      : sol.slug === 'batteries'
-                                      ? 'bg-amber-50 text-amber-600'
-                                      : sol.slug === 'ups'
-                                      ? 'bg-sky-50 text-sky-600'
-                                      : sol.slug === 'lithium'
-                                      ? 'bg-purple-50 text-purple-600'
-                                      : 'bg-blue-50 text-[#142B55]'
+                                    'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all',
+                                    isSubActive
+                                      ? 'bg-red-50 text-[#D52B30] font-bold'
+                                      : 'text-slate-700 hover:text-[#142B55] hover:bg-slate-50'
                                   )}
                                 >
-                                  {sol.slug === 'inverters' ? (
-                                    <Zap className="w-3.5 h-3.5" />
-                                  ) : sol.slug === 'batteries' ? (
-                                    <BatteryCharging className="w-3.5 h-3.5" />
-                                  ) : sol.slug === 'ups' ? (
-                                    <Server className="w-3.5 h-3.5" />
-                                  ) : sol.slug === 'lithium' ? (
-                                    <Sparkles className="w-3.5 h-3.5" />
-                                  ) : (
-                                    <Layers className="w-3.5 h-3.5" />
-                                  )}
-                                </span>
-                                <span className="flex-1 truncate">{sol.label}</span>
-                              </Link>
-                            );
-                          })}
+                                  <span
+                                    className={cn(
+                                      'w-6 h-6 rounded-lg flex items-center justify-center shrink-0',
+                                      sol.slug === 'inverters'
+                                        ? 'bg-red-50 text-[#D52B30]'
+                                        : sol.slug === 'batteries'
+                                        ? 'bg-amber-50 text-amber-600'
+                                        : sol.slug === 'ups'
+                                        ? 'bg-sky-50 text-sky-600'
+                                        : sol.slug === 'lithium'
+                                        ? 'bg-purple-50 text-purple-600'
+                                        : sol.slug === 'solar'
+                                        ? 'bg-yellow-50 text-amber-600'
+                                        : sol.slug === 'combo'
+                                        ? 'bg-emerald-50 text-emerald-600'
+                                        : 'bg-blue-50 text-[#142B55]'
+                                    )}
+                                  >
+                                    {sol.slug === 'inverters' ? (
+                                      <Zap className="w-3.5 h-3.5" />
+                                    ) : sol.slug === 'batteries' ? (
+                                      <BatteryCharging className="w-3.5 h-3.5" />
+                                    ) : sol.slug === 'ups' ? (
+                                      <Server className="w-3.5 h-3.5" />
+                                    ) : sol.slug === 'lithium' ? (
+                                      <Sparkles className="w-3.5 h-3.5" />
+                                    ) : sol.slug === 'solar' ? (
+                                      <Sun className="w-3.5 h-3.5" />
+                                    ) : sol.slug === 'combo' ? (
+                                      <Package className="w-3.5 h-3.5" />
+                                    ) : (
+                                      <Layers className="w-3.5 h-3.5" />
+                                    )}
+                                  </span>
+                                  <span className="flex-1 truncate">{sol.label}</span>
+                                </Link>
+                              );
+                            })}
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -298,12 +352,13 @@ export function Header() {
 
             {/* Cart Button with Drawer Trigger */}
             <button
+              suppressHydrationWarning
               type="button"
               onClick={openCartDrawer}
               className="relative p-2 text-slate-700 hover:text-[#142B55] hover:bg-[#F3F5F8] rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#142B55] cursor-pointer"
-              aria-label="View Shopping Bag"
+              aria-label="View Shopping Cart"
             >
-              <ShoppingBag className="w-5 h-5" />
+              <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-[#D52B30] text-white rounded-full text-[10px] font-bold flex items-center justify-center animate-pulse">
                   {cartCount}
@@ -311,17 +366,18 @@ export function Header() {
               )}
             </button>
 
-            {/* Direct Technical Helpline Action */}
+            {/* Direct Technical WhatsApp Action (Icon Only) */}
             <a
               href={`https://wa.me/${BUSINESS_INFO.whatsappIntl}?text=${encodeURIComponent(
-                'Hello RPS, I would like to request an official power backup quotation and technical guidance.'
+                'Hello Raj Power Tech Services, I need technical help / quotation for power backup systems.'
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#142B55] hover:bg-[#0B172F] transition-colors shadow-2xs"
+              className="p-1.5 hover:bg-slate-100 rounded-full transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] cursor-pointer flex items-center justify-center group"
+              title="Chat on WhatsApp"
+              aria-label="Chat on WhatsApp"
             >
-              <Phone className="w-3.5 h-3.5 text-cyan-300" />
-              <span>Sales Desk</span>
+              <WhatsAppIcon className="w-6 h-6 transition-transform group-hover:scale-110 drop-shadow-2xs" />
             </a>
 
             {/* Mobile Navigation Toggle Button */}
@@ -392,8 +448,8 @@ export function Header() {
                         </span>
                       </Link>
 
-                      <div className="pl-4 pr-1 space-y-1 border-l-2 border-slate-200 ml-3 mt-1">
-                        {SOLUTIONS_LINKS.map((sol) => (
+                      <div className="pl-4 pr-1 space-y-1 border-l-2 border-slate-200 ml-3 mt-1 max-h-56 overflow-y-auto custom-scrollbar">
+                        {solutionsLinks.map((sol) => (
                           <Link
                             key={sol.href}
                             href={sol.href}
@@ -445,14 +501,14 @@ export function Header() {
 
                 <a
                   href={`https://wa.me/${BUSINESS_INFO.whatsappIntl}?text=${encodeURIComponent(
-                    'Hello RPS, I would like to request an official power backup quotation.'
+                    'Hello Raj Power Tech Services, I need technical help / quotation for power backup systems.'
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700"
                 >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Sales Desk Quotation</span>
+                  <WhatsAppIcon className="w-4 h-4 text-white" />
+                  <span>WhatsApp Help Desk</span>
                 </a>
 
                 {/* Mobile Social Links */}

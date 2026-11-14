@@ -71,6 +71,22 @@ export const BUSINESS_INFO = {
       features: ['Heavy Duty DSC Technology', 'Runs Air Conditioners & Motors', 'Multi-Battery Bank 24V-96V', 'Rugged Commercial Reliability'],
       href: '/categories/high-capacity-ups',
     },
+    {
+      id: 'solar',
+      name: 'Solar',
+      slug: 'solar',
+      description: 'High-efficiency solar hybrid inverters, solar charge controllers, and rooftop photovoltaic systems engineered for maximum clean energy yield.',
+      features: ['Solar Hybrid MPPT Tech', 'Grid Export & Off-Grid Modes', 'High Solar Yield Efficiency', 'IP65 Weatherproof Enclosure'],
+      href: '/categories/solar',
+    },
+    {
+      id: 'combo',
+      name: 'Combo',
+      slug: 'combo',
+      description: 'Pre-engineered inverter and heavy-duty tubular battery combo packages matched for maximum efficiency, seamless home backup, and zero sizing guesswork.',
+      features: ['Pre-Matched Inverter & Battery', 'Optimized Backup Runtime', 'Single Warranty Desk', 'Free Doorstep Setup'],
+      href: '/categories/combo',
+    },
   ],
 } as const;
 
@@ -110,6 +126,18 @@ export const SOLUTIONS_LINKS = [
     slug: 'batteries',
     href: '/categories/batteries',
     description: 'High-cycle tubular & SMF batteries for deep discharge longevity',
+  },
+  {
+    label: 'Solar',
+    slug: 'solar',
+    href: '/categories/solar',
+    description: 'Solar hybrid inverters, MPPT PCUs, and rooftop panels',
+  },
+  {
+    label: 'Combo',
+    slug: 'combo',
+    href: '/categories/combo',
+    description: 'Pre-matched inverter and battery packages for homes & offices',
   },
 ] as const;
 

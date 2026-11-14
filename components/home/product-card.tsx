@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
-import { FileText, ShoppingBag, Check, ShieldCheck, AlertCircle, Flame } from 'lucide-react';
+import { FileText, ShoppingCart, Check, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -73,25 +73,17 @@ export function ProductCard({ product, index, delay }: ProductCardProps) {
         }
         className="group relative flex flex-col h-full rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 overflow-hidden"
       >
-        {/* Top Badges: Savings & Stock Urgency */}
+        {/* Top Badges: Savings & Out of Stock */}
         <div className="absolute top-3 left-3 z-10 pointer-events-none flex flex-col gap-1 items-start">
           {isOutOfStock ? (
             <span className="bg-rose-600 text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-md shadow-xs uppercase tracking-wider flex items-center gap-1">
               <AlertCircle className="w-3 h-3" /> Out of Stock
             </span>
-          ) : isLowStock ? (
-            <span className="bg-amber-600 text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-md shadow-xs tracking-wider flex items-center gap-1.5 animate-pulse">
-              <Flame className="w-3 h-3" /> Only {availableStock} Left!
-            </span>
           ) : product.comparePrice && product.comparePrice > priceValue ? (
             <span className="bg-[#D52B30] text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded-md shadow-xs uppercase tracking-wider">
               {Math.round(((product.comparePrice - priceValue) / product.comparePrice) * 100)}% OFF
             </span>
-          ) : (
-            <span className="bg-slate-900/80 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-md backdrop-blur-xs">
-              Official Stock
-            </span>
-          )}
+          ) : null}
         </div>
 
         {/* Product Image Area with Link */}
@@ -171,31 +163,26 @@ export function ProductCard({ product, index, delay }: ProductCardProps) {
                   <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0" />
                   Currently Out of Stock
                 </span>
-              ) : isLowStock ? (
-                <span className="text-amber-700 font-bold flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
-                  Only {availableStock} units left in Hub!
-                </span>
               ) : (
                 <span className="text-emerald-700 font-semibold flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                  In Stock ({availableStock} ready to ship)
+                  In Stock
                 </span>
               )}
             </div>
           </div>
 
           {/* Action Controls */}
-          <div className="grid grid-cols-2 gap-2 pt-1">
+          <div className="flex flex-col gap-2 pt-1">
             {isOutOfStock ? (
               <button
                 suppressHydrationWarning
                 type="button"
                 disabled
-                className="w-full py-2.5 px-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-400 cursor-not-allowed flex items-center justify-center gap-1.5 border border-slate-200"
+                className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 text-slate-400 cursor-not-allowed flex items-center justify-center gap-1.5 border border-slate-200"
               >
                 <AlertCircle className="w-3.5 h-3.5 shrink-0 text-slate-400" />
-                <span className="truncate">Out of Stock</span>
+                <span className="whitespace-nowrap">Currently Out of Stock</span>
               </button>
             ) : (
               <button
@@ -203,21 +190,21 @@ export function ProductCard({ product, index, delay }: ProductCardProps) {
                 type="button"
                 onClick={handleAddToCart}
                 className={cn(
-                  'w-full py-2.5 px-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs',
+                  'w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:shadow-md active:scale-[0.99] whitespace-nowrap',
                   added
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
-                    : 'bg-[#142B55] hover:bg-[#0B172F] text-white hover:shadow-md'
+                    : 'bg-[#142B55] hover:bg-[#0B172F] text-white'
                 )}
               >
                 {added ? (
                   <>
-                    <Check className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">Added ✓</span>
+                    <Check className="w-4 h-4 shrink-0 text-white" />
+                    <span>Added to Cart ✓</span>
                   </>
                 ) : (
                   <>
-                    <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">Add to Bag</span>
+                    <ShoppingCart className="w-4 h-4 shrink-0" />
+                    <span>Add to Cart</span>
                   </>
                 )}
               </button>
@@ -229,10 +216,10 @@ export function ProductCard({ product, index, delay }: ProductCardProps) {
               onClick={() => setQuoteOpen(true)}
               title={`Request Official Quotation for ${product.name}`}
               aria-label={`Request Official Quotation for ${product.name}`}
-              className="w-full py-2.5 px-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 border-2 border-[#142B55] text-[#142B55] bg-white hover:bg-[#142B55] hover:text-white cursor-pointer shadow-xs group/quote-btn"
+              className="w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-[#142B55] border border-slate-200/90 cursor-pointer shadow-2xs hover:border-slate-300 whitespace-nowrap group/quote-btn"
             >
-              <FileText className="w-3.5 h-3.5 text-[#D52B30] group-hover/quote-btn:text-white transition-colors shrink-0" />
-              <span className="truncate">Request Quote</span>
+              <FileText className="w-3.5 h-3.5 text-[#D52B30] group-hover/quote-btn:scale-110 transition-transform shrink-0" />
+              <span>Request Quote</span>
             </button>
           </div>
         </div>

@@ -482,7 +482,22 @@ const BASE_FEATURED_PRODUCTS: Product[] = [
   },
 ];
 
+function sanitizeProductImage(url: string | undefined, category?: string, name?: string): string {
+  if (!url || url.includes('cms.microtek.in') || url.includes('satyajan.com')) {
+    const lowerName = (name || '').toLowerCase();
+    if (lowerName.includes('lithium')) return '/products/microtek-i-lithium-1500-clean.png';
+    if (category === 'ups' || lowerName.includes('ups') || lowerName.includes('online')) return '/products/bpe-online-ups-clean.png';
+    if (category === 'batteries' || lowerName.includes('battery')) return '/products/amaron-quanta-clean.png';
+    return '/products/microtek-smart-hybrid-1275.png';
+  }
+  return url;
+}
+
 export const DEMO_FEATURED_PRODUCTS: Product[] = [
   ...BASE_FEATURED_PRODUCTS,
-  ...SATYAJAN_PRODUCTS,
+  ...SATYAJAN_PRODUCTS.map((p) => ({
+    ...p,
+    imageUrl: sanitizeProductImage(p.imageUrl, p.category, p.name),
+    additionalImages: (p.additionalImages || []).map((img) => sanitizeProductImage(img, p.category, p.name)),
+  })),
 ];

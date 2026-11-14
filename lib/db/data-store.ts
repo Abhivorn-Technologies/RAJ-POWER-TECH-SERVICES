@@ -117,10 +117,42 @@ function ensureCategoriesSeeded() {
     });
     devStore.categories.set('ups', {
       id: 'ups',
-      name: 'UPS Systems',
+      name: 'Online UPS',
       slug: 'ups',
       description: 'Zero-transfer line-interactive & online UPS systems safeguarding critical computers, servers, and medical equipment.',
       features: ['Zero Transfer Switching Time', 'Voltage Spike Suppression', 'Generator Compatibility'],
+      createdAt: new Date().toISOString(),
+    });
+    devStore.categories.set('lithium', {
+      id: 'lithium',
+      name: 'Lithium Products',
+      slug: 'lithium',
+      description: 'Next-generation LiFePO4 lithium batteries and integrated wall-mount power systems offering 3500+ cycles and ultra-fast charging.',
+      features: ['LiFePO4 Safe Chemistry', '3500+ Deep Cycles', 'Zero Water Maintenance', 'Integrated Smart BMS'],
+      createdAt: new Date().toISOString(),
+    });
+    devStore.categories.set('high-capacity-ups', {
+      id: 'high-capacity-ups',
+      name: 'High Capacity UPS',
+      slug: 'high-capacity-ups',
+      description: 'Heavy-duty Jumbo pure sine wave commercial inverters (2.5kVA to 8kVA) engineered for villas, commercial offices, and multi-appliance loads.',
+      features: ['Heavy Duty DSC Technology', 'Runs Air Conditioners & Motors', 'Multi-Battery Bank 24V-96V', 'Rugged Commercial Reliability'],
+      createdAt: new Date().toISOString(),
+    });
+    devStore.categories.set('solar', {
+      id: 'solar',
+      name: 'Solar',
+      slug: 'solar',
+      description: 'High-efficiency solar hybrid inverters, solar charge controllers, and rooftop photovoltaic systems engineered for maximum clean energy yield.',
+      features: ['Solar Hybrid MPPT Tech', 'Grid Export & Off-Grid Modes', 'High Solar Yield Efficiency', 'IP65 Weatherproof Enclosure'],
+      createdAt: new Date().toISOString(),
+    });
+    devStore.categories.set('combo', {
+      id: 'combo',
+      name: 'Combo',
+      slug: 'combo',
+      description: 'Pre-engineered inverter and heavy-duty tubular battery combo packages matched for maximum efficiency, seamless home backup, and zero sizing guesswork.',
+      features: ['Pre-Matched Inverter & Battery', 'Optimized Backup Runtime', 'Single Warranty Desk', 'Free Doorstep Setup'],
       createdAt: new Date().toISOString(),
     });
   }
@@ -302,10 +334,42 @@ function initDevStore() {
     });
     devCategories.set('ups', {
       id: 'ups',
-      name: 'UPS Systems',
+      name: 'Online UPS',
       slug: 'ups',
       description: 'Zero-transfer line-interactive & online UPS systems safeguarding critical computers, servers, and medical equipment.',
       features: ['Zero Transfer Switching Time', 'Voltage Spike Suppression', 'Generator Compatibility'],
+      createdAt: new Date().toISOString(),
+    });
+    devCategories.set('lithium', {
+      id: 'lithium',
+      name: 'Lithium Products',
+      slug: 'lithium',
+      description: 'Next-generation LiFePO4 lithium batteries and integrated wall-mount power systems offering 3500+ cycles and ultra-fast charging.',
+      features: ['LiFePO4 Safe Chemistry', '3500+ Deep Cycles', 'Zero Water Maintenance', 'Integrated Smart BMS'],
+      createdAt: new Date().toISOString(),
+    });
+    devCategories.set('high-capacity-ups', {
+      id: 'high-capacity-ups',
+      name: 'High Capacity UPS',
+      slug: 'high-capacity-ups',
+      description: 'Heavy-duty Jumbo pure sine wave commercial inverters (2.5kVA to 8kVA) engineered for villas, commercial offices, and multi-appliance loads.',
+      features: ['Heavy Duty DSC Technology', 'Runs Air Conditioners & Motors', 'Multi-Battery Bank 24V-96V', 'Rugged Commercial Reliability'],
+      createdAt: new Date().toISOString(),
+    });
+    devCategories.set('solar', {
+      id: 'solar',
+      name: 'Solar',
+      slug: 'solar',
+      description: 'High-efficiency solar hybrid inverters, solar charge controllers, and rooftop photovoltaic systems engineered for maximum clean energy yield.',
+      features: ['Solar Hybrid MPPT Tech', 'Grid Export & Off-Grid Modes', 'High Solar Yield Efficiency', 'IP65 Weatherproof Enclosure'],
+      createdAt: new Date().toISOString(),
+    });
+    devCategories.set('combo', {
+      id: 'combo',
+      name: 'Combo',
+      slug: 'combo',
+      description: 'Pre-engineered inverter and heavy-duty tubular battery combo packages matched for maximum efficiency, seamless home backup, and zero sizing guesswork.',
+      features: ['Pre-Matched Inverter & Battery', 'Optimized Backup Runtime', 'Single Warranty Desk', 'Free Doorstep Setup'],
       createdAt: new Date().toISOString(),
     });
   }
@@ -841,9 +905,15 @@ export function toPlainObject<T>(doc: unknown): T {
 
 export async function listCategories(): Promise<SolutionCategoryItem[]> {
   if (isMongoConfigured()) {
-    const db = await getDatabase();
-    const docs = await db.collection<SolutionCategoryItem>('categories').find().sort({ createdAt: 1 }).toArray();
-    return docs.map((doc) => toPlainObject<SolutionCategoryItem>(doc));
+    try {
+      const db = await getDatabase();
+      const docs = await db.collection<SolutionCategoryItem>('categories').find().sort({ createdAt: 1 }).toArray();
+      if (docs && docs.length > 0) {
+        return docs.map((doc) => toPlainObject<SolutionCategoryItem>(doc));
+      }
+    } catch (err) {
+      console.warn('MongoDB listCategories failed, falling back to local categories:', err);
+    }
   }
 
   assertStorageMode('listCategories');
@@ -856,7 +926,11 @@ export async function listCategories(): Promise<SolutionCategoryItem[]> {
 export async function createCategory(cat: SolutionCategoryItem): Promise<SolutionCategoryItem> {
   if (isMongoConfigured()) {
     const db = await getDatabase();
-    await db.collection('categories').insertOne(cat);
+    await db.collection('categories').updateOne(
+      { id: cat.id },
+      { $set: cat },
+      { upsert: true }
+    );
     return cat;
   }
 
@@ -983,15 +1057,22 @@ export async function listProducts(filter?: { vendorId?: string; category?: stri
   let list: Product[] = [];
 
   if (isMongoConfigured()) {
-    const db = await getDatabase();
-    const query: Record<string, unknown> = {};
-    if (filter?.vendorId) query.vendorId = filter.vendorId;
-    if (filter?.category) query.category = filter.category;
-    if (filter?.isPublished !== undefined) query.isPublished = filter.isPublished;
-    const docs = await db.collection<Product>('products').find(query).toArray();
-    list = docs.map((doc) => toPlainObject<Product>(doc));
-  } else {
-    assertStorageMode('listProducts');
+    try {
+      const db = await getDatabase();
+      const query: Record<string, unknown> = {};
+      if (filter?.vendorId) query.vendorId = filter.vendorId;
+      if (filter?.category) query.category = filter.category;
+      if (filter?.isPublished !== undefined) query.isPublished = filter.isPublished;
+      const docs = await db.collection<Product>('products').find(query).toArray();
+      list = docs.map((doc) => toPlainObject<Product>(doc));
+    } catch (err) {
+      console.warn('MongoDB listProducts query failed, falling back to local memory store:', err);
+    }
+  }
+
+  // Fallback to devProducts if Mongo returned no items or is not reachable
+  if (list.length === 0) {
+    initDevStore();
     list = Array.from(devProducts.values());
     if (filter?.vendorId) {
       list = list.filter((p) => p.vendorId === filter.vendorId);

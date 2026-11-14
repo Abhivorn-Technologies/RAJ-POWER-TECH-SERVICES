@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ShoppingBag,
+  ShoppingCart,
   X,
   Plus,
   Minus,
@@ -115,11 +115,11 @@ Please provide GST invoice terms and installation scheduling. Thank you!`;
               <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-[#142B55] text-white flex items-center justify-center shadow-xs">
-                    <ShoppingBag className="w-4 h-4" />
+                    <ShoppingCart className="w-4 h-4" />
                   </div>
                   <div>
                     <h2 className="text-base font-bold text-slate-900 leading-tight">
-                      Selected Equipment Bag
+                      Selected Equipment Cart
                     </h2>
                     <p className="text-xs text-slate-500">
                       {totalCount} {totalCount === 1 ? 'item' : 'items'} selected
@@ -150,11 +150,11 @@ Please provide GST invoice terms and installation scheduling. Thank you!`;
                 {items.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center py-12 space-y-4">
                     <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
-                      <ShoppingBag className="w-8 h-8" />
+                      <ShoppingCart className="w-8 h-8" />
                     </div>
                     <div>
                       <h3 className="text-base font-bold text-slate-800">
-                        Your equipment bag is empty
+                        Your equipment cart is empty
                       </h3>
                       <p className="text-xs text-slate-500 max-w-xs mt-1">
                         Explore our authorized selection of Microtek, Exide, Amaron Quanta, and BPE systems.
@@ -193,11 +193,6 @@ Please provide GST invoice terms and installation scheduling. Thank you!`;
                           <span className="text-[11px] font-mono font-extrabold text-[#142B55]">
                             ₹{item.price.toLocaleString('en-IN')}
                           </span>
-                          {item.stock !== undefined && item.stock <= 5 && (
-                            <span className="text-[9px] font-black uppercase text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded">
-                              Only {item.stock} Left!
-                            </span>
-                          )}
                         </div>
 
                         {/* Quantity Stepper */}
@@ -229,14 +224,14 @@ Please provide GST invoice terms and installation scheduling. Thank you!`;
                             type="button"
                             onClick={() => removeFromGuestCart(item.productId)}
                             className="p-1.5 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
-                            title="Remove from bag"
+                            title="Remove from cart"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                         {item.quantity >= (item.stock || 99) && (
-                          <span className="text-[10px] text-amber-600 block mt-0.5">
-                            Max available stock reached
+                          <span className="text-[10px] text-slate-500 block mt-0.5">
+                            Max order limit reached
                           </span>
                         )}
                       </div>
@@ -272,19 +267,19 @@ Please provide GST invoice terms and installation scheduling. Thank you!`;
                     <Link
                       href="/cart"
                       onClick={() => setIsOpen(false)}
-                      className="w-full py-3 px-4 rounded-xl bg-[#142B55] hover:bg-[#0B172F] text-white font-bold text-xs tracking-wide transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-3 px-4 rounded-xl bg-[#142B55] hover:bg-[#0B172F] text-white font-bold text-xs tracking-wide transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
                     >
-                      <span>Proceed to Official Checkout</span>
+                      <span>Proceed to Checkout</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
 
                     <button
                       type="button"
                       onClick={handleQuotationForCart}
-                      className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
                     >
                       <FileText className="w-3.5 h-3.5 text-[#D52B30]" />
-                      <span>Request Commercial Quotation for Bag</span>
+                      <span>Request Cart Quotation</span>
                     </button>
                   </div>
 

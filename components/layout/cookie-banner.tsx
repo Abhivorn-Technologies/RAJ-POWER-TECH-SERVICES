@@ -82,7 +82,7 @@ export function CookieBanner() {
         </div>
 
         <p className="text-xs text-slate-300 leading-relaxed">
-          We use essential browser cookies and local storage to preserve your shopping bag, save your delivery preferences, and ensure secure authentication. You can choose whether to enable anonymous performance telemetry.
+          We use essential browser cookies and local storage to preserve your shopping cart, save your delivery preferences, and ensure secure authentication. You can choose whether to enable anonymous performance telemetry.
         </p>
 
         {showPreferences && (

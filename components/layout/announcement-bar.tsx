@@ -1,6 +1,6 @@
 import React from 'react';
-import { Phone, MapPin, MessageSquareQuote } from 'lucide-react';
-import { FacebookIcon, InstagramIcon } from '@/components/ui/social-icons';
+import { Phone, MapPin } from 'lucide-react';
+import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '@/components/ui/social-icons';
 import { BUSINESS_INFO } from '@/lib/constants';
 
 export function AnnouncementBar() {
@@ -42,7 +42,7 @@ export function AnnouncementBar() {
             rel="noopener noreferrer"
             className="hidden lg:flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
           >
-            <MessageSquareQuote className="w-3.5 h-3.5" />
+            <WhatsAppIcon className="w-3.5 h-3.5" />
             <span>Direct Technical Help</span>
           </a>
 

@@ -1194,12 +1194,12 @@ export const SATYAJAN_PRODUCTS: Product[] = [
     "name": "Microtek Jumbo UPS JM SW 3500+/24V + Microtek Dura Strong M2003624TT 200Ah Tall Tubular Battery Combo",
     "slug": "microtek-jumbo-ups-jm-sw-350024v-microtek-dura-strong-m2003624tt-200ah-tall-tubu",
     "brand": "Microtek",
-    "category": "lithium",
-    "categoryName": "Lithium Products",
-    "price": 36877,
-    "comparePrice": 46096,
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 53809,
+    "comparePrice": 67261,
     "availability": "In Stock",
-    "stock": 13,
+    "stock": 10,
     "sku": "123642",
     "shortDescription": "Microtek Jumbo UPS JM SW 3500+/24V + Microtek Dura Strong M2003624TT 200Ah Tall Tubular Battery Combo",
     "fullDescription": "Microtek Jumbo UPS JM SW 3500+/24V + Microtek Dura Strong M2003624TT 200Ah Tall Tubular Battery Combo\n\nPower your home or business with confidence using the Microtek Jumbo UPS JM SW 3500+/24V paired with the Microtek Dura Strong M2003624TT 200Ah Tall Tubular Inverter Battery. This high-capacity power backup combo is designed to deliver reliable performance, longer backup, and efficient charging, making it ideal for areas with frequent or extended power cuts. The durable tall tubular battery ensures low maintenance and long service life for dependable everyday use.\n\nIdeal Applications\n\nPerfect for homes, offices, retail shops, clinics, restaurants, workstations, and small businesses. Suitable for powering LED lights, fans, TVs, Wi-Fi routers, desktop computers, CCTV systems, refrigerators (within UPS capacity), billing counters, and other essential appliances.",
@@ -1209,21 +1209,17 @@ export const SATYAJAN_PRODUCTS: Product[] = [
     ],
     "keySpecs": [
       {
-        "label": "Capacity",
-        "value": "200Ah"
-      },
-      {
         "label": "Warranty",
-        "value": "24 Months Official Warranty"
+        "value": "ups 2 years & battery 3 years"
       }
     ],
     "features": [
-      "High-capacity 3500VA/24V UPS for heavy power backup requirements",
-      "200Ah Tall Tubular Battery for extended backup and long-lasting performance",
+      "Pure Sine Wave Output: Delivers smooth, clean, and noise-free electricity identical to grid power, protecting sensitive computers, TVs, and electronics.",
+      "Comprehensive Safety Protection: Built-in safeguards against short circuits, overloads, battery low conditions, and thermal fluctuations.",
       "Fast charging with efficient power management",
       "Low maintenance and durable tubular battery design",
-      "Reliable protection during frequent power outages",
-      "Genuine Microtek inverter and battery combo backed by trusted quality"
+      "Advanced Dura Core Technology: The 200Ah tall tubular battery uses specialized super alloy spines and binder additives for enhanced durability and longer backup duration.",
+      "High-capacity 3500VA/24V UPS for heavy power backup requirements"
     ],
     "warrantyPeriod": "24 Months Official Warranty",
     "capacity": "200Ah",
@@ -1231,8 +1227,8 @@ export const SATYAJAN_PRODUCTS: Product[] = [
     "vendorName": "RAJ POWER TECH ENTERPRISES",
     "isFeatured": true,
     "isPublished": true,
-    "createdAt": "2026-11-02T09:11:39.595Z",
-    "updatedAt": "2026-11-02T09:11:39.595Z"
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
   },
   {
     "id": "sat-microtek-jumbo-ups-jm-sw-250024v-with-microtek-dura-strong-m1603624tt-160ah-tall",
@@ -2819,5 +2815,2073 @@ export const SATYAJAN_PRODUCTS: Product[] = [
     "isPublished": true,
     "createdAt": "2026-11-02T09:11:39.596Z",
     "updatedAt": "2026-11-02T09:11:39.596Z"
+  },
+  {
+    "id": "sat-microtek-luxe-wifi-1400-12v-inverter-with-battery-combo-pure-sine-wave-1100va-in-2",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops",
+    "slug": "microtek-luxe-wifi-1400-12v-inverter-with-battery-combo-pure-sine-wave-1100va-in-2",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 24038,
+    "comparePrice": 30048,
+    "availability": "In Stock",
+    "stock": 11,
+    "sku": "1CJ4-P15P-O6ZJ",
+    "shortDescription": "The Microtek Luxe WiFi 1400 12V Inverter-Battery Combo | Pure Sine Wave 1100VA Inverter + 150Ah Tubular Battery is a smart, app-connected power setup. It bundles a high-performance 1100VA / 825W Pure Sine Wave inverter w",
+    "fullDescription": "The Microtek Luxe WiFi 1400 12V Inverter-Battery Combo | Pure Sine Wave 1100VA Inverter + 150Ah Tubular Battery is a smart, app-connected power setup. It bundles a high-performance 1100VA / 825W Pure Sine Wave inverter with a durable 150Ah tubular battery into an efficient single-battery kit.\n\nBy integrating modern smartphone tracking features, this premium system makes managing your household utilities completely seamless.",
+    "imageUrl": "https://m.media-amazon.com/images/I/61BwKlv9AXL._SL1500_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Battery Capacity",
+        "value": "200 Amp Hours"
+      },
+      {
+        "label": "Voltage",
+        "value": "Voltage"
+      },
+      {
+        "label": "Item Weight Unit of Measure",
+        "value": "74 Kilograms"
+      }
+    ],
+    "features": [
+      "When grid electricity cuts out, this system smoothly drives your essential appliances together:",
+      "4 to 5 Ceiling Fans (operating perfectly silent with no buzzing or humming noise)",
+      "6 to 8 Energy-Saving LED Lights or Tubelights to keep your space fully bright",
+      "1 Medium Refrigerator (Standard family single/double-door model up to 300 Liters)",
+      "1 Large Smart LED TV alongside your main internet Wi-Fi router",
+      "Multiple Laptops and Smartphone Charging Docks"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "200 Amp Hours",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-inverter-with-battery-combo-for-home-office-shops-energy-saver-ups-1025",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops",
+    "slug": "microtek-inverter-with-battery-combo-for-home-office-shops-energy-saver-ups-1025",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 17158,
+    "comparePrice": 21448,
+    "availability": "In Stock",
+    "stock": 12,
+    "sku": "1CJ4-ONRQ-3T13",
+    "shortDescription": "The Microtek Inverter with Battery Combo for Home, Office & Shops | Energy Saver UPS 1025 12V Pure Digital Wave 925VA + M1502424TT 150Ah Inverter Battery is an energy-efficient power backup system. It bundles a high-perf",
+    "fullDescription": "The Microtek Inverter with Battery Combo for Home, Office & Shops | Energy Saver UPS 1025 12V Pure Digital Wave 925VA + M1502424TT 150Ah Inverter Battery is an energy-efficient power backup system. It bundles a high-performance 925VA / 740W Pure Sine Wave inverter with a durable 150Ah tall tubular battery to form a highly reliable single-battery configuration.",
+    "imageUrl": "https://m.media-amazon.com/images/I/51lL8WID9fL._SL1001_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Battery Capacity",
+        "value": "150 Amp Hours"
+      },
+      {
+        "label": "Voltage",
+        "value": "12 Volts"
+      },
+      {
+        "label": "Item Weight Unit of Measure",
+        "value": "66 Kilograms"
+      }
+    ],
+    "features": [
+      "4 Standard Ceiling Fans (operating with complete, hum-free silence)",
+      "6 to 8 Energy-Saving LED Lights or Tubelights",
+      "1 Smart LED TV + Setup Box",
+      "1 Wi-Fi Router + Smartphone Charging Cables",
+      "Up to 2 Laptops OR 1 Complete Desktop PC Workstation",
+      "2 BHK Residential Homes: Efficiently powers multi-room baseline utilities without any humming noise in the fans."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "150 Amp Hours",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-luxe-wifi-1400-12v-inverter-battery-combo-pure-sine-wave-1100va-inverte",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops",
+    "slug": "microtek-luxe-wifi-1400-12v-inverter-battery-combo-pure-sine-wave-1100va-inverte",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 19254,
+    "comparePrice": 24068,
+    "availability": "In Stock",
+    "stock": 13,
+    "sku": "1CJ4-ONPQ-1PKY",
+    "shortDescription": "The Microtek Luxe WiFi 1400 12V Inverter-Battery Combo | Pure Sine Wave 1100VA Inverter + 150Ah Tubular Battery is a smart power backup system. Combining an advanced 1100VA / 825W Pure Sine Wave inverter with an integrat",
+    "fullDescription": "The Microtek Luxe WiFi 1400 12V Inverter-Battery Combo | Pure Sine Wave 1100VA Inverter + 150Ah Tubular Battery is a smart power backup system. Combining an advanced 1100VA / 825W Pure Sine Wave inverter with an integrated 150Ah tubular battery, this single-battery setup brings high-capacity power tracking right to your smartphone.",
+    "imageUrl": "https://m.media-amazon.com/images/I/61HXP4ApwEL._SL1500_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Battery Capacity",
+        "value": "150 Amp Hours"
+      },
+      {
+        "label": "Voltage",
+        "value": "12 Volts"
+      },
+      {
+        "label": "Item Weight Unit of Measure",
+        "value": "54 Kilograms"
+      }
+    ],
+    "features": [
+      "This smart combo supports your essential everyday hardware running simultaneously:",
+      "4 to 5 Standard Ceiling Fans (operating with complete silent efficiency)",
+      "8 to 10 Energy-Saving LED Lights or Slim Tubelights",
+      "1 Domestic Refrigerator (Standard family model up to 300 Liters)",
+      "1 Large Smart LED TV + Home Theater Setup + Wi-Fi Router",
+      "Up to 2 Active Laptops with their power bricks"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "150 Amp Hours",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-inverter-with-battery-combo-for-home-office-shops-super-power-ups-900-1",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops| Super Power UPS 900 12V Pure Sine Wave 800VA+M1502424JT 150Ah Inverter Battery",
+    "slug": "microtek-inverter-with-battery-combo-for-home-office-shops-super-power-ups-900-1",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 17375,
+    "comparePrice": 21719,
+    "availability": "In Stock",
+    "stock": 14,
+    "sku": "1CJ4-ONPQ-1JPD",
+    "shortDescription": "The Microtek Inverter with Battery Combo for Home, Office & Shops| Super Power UPS 900 12V Pure Sine Wave 800VA+M1502424TT 150Ah Inverter Inverter Battery is an affordable and reliable power backup system. By bundling a ",
+    "fullDescription": "The Microtek Inverter with Battery Combo for Home, Office & Shops| Super Power UPS 900 12V Pure Sine Wave 800VA+M1502424TT 150Ah Inverter Inverter Battery is an affordable and reliable power backup system. By bundling a 800VA / 650W Pure Sine Wave inverter with a high-capacity 150Ah tall tubular battery, this single-battery setup delivers high-quality electrical performance for standard residential and small business operations.",
+    "imageUrl": "https://m.media-amazon.com/images/I/51IbBNs+qFL._SL1001_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Battery Capacity",
+        "value": "150 Amp Hours"
+      },
+      {
+        "label": "Voltage",
+        "value": "12 Volts"
+      },
+      {
+        "label": "Electrical Output Waveform",
+        "value": "Pure Sine Wave"
+      },
+      {
+        "label": "Item Weight Unit of Measure",
+        "value": "51 Kilograms"
+      }
+    ],
+    "features": [
+      "This balanced system allows you to run your foundational daily utilities simultaneously during a blackout:",
+      "3 Standard Ceiling Fans (operating with complete, hum-free silence)",
+      "4 to 6 Energy-Saving LED Bulbs or Slim Tubelights",
+      "1 Smart LED TV + Dedicated Set-Top Box",
+      "1 Wi-Fi Router + Associated Smart Device Chargers",
+      "1-2 BHK Budget Apartments: Provides comprehensive baseline coverage, keeping everyday family living spaces comfortable and well-lit."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "150 Amp Hours",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-luxe-wifi-1400-12v-inverter-with-battery-combo-pure-sine-wave-1100va-in",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops",
+    "slug": "microtek-luxe-wifi-1400-12v-inverter-with-battery-combo-pure-sine-wave-1100va-in",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 20606,
+    "comparePrice": 25758,
+    "availability": "In Stock",
+    "stock": 15,
+    "sku": "1CJ4-ONNS-7H4M",
+    "shortDescription": "The Microtek Luxe WiFi 1400 12V Inverter with Battery Combo | Pure Sine Wave 1100VA Inverter + M1603624TT 160Ah Tubular Battery is a high-performance smart power kit. It bundles an advanced 1100VA / 825W Pure Sine Wave i",
+    "fullDescription": "The Microtek Luxe WiFi 1400 12V Inverter with Battery Combo | Pure Sine Wave 1100VA Inverter + M1603624TT 160Ah Tubular Battery is a high-performance smart power kit. It bundles an advanced 1100VA / 825W Pure Sine Wave inverter with an upgraded 160Ah tall tubular battery to form a reliable single-battery setup with smart remote tracking features.",
+    "imageUrl": "https://m.media-amazon.com/images/I/61GkBHlF+TL._SL1500_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Battery Capacity",
+        "value": "160 Amp Hours"
+      },
+      {
+        "label": "Voltage",
+        "value": "12 Volts"
+      },
+      {
+        "label": "Item Weight Unit of Measure",
+        "value": "68 Kilograms"
+      }
+    ],
+    "features": [
+      "This single-battery system distributes electrical weight intelligently to run multiple items together:",
+      "4 to 5 Standard Ceiling Fans (operating with complete silent efficiency)",
+      "8 to 10 Energy-Saving LED Lights or Slim Tubelights",
+      "1 Domestic Refrigerator (Standard family model up to 300 Liters)",
+      "1 Large Smart LED TV + Connected Soundbar + Wi-Fi Router",
+      "Up to 2 Active Laptops with their power bricks"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "160 Amp Hours",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-inverter-with-battery-combo-for-home-office-shops-super-power-ups-1100-12v-pure-sine-wave-950va-m1502424tt-150ah-inverter-battery-warranty-3yearsinverter4yearsbattery-brand-microtek",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops",
+    "slug": "microtek-inverter-with-battery-combo-for-home-office-shops-super-power-ups-1100-12v-pure-sine-wave-950va-m1502424tt-150ah-inverter-battery-warranty-3yearsinverter4yearsbattery-brand-microtek",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 17287,
+    "comparePrice": 21609,
+    "availability": "In Stock",
+    "stock": 16,
+    "sku": "4683",
+    "shortDescription": "Say goodbye to unexpected power cuts with the Microtek Super Power UPS 1100 Inverter and 150Ah Tall Tubular Battery Combo. Engineered for maximum reliability and durability, this power-packed combination features a 950VA",
+    "fullDescription": "Say goodbye to unexpected power cuts with the Microtek Super Power UPS 1100 Inverter and 150Ah Tall Tubular Battery Combo. Engineered for maximum reliability and durability, this power-packed combination features a 950VA digital inverter paired with a robust 150Ah tall tubular battery. Designed specifically for Indian power conditions, it delivers uninterrupted power to keep your essential home and office appliances running smoothly. With a generous 3-year warranty on the inverter and a 4-year warranty on the battery, this combo guarantees long-term peace of mind and dependable performance day after day.",
+    "imageUrl": "https://m.media-amazon.com/images/I/51+S3H+6wvL._SX522_.jpg",
+    "additionalImages": [
+      "https://m.media-amazon.com/images/I/61WY1RkoqYL._SX522_.jpg",
+      "https://m.media-amazon.com/images/I/61D2KWmiiQL._SX522_.jpg",
+      "https://m.media-amazon.com/images/I/61Sg85zWOwL._SX522_.jpg"
+    ],
+    "keySpecs": [
+      {
+        "label": "Capacity",
+        "value": "Heavy Duty"
+      },
+      {
+        "label": "Warranty",
+        "value": "24 Months Official Warranty"
+      }
+    ],
+    "features": [
+      "Dependable 950VA Capacity: Offers solid power output to run multiple essential household or commercial appliances simultaneously.",
+      "Advanced Technology: Provides stable and efficient power delivery for safe everyday appliance usage.",
+      "Smart Overload & Short Circuit Protection: Built-in electronic safety features automatically protect the inverter and your connected appliances from electrical faults.",
+      "Low Maintenance Design: The tall tubular battery requires minimal upkeep while delivering maximum performance over its lifespan.",
+      "150Ah Tall Tubular Battery: Built with heavy-duty tubular plates designed for deep discharge capability and long backup hours during extended power cuts.",
+      "For Homes: Easily powers ceiling fans, LED tube lights, room coolers, televisions, and charging points during power outages."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "Heavy Duty",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-elite-1500-lcd-12v-sw-inverter-m210002424stt-tall-tubular-battery-combo-product",
+    "name": "Microtek Elite 1500 LCD 12V SW Inverter + M210002424STT Tall Tubular Battery Combo Product",
+    "slug": "microtek-elite-1500-lcd-12v-sw-inverter-m210002424stt-tall-tubular-battery-combo-product",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 19395,
+    "comparePrice": 24244,
+    "availability": "In Stock",
+    "stock": 17,
+    "sku": "2165",
+    "shortDescription": "This powerful backup combo brings together the Microtek Elite 1500 LCD 12V SW Inverter and the Microtek M210002424STT 210 Ah Tall Tubular Battery. It is designed to keep your home, office, or shop running smoothly during",
+    "fullDescription": "This powerful backup combo brings together the Microtek Elite 1500 LCD 12V SW Inverter and the Microtek M210002424STT 210 Ah Tall Tubular Battery. It is designed to keep your home, office, or shop running smoothly during power cuts. The pure sine wave inverter gives clean and safe electricity (just like regular wall sockets) so your sensitive electronics stay protected, while the heavy-duty tubular battery provides long-lasting backup hours.",
+    "imageUrl": "https://res.cloudinary.com/depafwzgq/image/upload/v1793948694/WhatsApp_Image_2026-11-04_at_11.57.54_AM_ks4esi.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Warranty",
+        "value": "5 Years"
+      },
+      {
+        "label": "Display Panel",
+        "value": "Digital LCD Display"
+      },
+      {
+        "label": "System Voltage",
+        "value": "12 Volts"
+      }
+    ],
+    "features": [
+      "Pure Sine Wave Power: Delivers safe, smooth, and noise-free electricity that protects delicate gadgets like computers, TVs, and Wi-Fi routers.",
+      "Clear LCD Screen: Shows a digital display that lets you easily check battery charging levels, inverter status, and any alerts.",
+      "Fast Charging Technology: Charges the battery quickly between frequent power cuts using adjustable high and standard charging modes.",
+      "Long-Lasting Tubular Battery: Built with advanced core technology to hold power effectively, handle deep power drains, and offer a long service life.",
+      "Handles Voltage Fluctuations: Works smoothly even when your home power supply goes very high or very low, and is fully generator-compatible.",
+      "Home Essentials: Multiple ceiling fans, LED bulbs, and tube lights."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "Heavy Duty",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-elite-1500-led-12v-sw-inverter-m210002424stt-tall-tubular-battery-combo",
+    "name": "Microtek Elite 1500 LED 12V SW Inverter + M210002424STT Tall Tubular Battery Combo",
+    "slug": "microtek-elite-1500-led-12v-sw-inverter-m210002424stt-tall-tubular-battery-combo",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 18819,
+    "comparePrice": 23524,
+    "availability": "In Stock",
+    "stock": 18,
+    "sku": "32163",
+    "shortDescription": "This complete power backup combo pairs the Microtek Elite 1500 LED 12V SW pure sine wave inverter with the high-capacity Microtek M210002424STT Tall Tubular Battery. Designed for homes, offices, and shops, it delivers cl",
+    "fullDescription": "This complete power backup combo pairs the Microtek Elite 1500 LED 12V SW pure sine wave inverter with the high-capacity Microtek M210002424STT Tall Tubular Battery. Designed for homes, offices, and shops, it delivers clean, stable electricity to keep your lights, fans, televisions, computers, and Wi-Fi routers running smoothly during power cuts. Featuring smart digital displays, fast-charging technology, and a long-lasting tubular battery design, this bundle ensures reliable, uninterrupted performance when you need it most.",
+    "imageUrl": "https://res.cloudinary.com/depafwzgq/image/upload/v1793948038/WhatsApp_Image_2026-11-04_at_11.58.40_AM_i9r2hb.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Warranty",
+        "value": "5 years"
+      },
+      {
+        "label": "Capacity / Rating",
+        "value": "1100VA / 825W"
+      },
+      {
+        "label": "Display",
+        "value": "LED"
+      }
+    ],
+    "features": [
+      "Pure Sine Wave Output: Delivers smooth and safe power that protects sensitive electronics like computers and TVs from buzzing noises or damage.",
+      "Smart Digital Display: Built with an easy-to-read screen to track battery charging status, power backup levels, and system alerts.",
+      "Fast Battery Charging: Offers adjustable high and standard charging modes to refill the battery quickly between frequent power outages.",
+      "Advanced Tubular Technology: The heavy-duty battery uses advanced core technology to store more energy, handle deep discharges, and provide long backup hours.",
+      "Home Essentials: Multiple ceiling fans, LED room lights, and tube lights.",
+      "Entertainment & Work: Televisions, set-top boxes, Wi-Fi routers, laptops, and charging docks."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1100VA / 825W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-solar-hybrid-inverter-3kw-ip65-v11",
+    "name": "SOLAR HYBRID INVERTER 3KW IP65 V11",
+    "slug": "solar-hybrid-inverter-3kw-ip65-v11",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 50942,
+    "comparePrice": 63678,
+    "availability": "In Stock",
+    "stock": 19,
+    "sku": "SKU: 899-353-3000",
+    "shortDescription": "The Microtek Solar Hybrid Inverter 3KW IP65 V11 is an all-in-one smart power solution designed to manage solar energy, battery backup, and grid electricity seamlessly. Built for modern homes and small commercial spaces, ",
+    "fullDescription": "The Microtek Solar Hybrid Inverter 3KW IP65 V11 is an all-in-one smart power solution designed to manage solar energy, battery backup, and grid electricity seamlessly. Built for modern homes and small commercial spaces, it helps customers lower their electricity bills while ensuring uninterrupted power during grid failures.",
+    "imageUrl": "/products/inverter-demo-1.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Capacity (VA Rating)",
+        "value": "3 KVA (Single Phase / 1PH)"
+      },
+      {
+        "label": "Weight",
+        "value": "9.5 KG"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "220/230/240Vac, Single-Phase"
+      },
+      {
+        "label": "Dimensions (L*W*H)",
+        "value": "L*W*H - 13.7*29*37"
+      }
+    ],
+    "features": [
+      "Safe for Outdoor Use (IP65): The box is fully sealed and waterproof. You can easily install it outside on a wall without worrying about rain or dust.",
+      "Safe Clean Power (Pure Sine Wave): It gives smooth and stable electricity, just like regular grid power. It is 100% safe for sensitive items like TVs, refrigerators, computers, and lights.",
+      "Saves Electricity Bills: It intelligently uses solar energy first during the day to run your house and charge your batteries, cutting down the electricity you take from the grid",
+      "Reliable Support: It comes with a full 5-year warranty for peace of mind.",
+      "Independent Homes & Villas: Perfect for powering daily household essentials like ceiling fans, LED lights, refrigerators, televisions, Wi-Fi routers, and water pumps.",
+      "Small Offices & Shops: Keeps essential office electronics, computers, billing machines, and security cameras running smoothly without sudden power cuts."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "3 KVA (Single Phase / 1PH)",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-1235-solar-power-conditioning-unit-935va12v-pure-sine-wave-solar-grid-power-operator-inverter-with-lcd-and-graphical-display-indications-for-home-office-shops",
+    "name": "Microtek 1235 Solar Power Conditioning Unit 935VA/12V Pure Sine Wave Solar & Grid Power Operator Inverter with LCD and Graphical Display Indications For Home, Office & Shops",
+    "slug": "microtek-1235-solar-power-conditioning-unit-935va12v-pure-sine-wave-solar-grid-power-operator-inverter-with-lcd-and-graphical-display-indications-for-home-office-shops",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 7118,
+    "comparePrice": 8898,
+    "availability": "In Stock",
+    "stock": 10,
+    "sku": "115",
+    "shortDescription": "Microtek M-SUN SOLAR UPS is designed using latest state-of-the-art Technology for Better Performance and High Reliability.It is Integrated with in-built 35Amp PWM Based Smart Solar Management Unit.The Solar Sinewave Tech",
+    "fullDescription": "Microtek M-SUN SOLAR UPS is designed using latest state-of-the-art Technology for Better Performance and High Reliability.It is Integrated with in-built 35Amp PWM Based Smart Solar Management Unit.The Solar Sinewave Technology used,enhances the life of the battery and minimum effort has to be put for maintenance.",
+    "imageUrl": "https://m.media-amazon.com/images/I/41-X61xxBUL._SX425_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Voltage",
+        "value": "12 Volts"
+      },
+      {
+        "label": "Maximum Power",
+        "value": "1135 Watts"
+      },
+      {
+        "label": "Product Dimensions",
+        "value": "39 x 40 x 20 cm ;"
+      },
+      {
+        "label": "weight",
+        "value": "12 Kg"
+      }
+    ],
+    "features": [
+      "Auto Reset Feature; Mains Input Voltage Range Selection.",
+      "Capacity (Rated Power) 1135VA / 12 V; Capacity (Maximum PV Power support) 600 Wp",
+      "Micro-Controller DSPIC Based Intelligent Control Design; Dual Charging,Mains Mode and Solar Mode",
+      "Model: UPS SOLAR 1135VA/12V ; This pack includes one Microtek M-SUN 1135VA/12V SOLAR UPS"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "935VA",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-ups-solar-2035va24v-pwm-899-070-2035-technology-pure-sinewave-solar-inverter-working-power-1735va",
+    "name": "Microtek UPS Solar 2035VA/24V PWM (899-070-2035) Technology Pure Sinewave Solar Inverter, Working Power-1735VA",
+    "slug": "microtek-ups-solar-2035va24v-pwm-899-070-2035-technology-pure-sinewave-solar-inverter-working-power-1735va",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 9222,
+    "comparePrice": 11528,
+    "availability": "In Stock",
+    "stock": 11,
+    "sku": "147",
+    "shortDescription": "Run your home appliances smoothly while cutting down on electricity bills! This  solar inverter runs directly on solar power during the day and automatically switches to battery backup during power cuts. With Pure Sine W",
+    "fullDescription": "Run your home appliances smoothly while cutting down on electricity bills! This  solar inverter runs directly on solar power during the day and automatically switches to battery backup during power cuts. With Pure Sine Wave technology, your sensitive electronics stay 100% safe, silent, and long-lasting. Requires two 12V batteries",
+    "imageUrl": "https://m.media-amazon.com/images/I/51E5kp1HSNL._SX425_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Warranty Description",
+        "value": "1 Year"
+      },
+      {
+        "label": "Voltage",
+        "value": "24 Volts"
+      },
+      {
+        "label": "Item Weight Unit of Measure",
+        "value": "12000 Grams"
+      },
+      {
+        "label": "Item Dimensions",
+        "value": "40 x 38 x 40 Centimeters"
+      }
+    ],
+    "features": [
+      "Smart Solar Priority: Uses free solar energy first to run home loads and charge batteries, lowering electricity bills",
+      "Heavy Load Capacity: Delivers 1735W working power to easily run lights, fans, TV, computer, and a refrigerator.",
+      "Pure Sine Wave Output: Provides smooth, noiseless power that keeps sensitive appliances safe from voltage fluctuations.",
+      "Dependable 24V Dual-Battery System: Works with two 12V batteries for longer, reliable backup during power outages."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "2035VA",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-mppt-solar-pcu-1170-1000va12v-with-mlb1280060-128v-100ah-lifepo4-lithium-battery-combo-mppt-technology-lcd-display",
+    "name": "Microtek MPPT Solar PCU 1170 (1000VA/12V) with MLB1280060 12.8V 100Ah LiFePO4 Lithium Battery Combo",
+    "slug": "microtek-mppt-solar-pcu-1170-1000va12v-with-mlb1280060-128v-100ah-lifepo4-lithium-battery-combo-mppt-technology-lcd-display",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 35000,
+    "comparePrice": 43750,
+    "availability": "In Stock",
+    "stock": 12,
+    "sku": "1235",
+    "shortDescription": "The Microtek MPPT Solar PCU 1170 (1000VA/12V) and MLB1280060 12.8V 100Ah LiFePO4 Battery Combo is designed to deliver efficient solar energy utilization and dependable power backup for homes, offices, and small commercia",
+    "fullDescription": "The Microtek MPPT Solar PCU 1170 (1000VA/12V) and MLB1280060 12.8V 100Ah LiFePO4 Battery Combo is designed to deliver efficient solar energy utilization and dependable power backup for homes, offices, and small commercial applications. Featuring Interleaved MPPT (Maximum Power Point Tracking) Technology, the solar PCU optimizes solar energy generation, improves battery charging efficiency, and intelligently manages power between solar panels, battery, and the utility grid.",
+    "imageUrl": "https://m.media-amazon.com/images/I/51Pu+-r3CjL._SX425_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Item Weight Unit of Measure",
+        "value": "29500 Grams"
+      },
+      {
+        "label": "Item Dimensions",
+        "value": "41.9 x 35.5 x 33 Centimeters"
+      }
+    ],
+    "features": [
+      "COMPLETE SOLAR BACKUP SOLUTION:",
+      "MAXIMUM SOLAR ENERGY UTILIZATION:",
+      "SAFE & STABLE POWER OUTPUT",
+      "LONG-LASTING LITHIUM BATTERY"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1000VA",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-mtk-solar-pcu-mppt-117012v-1000va-solar-ups-inverter-true-mppt-technology-12v-battery-compatible-50a-mppt-charge-controller-pure-sine-wave-output-lcd-display",
+    "name": "Microtek MTK Solar PCU MPPT 1170/12V, 1000VA Solar UPS Inverter",
+    "slug": "microtek-mtk-solar-pcu-mppt-117012v-1000va-solar-ups-inverter-true-mppt-technology-12v-battery-compatible-50a-mppt-charge-controller-pure-sine-wave-output-lcd-display",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 14200,
+    "comparePrice": 17750,
+    "availability": "In Stock",
+    "stock": 13,
+    "sku": "114",
+    "shortDescription": "Power your home efficiently with the Microtek MTK Solar PCU MPPT 1170/12V (1000VA), engineered with advanced True Interleaved MPPT Technology for superior solar energy utilization and faster battery charging. Designed fo",
+    "fullDescription": "Power your home efficiently with the Microtek MTK Solar PCU MPPT 1170/12V (1000VA), engineered with advanced True Interleaved MPPT Technology for superior solar energy utilization and faster battery charging. Designed for 12V battery systems, this Solar PCU intelligently manages power between solar panels, battery, and grid to maximize energy savings. Its Pure Sine Wave output ensures safe operation of sensitive electronic devices while delivering reliable backup during power outages.",
+    "imageUrl": "https://m.media-amazon.com/images/I/516KcirdQBL._SX425_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Product Dimensions",
+        "value": "‎39.7 x 35.5 x 17 cm; 17.5 kg"
+      },
+      {
+        "label": "Item Weight",
+        "value": "17 kg 500 g"
+      }
+    ],
+    "features": [
+      "Provides clean and stable Pure Sine Wave output, making it safe for sensitive electronic devices such as TVs, computers, routers, refrigerators, and other household appliances.",
+      "High-Efficiency True MPPT Technology ",
+      "Reliable 1000VA Solar Power Backup",
+      "Advanced Protection & User-Friendly Design"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1000VA",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-mtk-solar-pcu-mppt-4560-48v-4375va-pure-sine-wave-solar-inverter",
+    "name": "Microtek MTK Solar PCU MPPT 4560 48V",
+    "slug": "microtek-mtk-solar-pcu-mppt-4560-48v-4375va-pure-sine-wave-solar-inverter",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 37900,
+    "comparePrice": 47375,
+    "availability": "In Stock",
+    "stock": 14,
+    "sku": "1145",
+    "shortDescription": "Harness the power of the sun with the Microtek MTK Solar PCU MPPT 4560 48V, a high-performance 4375VA Pure Sine Wave Solar Inverter designed for dependable backup power and maximum solar efficiency. Powered by Interleave",
+    "fullDescription": "Harness the power of the sun with the Microtek MTK Solar PCU MPPT 4560 48V, a high-performance 4375VA Pure Sine Wave Solar Inverter designed for dependable backup power and maximum solar efficiency. Powered by Interleaved MPPT technology, this advanced Solar PCU extracts the maximum available energy from connected solar panels, ensuring faster charging, improved efficiency, and reduced electricity costs. Supporting up to 3510W of solar panels and featuring a 60A MPPT charging system, it is suitable for residential, commercial, agricultural, and institutional applications.",
+    "imageUrl": "https://m.media-amazon.com/images/I/619qIDq4uML._SX679_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Item Weight",
+        "value": "39 kg 200 g"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "48 Volts (DC)"
+      }
+    ],
+    "features": [
+      "High Capacity Solar Power Backup : Microtek MTK Solar PCU MPPT 4560 delivers 4375VA capacity with 48V battery support, making it ideal for homes, offices, shops, farms, and other high-load solar applications.",
+      "Advanced Interleaved MPPT Technology : Built with Interleaved MPPT Buck Converter Technology, the inverter ensures maximum solar energy harvesting, faster charging efficiency, and improved power conversion from solar panels.",
+      "Supports Large Solar Installations : Compatible with MPPT solar panels (60V-175V Voc) and supports up to 3510W (6 x 585W) solar panel capacity, allowing greater renewable energy utilization.",
+      "Pure Sine Wave Output & Intelligent Charging : Provides Pure Sine Wave output for safe operation of sensitive appliances. Features adjustable charging current (0A-20A in 5A steps) and up to 60A maximum charging current for optimized battery performance.",
+      "Smart Protection & User-Friendly Design : Equipped with LCD display, <15ms transfer time, overload and short circuit protection, low battery indication, lithium battery compatibility, and intelligent battery management for reliable long-term operation."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "Solar Rated",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-solar-pcu-inverter-pure-sine-wave-24-v-battery-with-mppt-solar-pcu-2790",
+    "name": "Microtek Solar PCU Inverter Pure Sine Wave 24 V Battery With MPPT SOLAR PCU 2790",
+    "slug": "microtek-solar-pcu-inverter-pure-sine-wave-24-v-battery-with-mppt-solar-pcu-2790",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 22300,
+    "comparePrice": 27875,
+    "availability": "In Stock",
+    "stock": 15,
+    "sku": "1145",
+    "shortDescription": "The Microtek Solar PCU MPPT 2790 (24V) is an advanced, high-efficiency off-grid power conditioning unit designed for residential and light commercial solar setups. It integrates a Pure Sine Wave inverter, an intelligent ",
+    "fullDescription": "The Microtek Solar PCU MPPT 2790 (24V) is an advanced, high-efficiency off-grid power conditioning unit designed for residential and light commercial solar setups. It integrates a Pure Sine Wave inverter, an intelligent grid charger, and an MPPT (Maximum Power Point Tracking) solar charge controller into a single unit, maximizing solar harvest and prioritizing solar energy over grid power to lower electricity bills.",
+    "imageUrl": "https://microtekbatteryinverterchennai.com/images/products/1790744395SOL.SOL_.546047241_1788775193649_.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Warranty",
+        "value": "2 years"
+      },
+      {
+        "label": "Display",
+        "value": "LED Display"
+      },
+      {
+        "label": "Features",
+        "value": "90A MPPT charging current and 38A peak current for maximum solar utilization"
+      },
+      {
+        "label": "Capacity",
+        "value": "2500 VA"
+      }
+    ],
+    "features": [
+      "Charges batteries faster using both solar and main electricity.",
+      "Protects equipment against overloads, short circuits, and power surges.",
+      "Designed for standard 2-battery (24V) setups for reliable and long backup.",
+      "Extracts maximum solar energy from panels to cut down electricity bills.",
+      "Delivers clean, noiseless power to safely run sensitive appliances.",
+      "Automatically prioritizes solar power first, battery second, and grid power last."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "2500 VA",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-ups-solar-pcu-2035-1735va1300w-solar-power-conditioning-unit-24v-system-40a-solar-charging",
+    "name": "UPS Solar PCU 2035",
+    "slug": "ups-solar-pcu-2035-1735va1300w-solar-power-conditioning-unit-24v-system-40a-solar-charging",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 9222,
+    "comparePrice": 11528,
+    "availability": "In Stock",
+    "stock": 16,
+    "sku": "899-070-2035",
+    "shortDescription": "Microtek UPS Solar PCU 2035 is a powerful, smart and energy-efficient Solar Power Conditioning Unit built for handling heavy loads while maximizing solar energy usage. It automatically selects solar power priority, reduc",
+    "fullDescription": "Microtek UPS Solar PCU 2035 is a powerful, smart and energy-efficient Solar Power Conditioning Unit built for handling heavy loads while maximizing solar energy usage. It automatically selects solar power priority, reducing electricity costs and ensuring uninterrupted backup during power cuts.\n\nThis 1735VA/1300W Solar PCU is engineered with intelligent technology that provides pure sine wave output to protect sensitive electronics and enhance their lifespan. With a 40A solar charging current, it enables fast charging from solar panels even in low sunlight conditions.\n\n\nPerfect for homes, shops, small offices, clinics, and petrol pumps, this Solar PCU ensures long-lasting performance with safety, stability and durability.",
+    "imageUrl": "/products/inverter-demo-1.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Warranty",
+        "value": "2 years"
+      },
+      {
+        "label": "Weight",
+        "value": "17.8"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230 Voltage"
+      },
+      {
+        "label": "Dimensions (L*W*H)",
+        "value": "43.2x46.3x23.2"
+      }
+    ],
+    "features": [
+      "High Capacity Solar PCU (1735VA/1300W): Designed for homes, offices and commercial applications, ensuring stable power backup with high efficiency Pure Sine Wave technology.",
+      "Advanced Solar MPPT/Charging Support: Equipped with 40A solar charging current for fast and optimized solar power utilization, reducing electricity dependency significantly.",
+      "Dual Charging System: Supports 10A/14A mains charging current, enabling flexible and efficient battery charging from both solar and grid.",
+      "Compatible with 24V Battery System: Ideal for 2-battery setups with strong Full Load Battery Current of 45A, suitable for high power backup needs.",
+      "Stable Output Performance: Delivers 230V output on no-load and 180V under full load, ensuring safe operation of sensitive appliances like LED TVs, Computers, Fans, Lights."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "Solar Rated",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-solar-pv-module-165w-12v",
+    "name": "SOLAR PV MODULE 165W 12V",
+    "slug": "solar-pv-module-165w-12v",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 4302,
+    "comparePrice": 5378,
+    "availability": "In Stock",
+    "stock": 17,
+    "sku": "899-301-1612",
+    "shortDescription": "Microtek – India’s ‘Most Preferred’ and ‘Most Awarded’ Brand, has Launched range of Solar PV Modules to promote Green and Renewable Source of Energy.",
+    "fullDescription": "Microtek – India’s ‘Most Preferred’ and ‘Most Awarded’ Brand, has Launched range of Solar PV Modules to promote Green and Renewable Source of Energy.\n\nMicrotek 320W 24V Multi Crystalline Solar PV Module is a premium quality product from Microtek. All are well-known Microtek ecommerce platform for qualitative range of Solar Panels. All Microtek Solar PV Modules Multi Crystalline Solar Products are manufactured by using quality assured material and advanced techniques, which make them up to the standard in this highly challenging field. The materials utilized to manufacture Microtek 320W 24V Multi Crystalline Solar PV Module, are sourced from the most reliable and official vendors, chosen after performing detailed market surveys. Microtek products are widely acknowledged in the market for their high quality. We are dedicatedly involved in providing an excellent quality array of Microtek Solar Panels.",
+    "imageUrl": "/products/ups-demo-1.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Weight",
+        "value": "13.1kg"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "Same as Input"
+      },
+      {
+        "label": "Dimensions (L*W*H)",
+        "value": "149.5x67x3.5"
+      }
+    ],
+    "features": [
+      "Positive Power Tolerance Modules.",
+      "Highly Classified A-Grade Solar Cells for Lesser Degradation and High Energy.",
+      "Micro Crack Free Panels-100% EL Tested Before and After Lamination.",
+      "High Conversion Efficiency based on Leading Innovative Photo Voltaic Technologies.",
+      "PID Free Modules with Long Term Reliability."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "165W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-luxe-new-1200-950-va-12-v-pure-sine-wave-inverter-m1502424jt-150-ah-12-v-battery",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops",
+    "slug": "luxe-new-1200-950-va-12-v-pure-sine-wave-inverter-m1502424jt-150-ah-12-v-battery",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 17320,
+    "comparePrice": 21650,
+    "availability": "In Stock",
+    "stock": 18,
+    "sku": "SKU: 899-LX1-1200-899-BA2-0150",
+    "shortDescription": "The LUXE NEW 1200 (950 VA / 12 V Pure Sine Wave) Inverter + M1502424JT 150 Ah / 12 V Battery Combo is a complete power backup solution. Pairing a high-end 950VA / 760W Pure Sine Wave inverter with a high-capacity 150Ah t",
+    "fullDescription": "The LUXE NEW 1200 (950 VA / 12 V Pure Sine Wave) Inverter + M1502424JT 150 Ah / 12 V Battery Combo is a complete power backup solution. Pairing a high-end 950VA / 760W Pure Sine Wave inverter with a high-capacity 150Ah tall tubular battery, this single-battery setup provides stable, grid-quality backup for a standard household.",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Inverter Model / Type",
+        "value": "Microtek LUXE NEW 1200"
+      },
+      {
+        "label": "Rated Capacity",
+        "value": "950 VA / ~760 W"
+      },
+      {
+        "label": "Battery System",
+        "value": "Single 12 V Battery Supported"
+      },
+      {
+        "label": "Single 12 V Battery Supported",
+        "value": "100 V – 300 V"
+      },
+      {
+        "label": "UPS / Bypass Mode Input Range",
+        "value": "180 V – 260 V"
+      },
+      {
+        "label": "Output Voltage / Frequency",
+        "value": "210 V ±10%, 50 Hz ±0.1 Hz"
+      },
+      {
+        "label": "Waveform",
+        "value": "Pure Sine Wave"
+      },
+      {
+        "label": "Efficiency",
+        "value": "~80%"
+      }
+    ],
+    "features": [
+      "The high-tier continuous load handling capacity lets you operate these essentials together during an outage:",
+      "3 to 4 Standard Ceiling Fans (running with complete, hum-free silence)",
+      "6 to 8 Energy-Saving LED Bulbs or Slim Tubelights",
+      "1 Smart LED TV + Setup Box + Wi-Fi Router",
+      "Up to 2 Laptops with their active chargers",
+      "Standard 2 BHK Apartments: Keeps daily living spaces perfectly illuminated and comfortable."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "950 VA / ~760 W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-inverter-with-battery-combo-for-home-office-shops-energy-saver-ups-825",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops",
+    "slug": "microtek-inverter-with-battery-combo-for-home-office-shops-energy-saver-ups-825",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 16577,
+    "comparePrice": 20721,
+    "availability": "In Stock",
+    "stock": 19,
+    "sku": "1CJ4-P170-QZUW",
+    "shortDescription": "The Microtek Inverter with Battery Combo for Home, Office & Shops | Energy Saver UPS 825 12V Digital Wave 715VA + M1502424TT 150Ah Inverter Battery is a highly reliable and budget-friendly turnkey power backup kit. It bu",
+    "fullDescription": "The Microtek Inverter with Battery Combo for Home, Office & Shops | Energy Saver UPS 825 12V Digital Wave 715VA + M1502424TT 150Ah Inverter Battery is a highly reliable and budget-friendly turnkey power backup kit. It bundles a 715VA / 572W Advanced Digital Wave inverter with a durable 150Ah tall tubular battery to form an efficient, single-battery setup.",
+    "imageUrl": "https://m.media-amazon.com/images/I/51lL8WID9fL._SX522_.jpg",
+    "additionalImages": [
+      "https://m.media-amazon.com/images/I/61zFjjbj7RL._SL1002_.jpg",
+      "https://m.media-amazon.com/images/I/61beEvf+e5L._SL1001_.jpg",
+      "https://m.media-amazon.com/images/I/61yAXBLQWAL._SL1002_.jpg",
+      "https://m.media-amazon.com/images/I/61pmh07AXUL._SL1001_.jpg"
+    ],
+    "keySpecs": [
+      {
+        "label": "Battery Capacity",
+        "value": "150 Amp Hours"
+      },
+      {
+        "label": "Voltage",
+        "value": "12 Volts"
+      },
+      {
+        "label": "Item Weight Unit of Measure",
+        "value": "65 Kilograms"
+      }
+    ],
+    "features": [
+      "This combo allows you to operate your primary everyday electronics together:",
+      "3 Standard Ceiling Fans",
+      "4 to 5 Energy-Saving LED Lights or Tubelights",
+      "1 Smart LED TV + Setup Box",
+      "1 Wi-Fi Router + Smartphone Charging Docks",
+      "1-2 BHK Standard Apartments: Efficiently handles daily household comfort and light utility needs."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "150 Amp Hours",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-heavy-duty-ups-1750-vturbo-12v-pure-sine-wave-1500va-with-m2503624tt-250ah12v-in",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops",
+    "slug": "heavy-duty-ups-1750-vturbo-12v-pure-sine-wave-1500va-with-m2503624tt-250ah12v-in",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 32300,
+    "comparePrice": 40375,
+    "availability": "In Stock",
+    "stock": 10,
+    "sku": "SKU: 899-A41-T175-899-BA2-0250",
+    "shortDescription": "The HEAVY DUTY UPS 1750-vTURBO 12V Pure Sine Wave (1500VA), with M2503624TT 250AH/12V) | Inverter with Battery Combo is a top-tier power backup set. It bundles a high-power 1500VA inverter with a massive, ultra-capacity ",
+    "fullDescription": "The HEAVY DUTY UPS 1750-vTURBO 12V Pure Sine Wave (1500VA), with M2503624TT 250AH/12V) | Inverter with Battery Combo is a top-tier power backup set. It bundles a high-power 1500VA inverter with a massive, ultra-capacity 250Ah tall tubular battery.\n\nThis single-battery system uses an oversized internal transformer to give you massive power and extra-long backup times (up to 10 hours) without needing a more expensive dual-battery system.",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Capacity",
+        "value": "1500VA / 1200W"
+      },
+      {
+        "label": "Waveform",
+        "value": "Pure Sine Wave"
+      },
+      {
+        "label": "Input Voltage Range",
+        "value": "80V – 290V (Inverter Mode) / 180V – 265V (UPS Mode)"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230V ± 10%"
+      },
+      {
+        "label": "Charging Current",
+        "value": "15–18 Amps"
+      },
+      {
+        "label": "Efficiency",
+        "value": ">85% (Typical)"
+      },
+      {
+        "label": "Technology",
+        "value": "DSP-based Digital Control"
+      },
+      {
+        "label": "Battery Support",
+        "value": "Single 12V Battery"
+      }
+    ],
+    "features": [
+      "When the main electricity goes out, this combination can easily run your daily household essentials at the same time:",
+      "4 to 5 Ceiling Fans (operating completely silent without any annoying buzzing sounds)",
+      "6 to 8 LED Bulbs or Tubelights to keep your rooms perfectly bright",
+      "1 Large Double-Door Refrigerator to keep your food completely fresh",
+      "1 Large Smart TV along with your home internet Wi-Fi router",
+      "Multiple Laptops and Mobile Phone Chargers"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1500VA / 1200W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-heavy-duty-ups-1750-vturbo-12v-pure-sine-wave-1500va-with-m1803624tt-180ah12v-in",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops HEAVY DUTY UPS 1750-vTURBO 12V Pure Sine Wave (1500VA), with M1803624TT 180AH/12V)",
+    "slug": "heavy-duty-ups-1750-vturbo-12v-pure-sine-wave-1500va-with-m1803624tt-180ah12v-in",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 24138,
+    "comparePrice": 30173,
+    "availability": "In Stock",
+    "stock": 11,
+    "sku": "SKU: 899-A41-T175-899-BA2-TT18",
+    "shortDescription": "The HEAVY DUTY UPS 1750-vTURBO 12V Pure Sine Wave (1500VA), with M1803624TT 180AH/12V) | Inverter with Battery Combo is a complete power backup package. It pairs a 1500VA heavy-duty inverter that outputs a massive 1200 W",
+    "fullDescription": "The HEAVY DUTY UPS 1750-vTURBO 12V Pure Sine Wave (1500VA), with M1803624TT 180AH/12V) | Inverter with Battery Combo is a complete power backup package. It pairs a 1500VA heavy-duty inverter that outputs a massive 1200 Watts of continuous power with a large 180Ah tall tubular battery.\n\nThis single-battery system uses an oversized internal transformer to give you high-power output and extended backup without requiring a more complex dual-battery setup",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Capacity",
+        "value": "1500VA / 1200W"
+      },
+      {
+        "label": "Waveform",
+        "value": "Pure Sine Wave"
+      },
+      {
+        "label": "Input Voltage Range",
+        "value": "80V – 290V (Inverter Mode) / 180V – 265V (UPS Mode)"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230V ± 10%"
+      },
+      {
+        "label": "Charging Current",
+        "value": "15–18 Amps"
+      },
+      {
+        "label": "Efficiency",
+        "value": ">85% (Typical)"
+      },
+      {
+        "label": "Technology",
+        "value": "DSP-based Digital Control"
+      },
+      {
+        "label": "Battery Support",
+        "value": "Battery Support"
+      }
+    ],
+    "features": [
+      "When the main power goes out, this combination can comfortably handle your daily household baseline at the same time:",
+      "4 to 5 Ceiling Fans (operating completely silent without any annoying buzzing sounds)",
+      "6 to 8 LED Bulbs or Tubelights to keep your rooms perfectly bright",
+      "1 Large Double-Door Refrigerator to keep your food completely fresh",
+      "1 Large Smart TV along with your home internet Wi-Fi router",
+      "Multiple Laptops and Mobile Phone Chargers"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1500VA / 1200W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-heavy-duty-ups-1550-vturbo-12v-pure-sine-wave-1250va-with-m2503624tt-250ah12v-in",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops",
+    "slug": "heavy-duty-ups-1550-vturbo-12v-pure-sine-wave-1250va-with-m2503624tt-250ah12v-in",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 30679,
+    "comparePrice": 38349,
+    "availability": "In Stock",
+    "stock": 12,
+    "sku": "SKU: 899-A41-T155-899-BA2-0250",
+    "shortDescription": "The Microtek HEAVY DUTY UPS 1550-vTURBO paired with the M2503624TT 250Ah Tall Tubular Battery is a premium backup solution for homes, offices, and small commercial setups.",
+    "fullDescription": "The Microtek HEAVY DUTY UPS 1550-vTURBO paired with the M2503624TT 250Ah Tall Tubular Battery is a premium backup solution for homes, offices, and small commercial setups.\n\nThe 1250VA / 1000W inverter delivers Pure Sine Wave output, ensuring safe, efficient power for sensitive electronics like computers, gaming PCs, and LED TVs. The Dura Strong battery with Advanced Dura Core Technology provides extended backup up to 10 hours, deep discharge handling, faster recharge, and long-lasting performance.\n\n",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Capacity",
+        "value": "1250VA / 1000W"
+      },
+      {
+        "label": "Waveform",
+        "value": "Pure Sine Wave"
+      },
+      {
+        "label": "Input Voltage Range",
+        "value": "80V – 290V (Inverter Mode) / 180V – 265V (UPS Mode)"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230V ± 10%"
+      },
+      {
+        "label": "Charging Current",
+        "value": "15–18 Amps"
+      },
+      {
+        "label": "Efficiency",
+        "value": ">85% (Typical)"
+      },
+      {
+        "label": "Technology",
+        "value": "DSP-based Digital Control"
+      },
+      {
+        "label": "Battery Support",
+        "value": "Single 12V Battery"
+      }
+    ],
+    "features": [
+      "When grid power goes down, this heavy-duty system comfortably drives your standard household utilities at the same time:",
+      "4 to 5 Ceiling Fans (operating with complete, hum-free silence)",
+      "6 to 8 Energy-Saving LED Bulbs or Tubelights to keep your rooms bright",
+      "1 Standard Family Refrigerator to preserve food and milk",
+      "1 Smart LED TV along with your home internet Wi-Fi router",
+      "Multiple Laptops and Smartphone Charging Cables"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1250VA / 1000W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-heavy-duty-ups-1550-vturbo-12v-pure-sine-wave-1250va-with-m2003624tt-200ah12v-in",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops |HEAVY DUTY UPS 1550-vTURBO 12V Pure Sine Wave (1250VA), with M2003624TT 200AH/12V)",
+    "slug": "heavy-duty-ups-1550-vturbo-12v-pure-sine-wave-1250va-with-m2003624tt-200ah12v-in",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 24623,
+    "comparePrice": 30779,
+    "availability": "In Stock",
+    "stock": 13,
+    "sku": "SKU: 899-A41-T155-899-BA2-TT20",
+    "shortDescription": "The Microtek Heavy Duty 1550 (200Ah) Combo is a complete, ready-to-use power backup set. It combines a high-capacity inverter box with a massive, long-lasting battery.",
+    "fullDescription": "The Microtek Heavy Duty 1550 (200Ah) Combo is a complete, ready-to-use power backup set. It combines a high-capacity inverter box with a massive, long-lasting battery.\n\nThink of this system as an insurance policy for your home or office during long power cuts. It takes a single battery but manages to pack enough muscle to run heavy household items without needing a massive, complicated dual-battery setup.",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Capacity",
+        "value": "1250VA / 1000W"
+      },
+      {
+        "label": "Waveform",
+        "value": "Pure Sine Wave"
+      },
+      {
+        "label": "Input Voltage Range",
+        "value": "80V – 290V (Inverter Mode) / 180V – 265V (UPS Mode)"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230V ± 10%"
+      },
+      {
+        "label": "Charging Current",
+        "value": "15–18 Amps"
+      },
+      {
+        "label": "Efficiency",
+        "value": ">85% (Typical)"
+      },
+      {
+        "label": "Technology",
+        "value": "DSP-based Digital Control"
+      },
+      {
+        "label": "Battery Support",
+        "value": "Single 12V Battery"
+      }
+    ],
+    "features": [
+      "When the main power goes out, this combo can smoothly run your entire daily household baseline at the same time:",
+      "4 to 5 Ceiling Fans (running completely silent without any annoying buzzing sounds)",
+      "6 to 8 LED Bulbs or Tubelights to keep your rooms bright",
+      "1 Standard Family Refrigerator to keep your food and milk perfectly fresh",
+      "1 Large Smart TV along with your internet Wi-Fi router",
+      "Laptops and Mobile Phone Chargers"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1250VA / 1000W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-heavy-duty-ups-1550-vturbo-12v-pure-sine-wave-1250va-with-m1603624tt-160ah12v-in",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops HEAVY DUTY UPS 1550-vTURBO 12V Pure Sine Wave (1250VA), with M1603624TT 160AH/12V)",
+    "slug": "heavy-duty-ups-1550-vturbo-12v-pure-sine-wave-1250va-with-m1603624tt-160ah12v-in",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 21191,
+    "comparePrice": 26489,
+    "availability": "In Stock",
+    "stock": 14,
+    "sku": "SKU: 899-A41-T155-899-BA2-T160",
+    "shortDescription": "The HEAVY DUTY UPS 1550-vTURBO 12V Pure Sine Wave (1250VA), with M1603624TT 160AH/12V) | Inverter with Battery Combo is a robust power backup package designed to handle intense load demands. It pairs a 1250VA inverter th",
+    "fullDescription": "The HEAVY DUTY UPS 1550-vTURBO 12V Pure Sine Wave (1250VA), with M1603624TT 160AH/12V) | Inverter with Battery Combo is a robust power backup package designed to handle intense load demands. It pairs a 1250VA inverter that outputs a true 1000 Watts of continuous power with an extra-capacity 160Ah tall tubular battery.",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Capacity",
+        "value": "1250VA / 1000W"
+      },
+      {
+        "label": "Waveform",
+        "value": "Pure Sine Wave"
+      },
+      {
+        "label": "Input Voltage Range",
+        "value": "80V – 290V (Inverter Mode) / 180V – 265V (UPS Mode)"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230V ± 10%"
+      },
+      {
+        "label": "Charging Current",
+        "value": "15–18 Amps"
+      },
+      {
+        "label": "Efficiency",
+        "value": ">85% (Typical)"
+      },
+      {
+        "label": "Technology",
+        "value": "DSP-based Digital Control"
+      },
+      {
+        "label": "Battery Support",
+        "value": "Single 12V Battery"
+      }
+    ],
+    "features": [
+      "This single-battery setup manages heavier startup surges, allowing you to run these together:",
+      "4 to 5 Standard Ceiling Fans (operating with complete, hum-free silence)",
+      "6 to 8 Energy-Saving LED Lights or Tubelights",
+      "1 Large Smart LED TV + Dedicated Audio Soundbar",
+      "1 Domestic Refrigerator (Standard model up to 300 Liters)",
+      "1 Broadband Wi-Fi Router + Multi-Device Charger Hubs"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1250VA / 1000W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-heavy-duty-ups-1550-vturbo-12v-digital-wave-1250va-with-m2503624tt-250ah12v-inve",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops HEAVY DUTY UPS 1550-vTURBO 12V Digital Wave (1250VA), with M2503624TT 250AH/12V)",
+    "slug": "heavy-duty-ups-1550-vturbo-12v-digital-wave-1250va-with-m2503624tt-250ah12v-inve",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 29729,
+    "comparePrice": 37161,
+    "availability": "In Stock",
+    "stock": 15,
+    "sku": "SKU: 899-991-T155-899-BA2-0250",
+    "shortDescription": "The HEAVY DUTY UPS 1550-vTURBO 12V Pure Sine Wave (1250VA), with M2503624TT 250AH/12V) | Inverter with Battery Combo is an ultra-endurance power backup kit. It bundles a high-torque 1250VA inverter delivering a true 1000",
+    "fullDescription": "The HEAVY DUTY UPS 1550-vTURBO 12V Pure Sine Wave (1250VA), with M2503624TT 250AH/12V) | Inverter with Battery Combo is an ultra-endurance power backup kit. It bundles a high-torque 1250VA inverter delivering a true 1000 Watts of continuous power with a massive 250Ah tall tubular battery.\n\nThis single-battery system uses a heavy internal transformer to provide an extra-long backup runtime of up to 10 hours without requiring a bulkier two-battery setup.",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Capacity",
+        "value": "1250VA / 1000W"
+      },
+      {
+        "label": "Waveform",
+        "value": "Pure Digital Sine Wave"
+      },
+      {
+        "label": "Input Voltage Range",
+        "value": "80V – 290V (Inverter Mode) / 180V – 265V (UPS Mode)"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230V ± 10%"
+      },
+      {
+        "label": "Charging Current",
+        "value": "15–18 Amps (Smart Charging)"
+      },
+      {
+        "label": "Efficiency",
+        "value": ">85% (Typical)"
+      },
+      {
+        "label": "Technology",
+        "value": "DSP-based Digital Control"
+      },
+      {
+        "label": "Battery Support",
+        "value": "Single 12V Battery"
+      }
+    ],
+    "features": [
+      "When grid power goes down, this heavy-duty system comfortably drives your standard household utilities at the same time:",
+      "4 to 5 Ceiling Fans (operating with complete, hum-free silence)",
+      "6 to 8 Energy-Saving LED Bulbs or Tubelights to keep your rooms bright",
+      "1 Standard Family Refrigerator to preserve food and milk",
+      "1 Smart LED TV along with your home internet Wi-Fi router",
+      "Multiple Laptops and Smartphone Charging Cables"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1250VA / 1000W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-heavy-duty-ups-1550-vturbo-12v-digital-wave-1250va-with-m2003624tt-200ah12v-inve",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops HEAVY DUTY UPS 1550-vTURBO 12V Digital Wave (1250VA), with M2003624TT 200AH/12V)",
+    "slug": "heavy-duty-ups-1550-vturbo-12v-digital-wave-1250va-with-m2003624tt-200ah12v-inve",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 23673,
+    "comparePrice": 29591,
+    "availability": "In Stock",
+    "stock": 16,
+    "sku": "SKU: 899-991-T155-899-BA2-TT20",
+    "shortDescription": "The Microtek HEAVY DUTY UPS 1550-vTURBO is a robust and advanced 12V Digital Sine Wave Inverter designed for high-performance and reliability. With a power output of 1250VA / 1000W, it easily powers multiple devices at o",
+    "fullDescription": "The Microtek HEAVY DUTY UPS 1550-vTURBO is a robust and advanced 12V Digital Sine Wave Inverter designed for high-performance and reliability. With a power output of 1250VA / 1000W, it easily powers multiple devices at once — including TVs, fans, computers, and refrigerators (within rated limits).\n\n",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Weight",
+        "value": "13.25 KG & 63 KG"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230 Voltage"
+      },
+      {
+        "label": "Dimensions (L*W*H)",
+        "value": "(Inverter - 43*22.5*39.2,Battery - 50.5*19*40.5)"
+      }
+    ],
+    "features": [
+      "4 to 5 Ceiling Fans (operating completely silent without any annoying buzzing sounds)",
+      "6 to 8 LED Bulbs or Tubelights to keep your rooms perfectly bright",
+      "1 Standard Family Refrigerator to preserve food and keep milk fresh",
+      "1 Large Smart TV along with your home internet Wi-Fi router",
+      "Multiple Laptops and Mobile Phone Chargers",
+      "2-3 BHK Residences with Long Outages: Perfect for areas dealing with prolonged power cuts where standard-sized batteries run empty."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1250VA",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-heavy-duty-ups-1550-vturbo-12v-digital-wave-1250va-with-m1603624tt-160ah12v-inve",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops",
+    "slug": "heavy-duty-ups-1550-vturbo-12v-digital-wave-1250va-with-m1603624tt-160ah12v-inve",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 20241,
+    "comparePrice": 25301,
+    "availability": "In Stock",
+    "stock": 17,
+    "sku": "SKU: 899-991-T155-899-BA2-T160",
+    "shortDescription": "The HEAVY DUTY UPS 1550-vTURBO 12V Digital Wave (1250VA), with M1603624TT 160AH/12V) | Inverter with Battery Combo is a complete high-torque power setup. It bundles a heavy-duty 1250VA / 1000W Pure Sine Wave inverter wit",
+    "fullDescription": "The HEAVY DUTY UPS 1550-vTURBO 12V Digital Wave (1250VA), with M1603624TT 160AH/12V) | Inverter with Battery Combo is a complete high-torque power setup. It bundles a heavy-duty 1250VA / 1000W Pure Sine Wave inverter with an upgraded 160Ah tall tubular battery to form an efficient, high-output single-battery system.",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Waveform",
+        "value": "Pure Digital Sine Wave"
+      },
+      {
+        "label": "Capacity",
+        "value": "1250VA / 1000W"
+      },
+      {
+        "label": "Input Voltage Range",
+        "value": "80V – 290V (Inverter Mode) / 180V – 265V (UPS Mode)"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230V ± 10%"
+      },
+      {
+        "label": "Charging Current",
+        "value": "15–18 Amps"
+      },
+      {
+        "label": "Efficiency",
+        "value": ">85% (Typical)"
+      },
+      {
+        "label": "Technology",
+        "value": "DSP-based Digital Sine Wave"
+      },
+      {
+        "label": "Battery Support",
+        "value": "Single 12V Battery"
+      }
+    ],
+    "features": [
+      "Its true 1000-Watt capacity manages high startup strains, allowing you to run these baseline utilities together seamlessly:",
+      "4 to 5 Standard Ceiling Fans (operating with complete, hum-free silence)",
+      "6 to 8 Energy-Saving LED Lights or Slim Tubelights",
+      "1 Domestic Refrigerator (Standard family model up to 300 Liters)",
+      "1 Large Smart LED TV + Connected Soundbar + Wi-Fi Router",
+      "Up to 2 Active Laptops with their power bricks"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1250VA / 1000W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-heavy-duty-ups-2350-vturbo-24v-2000va1600w-pure-sine-wave-inverter-with-m1603624",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops HEAVY DUTY UPS 2350-vTURBO (24V – 2000VA/1600W) Pure Sine Wave Inverter with M1603624TT 160Ah/12V Battery Combo",
+    "slug": "heavy-duty-ups-2350-vturbo-24v-2000va1600w-pure-sine-wave-inverter-with-m1603624",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 24242,
+    "comparePrice": 30303,
+    "availability": "In Stock",
+    "stock": 18,
+    "sku": "SKU: 899-A41-T235-899-BA2-T160",
+    "shortDescription": "The Microtek HEAVY DUTY UPS 2350-vTURBO 24V Inverter with M1603624TT 160Ah Tall Tubular Battery is a high-capacity power backup solution for homes, offices, and shops. Delivering 2000VA / 1600W, this Pure Sine Wave inver",
+    "fullDescription": "The Microtek HEAVY DUTY UPS 2350-vTURBO 24V Inverter with M1603624TT 160Ah Tall Tubular Battery is a high-capacity power backup solution for homes, offices, and shops. Delivering 2000VA / 1600W, this Pure Sine Wave inverter is perfect for running multiple sensitive and high-power appliances simultaneously.\n\nThe 24V system ensures improved efficiency and better battery life, while digital hybrid technology provides intelligent charging, voltage stabilization, and optimal power output.\n\n",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Rated Capacity",
+        "value": "2000VA / 1600W"
+      },
+      {
+        "label": "Battery System",
+        "value": "24V (2x 12V in series)"
+      },
+      {
+        "label": "Input Voltage Range",
+        "value": "100V – 300V AC"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230V ±10%"
+      },
+      {
+        "label": "Output Frequency",
+        "value": "50Hz ±0.1Hz"
+      },
+      {
+        "label": "Waveform Type",
+        "value": "Waveform Type"
+      },
+      {
+        "label": "Efficiency",
+        "value": ">85%"
+      },
+      {
+        "label": "Switchover Time",
+        "value": "<15ms (UPS Mode)"
+      }
+    ],
+    "features": [
+      "Thanks to its massive 1600-Watt threshold, this system easily handles major heavy appliances alongside your regular household baseline together:",
+      "1 Water Geyser or 1  Air Conditioner (up to 1 Ton capacity)",
+      "1 Premium Double-Door Refrigerator or Deep Freezer",
+      "4 to 5 Ceiling Fans (operating with complete, hum-free silence)",
+      "8 to 10 LED Bulbs or Tubelights to keep rooms bright",
+      "1 Large Smart TV along with your home internet Wi-Fi router"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "2000VA / 1600W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-heavy-duty-ups-1750-vturbo-12v-1500va1200w-pure-sine-wave-inverter-with-m2003624",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops HEAVY DUTY UPS 1750-vTURBO (12V – 1500VA/1200W) Pure Sine Wave Inverter with M2003624TT 200Ah Battery Combo| Warranty:3Years(Inverter)&5Years(Battery)",
+    "slug": "heavy-duty-ups-1750-vturbo-12v-1500va1200w-pure-sine-wave-inverter-with-m2003624",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 28244,
+    "comparePrice": 35305,
+    "availability": "In Stock",
+    "stock": 19,
+    "sku": "899-A41-T175-899-BA2-TT20",
+    "shortDescription": "The HEAVY DUTY UPS 1750-vTURBO (12V – 1500VA/1200W) Pure Sine Wave Inverter with M2003624TT 200Ah Battery Combo is a high-capacity power backup kit. It combines a 1500VA inverter that outputs a true 1200 Watts of continu",
+    "fullDescription": "The HEAVY DUTY UPS 1750-vTURBO (12V – 1500VA/1200W) Pure Sine Wave Inverter with M2003624TT 200Ah Battery Combo is a high-capacity power backup kit. It combines a 1500VA inverter that outputs a true 1200 Watts of continuous power with a large 200Ah tall tubular battery.\n\nBy running an oversized internal transformer on a single 12V battery system, it handles heavy startup power surges while keeping the physical layout simple.",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Rated Capacity",
+        "value": "1500VA / 1200W"
+      },
+      {
+        "label": "Battery System",
+        "value": "Single 12V"
+      },
+      {
+        "label": "Input Voltage Range",
+        "value": "100V – 300V AC"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230V ±10%"
+      },
+      {
+        "label": "Output Frequency",
+        "value": "50Hz ±0.1Hz"
+      },
+      {
+        "label": "Waveform Type",
+        "value": "Pure Sine Wave"
+      },
+      {
+        "label": "Efficiency",
+        "value": ">85%"
+      },
+      {
+        "label": "Switchover Time",
+        "value": "<15ms (UPS Mode)"
+      }
+    ],
+    "features": [
+      "When grid electricity goes out, this combination can smoothly run your standard household utilities at the same time:",
+      "4 to 5 Ceiling Fans (operating with complete, hum-free silence)",
+      "6 to 8 Energy-Saving LED Lights or Tubelights to keep rooms bright",
+      "1 Large Double-Door Refrigerator to keep your food perfectly fresh",
+      "1 Smart LED TV along with your home internet Wi-Fi router",
+      "Multiple Laptops and Mobile Phone Chargers"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1500VA / 1200W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-luxe-new-1000-12v-pure-sign-wave-800va-with-m1502424jt-150ah12v-inverter-battery",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops LUXE NEW 1000 12V Pure Sign Wave (800VA), with M1502424JT 150AH/12V Inverter & Battery Combo",
+    "slug": "luxe-new-1000-12v-pure-sign-wave-800va-with-m1502424jt-150ah12v-inverter-battery",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 16779,
+    "comparePrice": 20974,
+    "availability": "In Stock",
+    "stock": 10,
+    "sku": "SKU: 899-LX1-1000-899-BA2-0150",
+    "shortDescription": "The LUXE NEW 1000 Inverter + 150 Ah Battery Combo delivers efficient and reliable power backup for households and offices. With its pure sine wave technology, the inverter ensures smooth functioning of sensitive applianc",
+    "fullDescription": "The LUXE NEW 1000 Inverter + 150 Ah Battery Combo delivers efficient and reliable power backup for households and offices. With its pure sine wave technology, the inverter ensures smooth functioning of sensitive appliances. The 150 Ah tall tubular battery is engineered for deep discharge cycles, offering longer backup duration and consistent performance.\n\n\nCompact, durable, and efficient, this combo is an ideal solution for handling frequent power cuts while keeping your appliances safe.",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Model",
+        "value": "LUXE NEW 1000 (12 V Pure Sine Wave)"
+      },
+      {
+        "label": "VA Rating",
+        "value": "800 VA"
+      },
+      {
+        "label": "Approx. Output Power",
+        "value": "~640 W"
+      },
+      {
+        "label": "Input Voltage (Standard)",
+        "value": "100 V – 300 V AC"
+      },
+      {
+        "label": "Input Voltage (Narrow Range)",
+        "value": "180 V – 260 V AC"
+      },
+      {
+        "label": "Output Voltage (Mains Mode)",
+        "value": "Same as input"
+      },
+      {
+        "label": "Changeover / Transfer Time",
+        "value": "< 15 ms"
+      },
+      {
+        "label": "Efficiency (Battery Mode)",
+        "value": "> 80%"
+      }
+    ],
+    "features": [
+      "This single-battery system comfortably handles your essential everyday appliances together during a blackout:",
+      "3 Standard Ceiling Fans (operating with complete, hum-free silence)",
+      "5 to 6 Energy-Saving LED Lights or Tubelights",
+      "1 Smart LED TV + Connected Set-Top Box",
+      "1 Wi-Fi Router + Smartphone Charging Cables",
+      "Up to 2 Laptops with their active chargers"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "800 VA",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-luxe-new-1400-12v-1100va880w-pure-sine-wave-inverter-with-m1803624tt-180ah12v-ba",
+    "name": "Microtek Inverter with Battery Combo for Home, Office & Shops LUXE NEW 1400 (12V – 1100VA/880W) Pure Sine Wave Inverter with M1803624TT 180Ah/12V Battery Combo",
+    "slug": "luxe-new-1400-12v-1100va880w-pure-sine-wave-inverter-with-m1803624tt-180ah12v-ba",
+    "brand": "Microtek",
+    "category": "combo",
+    "categoryName": "Combo",
+    "price": 21396,
+    "comparePrice": 26745,
+    "availability": "In Stock",
+    "stock": 11,
+    "sku": "SKU: 899-LX1-1400-899-BA2-TT18",
+    "shortDescription": "The Ultimate Heavy-Duty Powerhouse: Microtek Luxe 1400 Inverter + 180Ah Tubular Battery Combo",
+    "fullDescription": "The Ultimate Heavy-Duty Powerhouse: Microtek Luxe 1400 Inverter + 180Ah Tubular Battery Combo\nWhen summer hits and power cuts last for hours, you need a system that won't give up. This heavy-duty combo pairs the Microtek Luxe 1400 Pure Sine Wave Inverter with a massive 180Ah Jumbo Tubular Battery. It is engineered specifically for regions with frequent, long power failures, delivering maximum backup time and rock-solid reliability.\n",
+    "imageUrl": "/products/microtek-vturbo-clean.png",
+    "additionalImages": [
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png",
+      "/products/microtek-vturbo-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "(Inverter - 39.2*18.3*33, Battery - 50.5*19*40.5)",
+        "value": "1100VA / 880W"
+      },
+      {
+        "label": "Battery System",
+        "value": "Single 12V"
+      },
+      {
+        "label": "Input Voltage Range",
+        "value": "100V – 300V AC"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "230V ±10%"
+      },
+      {
+        "label": "Efficiency",
+        "value": ">85%"
+      },
+      {
+        "label": "Protection",
+        "value": "Overload, Short Circuit, Deep Discharge"
+      },
+      {
+        "label": "Technology",
+        "value": "Digital Hybrid Pure Sine Wave"
+      },
+      {
+        "label": "Weight",
+        "value": "9.96 KG & 60.5 KG"
+      }
+    ],
+    "features": [
+      "This high-capacity system effortlessly runs your daily essentials simultaneously during a power cut",
+      "4 to 5 Ceiling Fans + 6 to 8 LED Lights",
+      "1 Inverter Refrigerator",
+      "1 Large LED TV + Setup Box + WiFi Router",
+      "Laptops, Smartphones, and Mixer Grinders",
+      "Large 2 BHK & 3 BHK Homes: Easily handles the heavy daily electricity load of a busy household."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "1100VA",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-solar-battery-150ah-ms1506024tt-heavy-duty-solar-battery-for-long-backup-fast-ch",
+    "name": "Solar Battery 150Ah – MS1506024TT",
+    "slug": "solar-battery-150ah-ms1506024tt-heavy-duty-solar-battery-for-long-backup-fast-ch",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 14926,
+    "comparePrice": 18658,
+    "availability": "In Stock",
+    "stock": 12,
+    "sku": "899-BAS-6015",
+    "shortDescription": "The Microtek MS1502024TT Solar Battery (155Ah, 12V) is a high-performance Tall Tubular battery engineered for modern solar power systems. Designed to deliver reliable backup, deeper discharge handling, and faster recharg",
+    "fullDescription": "The Microtek MS1502024TT Solar Battery (155Ah, 12V) is a high-performance Tall Tubular battery engineered for modern solar power systems. Designed to deliver reliable backup, deeper discharge handling, and faster recharging, it is ideal for solar inverters used in residential and small commercial setups.\n\n\nWith an optimized electrolyte volume of 22.5 liters, durable tubular plate design, and strong build quality, this battery provides long service life and superior performance under frequent charging cycles—making it perfect for off-grid, hybrid, and rooftop solar applications.",
+    "imageUrl": "/products/amaron-quanta-tubular-clean.png",
+    "additionalImages": [
+      "/products/amaron-quanta-tubular-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Model",
+        "value": "MS1502024TT"
+      },
+      {
+        "label": "Battery Type",
+        "value": "Tall Tubular (TT)"
+      },
+      {
+        "label": "Voltage",
+        "value": "12V"
+      },
+      {
+        "label": "Battery Rating",
+        "value": "155Ah"
+      },
+      {
+        "label": "Electrolyte Volume",
+        "value": "22.5 Liters"
+      },
+      {
+        "label": "Battery Weight (Dry)",
+        "value": "32 kg"
+      },
+      {
+        "label": "Application",
+        "value": "Solar Power Backup Systems"
+      },
+      {
+        "label": "Material",
+        "value": "Tubular Lead-Acid Battery"
+      }
+    ],
+    "features": [
+      "155Ah High-Efficiency Solar Battery",
+      "Tall Tubular (TT) Technology",
+      "Robust and Durable Construction",
+      "Optimized Electrolyte Volume – 22.5 Liters",
+      "Solar-Ready Compatibility"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "155Ah",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-solar-battery-150ah-ms1503624tt-long-backup-for-solar-inverters-fast-charging",
+    "name": "Solar Battery 150Ah – MS1503624TT",
+    "slug": "solar-battery-150ah-ms1503624tt-long-backup-for-solar-inverters-fast-charging",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 13700,
+    "comparePrice": 17125,
+    "availability": "In Stock",
+    "stock": 13,
+    "sku": "899-BAS-3615",
+    "shortDescription": "The Microtek MS1503624TT 150Ah Solar Battery is a premium-quality 12V Tall Tubular battery engineered for solar power applications. Designed for both residential and commercial solar systems, it offers excellent deep-dis",
+    "fullDescription": "The Microtek MS1503624TT 150Ah Solar Battery is a premium-quality 12V Tall Tubular battery engineered for solar power applications. Designed for both residential and commercial solar systems, it offers excellent deep-discharge recovery, extended backup duration, and fast charging efficiency.\n\nWith a high electrolyte volume of 22.5 liters and durable tubular plates, this battery ensures consistent performance, long service life, and reliable operation even in tough environmental conditions. It is fully compatible with all 12V solar inverters, hybrid systems, and off-grid installations.",
+    "imageUrl": "/products/amaron-quanta-tubular-clean.png",
+    "additionalImages": [
+      "/products/amaron-quanta-tubular-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Model",
+        "value": "MS1503624TT"
+      },
+      {
+        "label": "Battery Type",
+        "value": "Tall Tubular (TT"
+      },
+      {
+        "label": "Voltage",
+        "value": "12V"
+      },
+      {
+        "label": "Battery Rating",
+        "value": "150Ah"
+      },
+      {
+        "label": "Application",
+        "value": "Solar Backup Systems"
+      },
+      {
+        "label": "Material",
+        "value": "Tubular Lead-Acid Battery"
+      },
+      {
+        "label": "Status",
+        "value": "Active Product"
+      },
+      {
+        "label": "Weight",
+        "value": "12"
+      }
+    ],
+    "features": [
+      "Tall Tubular (TT) Technology",
+      "Optimized Electrolyte Volume – 22.5 Liters",
+      "Perfect for Solar Applications",
+      "150Ah High-Capacity Solar Battery",
+      "Heavy-Duty, Durable Construction"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "150Ah",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-solar-battery-200ah-ms2006024tt-heavy-duty-solar-application-battery-long-backup",
+    "name": "Solar Battery 200Ah – MS2006024TT",
+    "slug": "solar-battery-200ah-ms2006024tt-heavy-duty-solar-application-battery-long-backup",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 19963,
+    "comparePrice": 24954,
+    "availability": "In Stock",
+    "stock": 14,
+    "sku": "899-BAS-6020",
+    "shortDescription": "The Microtek MS2006024TT 200Ah Solar Battery is a high-performance 12V Tall Tubular battery designed specifically for solar power applications in homes, offices, commercial setups, and off-grid systems. Built using advan",
+    "fullDescription": "The Microtek MS2006024TT 200Ah Solar Battery is a high-performance 12V Tall Tubular battery designed specifically for solar power applications in homes, offices, commercial setups, and off-grid systems. Built using advanced TT (Tall Tubular) technology, it provides long service life, deep-discharge endurance, fast recharge capability, and reliable backup efficiency.\n\n\nWith a strong 21-liter electrolyte volume, robust construction, and excellent charge retention, this battery ensures consistent power storage and maximum utilization of solar energy. It is suitable for areas with frequent power cuts and for those seeking long-duration backup.",
+    "imageUrl": "/products/amaron-quanta-tubular-clean.png",
+    "additionalImages": [
+      "/products/amaron-quanta-tubular-clean.png"
+    ],
+    "keySpecs": [
+      {
+        "label": "Model",
+        "value": "MS2006024TT"
+      },
+      {
+        "label": "Battery Type",
+        "value": "Tall Tubular (TT)"
+      },
+      {
+        "label": "Voltage",
+        "value": "12V"
+      },
+      {
+        "label": "Battery Rating",
+        "value": "200Ah (210Ah internal rating)"
+      },
+      {
+        "label": "Electrolyte Volume",
+        "value": "21 Liters"
+      },
+      {
+        "label": "Application",
+        "value": "Solar Power Backup Systems"
+      },
+      {
+        "label": "Material",
+        "value": "Tubular Lead-Acid Battery"
+      },
+      {
+        "label": "Status",
+        "value": "Active Product"
+      }
+    ],
+    "features": [
+      "High-Capacity 200Ah Solar Battery",
+      "Tall Tubular (TT) Technology",
+      "Heavy-Duty Construction",
+      "Optimized Electrolyte Volume – 21 Liters",
+      "Ideal for All Solar Applications"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "200Ah (210Ah internal rating)",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-gti-5kw-m12",
+    "name": "MICROTEK GTI 5KW-M12",
+    "slug": "microtek-gti-5kw-m12",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 40820,
+    "comparePrice": 51025,
+    "availability": "In Stock",
+    "stock": 15,
+    "sku": "899-362-05KV",
+    "shortDescription": "Microtek Grid tied inverters, or GTI, are not a special type of DC to AC power inverter that is widely used in renewable energy systems. They are often used to power the grid that can be sold to an electrical company. Fo",
+    "fullDescription": "Microtek Grid tied inverters, or GTI, are not a special type of DC to AC power inverter that is widely used in renewable energy systems. They are often used to power the grid that can be sold to an electrical company. For example, if within a month the Microtek Grid tied inverters system feeds 500 kilowatt hours on the utility grid, and of these 100 hours spent, they will receive compensation for an additional 400 hours. Policies regarding this 'complete rating' program vary depending on your location and the authorities in it.\n\nThere are many different types of grids tied to the market today but Microtek Grid binding inverters form new and advanced technologies. Microtek Grid variants with high-frequency Inverter use a computer process that contains several different steps to convert power into high frequency AC, return to DC, and then AC again to the required output power.\n\nBENEFITS OF GRID-TIED SOLAR INVERTER\n1. Significant reduction in electricity bills\nSince there are net meters, the consumer should only pay for the remaining electricity he uses, to ensure that the monthly debt is significantly reduced. Many of our customers are able to reduce their monthly bills by 90%.\n\n2. Easy maintenance\nThe removal of batteries from the grid system makes maintenance much easier. It also eliminates battery storage costs.\n\n3. Sync with other energy sources\nThese systems can also sync with a diesel generator on site. This is important in the event of a power grid not being available. (You should add a link here to link to another blog or technical article to learn more about this)\n\n4. Better ROI\nThe cost of the On-grid solar system is lower than other types of solar systems because there are no batteries. It also produces a much higher energy value compared to other types of solar systems. Minor maintenance and reduction of monthly energy bills ensures that the customer receives a ROI of 25 - 30%. This means that the customer earns Rs.25,000 for every 1,00,000 investors in the sun.\n\nWith these advantages, the grid system is best suited for the customer with a stable grid capacity and low power cuts. Outside homes, even educational institutions, industrial, commercial units include an on-grid system as the system can adapt to diesel generators to provide uninterrupted power.",
+    "imageUrl": "/products/inverter-demo-1.jpg",
+    "additionalImages": [
+      "/products/inverter-demo-1.jpg"
+    ],
+    "keySpecs": [
+      {
+        "label": "MODEL",
+        "value": "GTI 5KW-M12"
+      },
+      {
+        "label": "Max. Input Power",
+        "value": "7500W"
+      },
+      {
+        "label": "Max. Input Voltage",
+        "value": "600V"
+      },
+      {
+        "label": "MPPT Voltage Range",
+        "value": "80V-550V"
+      },
+      {
+        "label": "Max. Input Current per MPPT",
+        "value": "15A/15A"
+      },
+      {
+        "label": "No. of MPPT/String per MPPT",
+        "value": "2/1"
+      },
+      {
+        "label": "Input Terminal Type",
+        "value": "MC4"
+      },
+      {
+        "label": "Rated Power / Max. AC Power",
+        "value": "5000W/5500VA"
+      }
+    ],
+    "features": [
+      "LCD+LED Display, interface Selection.",
+      "Wi-Fi/RS485 for more flexible configuration.",
+      "System Monitoring, Low Maintenance Cost",
+      "Max 07.2% Efficiency.",
+      "Intelligent Grid Management.",
+      "Zero Export to grid kit (Optional)."
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "5KW",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
+  },
+  {
+    "id": "sat-microtek-550-watt24v-non-dcr-bi-facial-solar-panel",
+    "name": "Microtek 550 Watt/24V non DCR bi Facial Solar Panel",
+    "slug": "microtek-550-watt24v-non-dcr-bi-facial-solar-panel",
+    "brand": "Microtek",
+    "category": "solar",
+    "categoryName": "Solar",
+    "price": 10762,
+    "comparePrice": 13453,
+    "availability": "In Stock",
+    "stock": 16,
+    "sku": "899-302-550B",
+    "shortDescription": "Microtek 550W 24V Non-DCR Bifacial Solar Panel",
+    "fullDescription": "Microtek 550W 24V Non-DCR Bifacial Solar Panel\n\nPower your home or business with the Microtek 550W 24V Non-DCR Bifacial Solar Panel. Featuring bifacial technology, it captures sunlight from both sides to generate more energy, helping you reduce electricity bills and maximize solar performance.\n\nKey Benefits:\n\n550W High Power Output for greater energy generation\nBifacial Technology for improved efficiency\n24V Compatible with a wide range of solar systems\nDurable & Weather Resistant for long-lasting performance\nLow Maintenance and reliable operation\nIdeal for homes, businesses, farms, and commercial installations\n\nA smart and efficient solar solution for reliable, long-term savings.",
+    "imageUrl": "/products/ups-demo-1.jpg",
+    "additionalImages": [],
+    "keySpecs": [
+      {
+        "label": "Weight",
+        "value": "28.6 Kgs"
+      },
+      {
+        "label": "Output Voltage",
+        "value": "550 Watt"
+      },
+      {
+        "label": "Dimensions (L*W*H)",
+        "value": "2278x1133x40"
+      }
+    ],
+    "features": [
+      "Anti-Reflective (AR) Coated Glass for Enhanced Power"
+    ],
+    "warrantyPeriod": "24 Months Official Warranty",
+    "capacity": "550 W",
+    "vendorId": "ven-rps-primary",
+    "vendorName": "RAJ POWER TECH ENTERPRISES",
+    "isFeatured": true,
+    "isPublished": true,
+    "createdAt": "2026-11-14T08:58:15.461Z",
+    "updatedAt": "2026-11-14T08:58:15.461Z"
   }
 ];

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowLeft,
-  ShoppingBag,
+  ShoppingCart,
   Trash2,
   Plus,
   Minus,
@@ -176,7 +176,7 @@ export default function CartPage() {
     const errs: Record<string, string> = {};
 
     if (items.length === 0) {
-      setCheckoutError('Your shopping bag is empty. Please add items before checking out.');
+      setCheckoutError('Your shopping cart is empty. Please add items before checking out.');
       return;
     }
 
@@ -276,7 +276,7 @@ export default function CartPage() {
     return (
       <div className="py-24 text-center text-slate-500">
         <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[#142B55] mb-2" />
-        <p className="text-sm font-semibold">Loading shopping bag...</p>
+        <p className="text-sm font-semibold">Loading shopping cart...</p>
       </div>
     );
   }
@@ -387,16 +387,16 @@ export default function CartPage() {
               <span>Home</span>
             </Link>
             <span>/</span>
-            <span className="text-slate-800 font-semibold">Shopping Bag</span>
+            <span className="text-slate-800 font-semibold">Shopping Cart</span>
           </div>
 
           <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-sm space-y-5">
             <div className="w-16 h-16 rounded-2xl bg-blue-50 text-[#142B55] mx-auto flex items-center justify-center">
-              <ShoppingBag className="w-8 h-8" />
+              <ShoppingCart className="w-8 h-8" />
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#142B55]">
-              Your Shopping Bag is Empty
+              Your Shopping Cart is Empty
             </h1>
 
             <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
@@ -432,13 +432,13 @@ export default function CartPage() {
             <span>Home</span>
           </Link>
           <span>/</span>
-          <span className="text-slate-800 font-semibold">Shopping Bag &amp; Guest Checkout</span>
+          <span className="text-slate-800 font-semibold">Shopping Cart &amp; Guest Checkout</span>
         </div>
 
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#142B55]">
-              Shopping Bag &amp; Doorstep Delivery
+              Shopping Cart &amp; Doorstep Delivery
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 mt-1">
               Official authorized power backup equipment with doorstep delivery &amp; certified installation across Hyderabad &amp; Secunderabad.
@@ -449,7 +449,7 @@ export default function CartPage() {
             className="text-xs text-red-600 hover:text-red-800 flex items-center gap-1 font-semibold cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span>Clear Bag</span>
+            <span>Clear Cart</span>
           </button>
         </div>
 
@@ -461,7 +461,7 @@ export default function CartPage() {
               {/* Bag Header */}
               <div className="bg-slate-50/90 px-5 sm:px-6 py-3.5 border-b border-slate-200/80 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <ShoppingBag className="w-4 h-4 text-[#142B55]" />
+                  <ShoppingCart className="w-4 h-4 text-[#142B55]" />
                   <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                     Equipment Order Items ({items.reduce((s, i) => s + i.quantity, 0)})
                   </span>
@@ -509,16 +509,9 @@ export default function CartPage() {
                           </span>
                           <span className="text-[11px] text-slate-500 font-medium">per unit</span>
                         </div>
-                        {item.stock !== undefined && item.stock <= 5 && (
-                          <div className="mt-1">
-                            <span className="text-[10px] text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-flex items-center gap-1">
-                              ⚡ Low Stock: Only {item.stock} left in Hub
-                            </span>
-                          </div>
-                        )}
                         {item.quantity >= (item.stock || 99) && (
-                          <span className="text-[10px] text-amber-700 font-semibold block mt-0.5">
-                            Max available stock ({item.stock} units) reached
+                          <span className="text-[10px] text-slate-500 font-medium block mt-1">
+                            Max order limit reached
                           </span>
                         )}
                       </div>
@@ -558,7 +551,7 @@ export default function CartPage() {
                         type="button"
                         onClick={() => removeFromGuestCart(item.productId)}
                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
-                        title="Remove from bag"
+                        title="Remove from cart"
                         aria-label="Remove item"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1009,7 +1002,7 @@ export default function CartPage() {
                   )
                 }
               >
-                {submittingOrder ? 'Reserving Stock...' : 'Confirm & Place Order'}
+                {submittingOrder ? 'Processing Order...' : 'Confirm & Place Order'}
               </Button>
 
               <div className="pt-2 border-t border-slate-100 space-y-2 text-[11px] text-slate-500">

@@ -5,7 +5,7 @@ import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export interface ButtonProps extends HTMLMotionProps<'button'> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'navy';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'navy' | 'white';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
   icon?: React.ReactNode;
@@ -27,7 +27,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none cursor-pointer';
+      'inline-flex flex-row flex-nowrap items-center justify-center font-medium rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none cursor-pointer whitespace-nowrap leading-none';
 
     const variants = {
       primary:
@@ -35,9 +35,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       navy:
         'bg-[#142B55] text-white hover:bg-[#0B172F] focus-visible:ring-[#142B55] shadow-sm hover:shadow-md',
       secondary:
-        'bg-[#F3F5F8] text-[#142B55] hover:bg-[#E5E9F0] focus-visible:ring-[#142B55]',
+        'bg-[#F3F5F8] text-[#142B55] hover:bg-[#E5E9F0] hover:text-[#0B172F] focus-visible:ring-[#142B55]',
       outline:
-        'border-2 border-[#142B55] text-[#142B55] hover:bg-[#142B55] hover:text-white focus-visible:ring-[#142B55]',
+        'border border-[#142B55] text-[#142B55] hover:bg-[#142B55] hover:text-white focus-visible:ring-[#142B55]',
+      white:
+        'bg-white text-slate-700 hover:text-[#142B55] hover:bg-slate-50 border border-slate-200 shadow-2xs focus-visible:ring-[#142B55]',
       ghost:
         'text-[#202B3B] hover:bg-[#F3F5F8] hover:text-[#142B55] focus-visible:ring-[#142B55]',
       danger:
@@ -67,8 +69,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled}
         {...props}
       >
-        {icon && <span className="shrink-0">{icon}</span>}
-        <span>{children}</span>
+        {icon && <span className="shrink-0 inline-flex items-center">{icon}</span>}
+        {children}
       </motion.button>
     );
   }

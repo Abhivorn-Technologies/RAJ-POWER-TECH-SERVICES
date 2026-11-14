@@ -1102,6 +1102,9 @@ export default function AdminDashboardPage() {
       setNewCategoryDesc('');
       setNewCategoryError(null);
       setMessage({ type: 'success', text: `Solution "${data.category.name}" created and assigned!` });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('rps-categories-updated'));
+      }
     } catch (err) {
       setNewCategoryError(err instanceof Error ? err.message : 'Failed to create solution');
     } finally {
@@ -2038,6 +2041,17 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="white"
+                        size="sm"
+                        onClick={() => setShowNewCategoryModal(true)}
+                        icon={<Plus className="w-4 h-4 text-[#142B55]" />}
+                        className="cursor-pointer font-semibold"
+                      >
+                        Create Category
+                      </Button>
+
                       <Button
                         variant="primary"
                         size="sm"
@@ -4246,9 +4260,9 @@ export default function AdminDashboardPage() {
                   <Button
                     type="button"
                     size="sm"
-                    variant="outline"
+                    variant="white"
                     onClick={handleAddPincodeRule}
-                    className="text-xs font-semibold bg-white"
+                    className="text-xs font-semibold"
                   >
                     Add PIN Rule
                   </Button>
@@ -6079,12 +6093,28 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Category / Solution *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block font-bold text-slate-700 uppercase tracking-wider">
+                        Category / Solution *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowNewCategoryModal(true)}
+                        className="text-[11px] text-[#142B55] hover:underline font-semibold"
+                      >
+                        + Create Category
+                      </button>
+                    </div>
                     <select
                       value={editingProduct.category || ''}
-                      onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '__new__') {
+                          setShowNewCategoryModal(true);
+                          return;
+                        }
+                        setEditingProduct({ ...editingProduct, category: val });
+                      }}
                       className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] bg-white capitalize"
                     >
                       {categories.map((c) => (
@@ -6092,6 +6122,7 @@ export default function AdminDashboardPage() {
                           {c.name}
                         </option>
                       ))}
+                      <option value="__new__">+ Add New Solution / Category...</option>
                     </select>
                   </div>
 

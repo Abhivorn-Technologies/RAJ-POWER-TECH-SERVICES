@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -128,6 +128,8 @@ const BRAND_SPOTLIGHTS: BrandSpotlight[] = [
 
 export function HeroSection() {
   const [activeBrandIndex, setActiveBrandIndex] = useState(0);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const currentBrand = BRAND_SPOTLIGHTS[activeBrandIndex];
 
@@ -137,6 +139,27 @@ export function HeroSection() {
       setActiveBrandIndex((prev) => (prev + 1) % BRAND_SPOTLIGHTS.length);
     }, 3500);
     return () => clearInterval(interval);
+  }, [activeBrandIndex]);
+
+  // Smoothly scroll horizontal tabs container ONLY without affecting page scroll
+  useEffect(() => {
+    const container = tabsContainerRef.current;
+    const activeButton = buttonRefs.current[activeBrandIndex];
+    if (activeButton && container) {
+      const containerWidth = container.clientWidth;
+      const buttonLeft = activeButton.offsetLeft;
+      const buttonWidth = activeButton.offsetWidth;
+      const targetScroll = buttonLeft - containerWidth / 2 + buttonWidth / 2;
+
+      if (typeof container.scrollTo === 'function') {
+        container.scrollTo({
+          left: Math.max(0, targetScroll),
+          behavior: 'smooth',
+        });
+      } else {
+        container.scrollLeft = Math.max(0, targetScroll);
+      }
+    }
   }, [activeBrandIndex]);
 
   const handleSelectBrand = (idx: number) => {
@@ -159,12 +182,18 @@ export function HeroSection() {
           {/* Left Column: Brand Presentation & Typography */}
           <div className="lg:col-span-6 space-y-5 text-left">
             {/* Interactive Brand Selector Tabs with Smooth Sliding Pill */}
-            <div className="p-1 rounded-2xl bg-white/[0.04] backdrop-blur-md border border-white/10 inline-flex items-center gap-1 max-w-full overflow-x-auto scrollbar-none">
+            <div
+              ref={tabsContainerRef}
+              className="p-1 rounded-2xl bg-white/[0.04] backdrop-blur-md border border-white/10 inline-flex items-center gap-1 max-w-full overflow-x-auto scrollbar-none scroll-smooth"
+            >
               {BRAND_SPOTLIGHTS.map((brand, idx) => {
                 const isActive = idx === activeBrandIndex;
                 return (
                   <button
                     key={brand.id}
+                    ref={(el) => {
+                      buttonRefs.current[idx] = el;
+                    }}
                     type="button"
                     suppressHydrationWarning
                     onClick={() => handleSelectBrand(idx)}

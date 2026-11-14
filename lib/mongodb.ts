@@ -54,10 +54,17 @@ declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
+let _lastMongoConnectFailure = 0;
+const MONGO_FAILOVER_COOLDOWN_MS = 60_000;
+
 /**
  * Checks whether MONGODB_URI environment variable is explicitly configured.
+ * Automatically respects circuit breaker cooldown when database is unreachable.
  */
 export function isMongoConfigured(): boolean {
+  if (_lastMongoConnectFailure && Date.now() - _lastMongoConnectFailure < MONGO_FAILOVER_COOLDOWN_MS) {
+    return false;
+  }
   const uri = getSanitizedMongoUri();
   return Boolean(uri && uri.length > 0);
 }
@@ -99,8 +106,8 @@ async function resolveMongoUri(uri: string): Promise<string> {
 }
 
 const MONGO_CLIENT_OPTIONS: MongoClientOptions = {
-  serverSelectionTimeoutMS: 5000,
-  connectTimeoutMS: 5000,
+  serverSelectionTimeoutMS: 2500,
+  connectTimeoutMS: 2500,
   socketTimeoutMS: 10000,
   maxPoolSize: 10,
 };
@@ -125,7 +132,7 @@ async function connectClient(rawUri: string): Promise<MongoClient> {
 
 /**
  * MongoDB client promise getter using the official MongoDB Node.js driver.
- * Returns null if MONGODB_URI is not configured.
+ * Returns null if MONGODB_URI is not configured or in circuit-breaker failover.
  */
 export function getMongoClientPromise(): Promise<MongoClient> | null {
   const validUri = getSanitizedMongoUri();
@@ -133,20 +140,38 @@ export function getMongoClientPromise(): Promise<MongoClient> | null {
     return null;
   }
 
+  // Circuit breaker: If MongoDB recently failed to connect, instantly bypass without blocking
+  if (_lastMongoConnectFailure && Date.now() - _lastMongoConnectFailure < MONGO_FAILOVER_COOLDOWN_MS) {
+    return null;
+  }
+
   if (process.env.NODE_ENV === 'development') {
     if (!global._mongoClientPromise) {
-      global._mongoClientPromise = connectClient(validUri).catch((err) => {
-        global._mongoClientPromise = undefined;
-        throw err;
-      });
+      global._mongoClientPromise = connectClient(validUri)
+        .then((client) => {
+          _lastMongoConnectFailure = 0;
+          return client;
+        })
+        .catch((err) => {
+          global._mongoClientPromise = undefined;
+          _lastMongoConnectFailure = Date.now();
+          console.warn(`[MongoDB] Atlas unreachable (${err instanceof Error ? err.message : String(err)}). Circuit breaker active for 60s: instant local failover.`);
+          throw err;
+        });
     }
     return global._mongoClientPromise;
   } else {
     if (!clientPromise) {
-      clientPromise = connectClient(validUri).catch((err) => {
-        clientPromise = null;
-        throw err;
-      });
+      clientPromise = connectClient(validUri)
+        .then((client) => {
+          _lastMongoConnectFailure = 0;
+          return client;
+        })
+        .catch((err) => {
+          clientPromise = null;
+          _lastMongoConnectFailure = Date.now();
+          throw err;
+        });
     }
     return clientPromise;
   }
