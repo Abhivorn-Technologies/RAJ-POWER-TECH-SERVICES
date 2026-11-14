@@ -455,8 +455,75 @@ function initDevStore() {
       updatedAt: new Date().toISOString(),
     };
 
+    const quote3: QuotationRequest = {
+      id: 'qt-b2b-03',
+      quotationNumber: 'RPS-QT-2026-0106',
+      companyName: 'GreenVolt Rooftop Infrastructure',
+      gstin: '36AABCG8812M1ZY',
+      customerName: 'Ananya Verma (Project Architect)',
+      customerPhone: '9701234567',
+      customerEmail: 'projects@greenvoltinfra.com',
+      cityOrDistrict: 'Gachibowli, Hyderabad',
+      fullAddress: 'Plot 45, Financial District, Gachibowli, Hyderabad - 500032',
+      category: 'solar',
+      productName: 'Microtek Solar Hybrid MPPT PCU 5kVA',
+      quantity: 1,
+      assignedVendorIds: ['ven-rps-primary'],
+      status: 'under_review',
+      estimatedRunningWatts: 4200,
+      expectedBackupHours: 6,
+      notes: 'Requesting on-site roof layout sizing and solar hybrid MPPT inverter quotation for residential villa cluster.',
+      statusHistory: [
+        {
+          status: 'submitted',
+          timestamp: new Date(Date.now() - 48 * 3600000).toISOString(),
+          note: 'Solar hybrid inquiry submitted online.',
+          updatedBy: 'customer',
+          updatedByName: 'Ananya Verma',
+        },
+        {
+          status: 'under_review',
+          timestamp: new Date(Date.now() - 12 * 3600000).toISOString(),
+          note: 'RPS Senior Solar Engineer assigned for roof load assessment.',
+          updatedBy: 'ven-rps-primary',
+          updatedByName: 'RPS Executive Desk',
+        },
+      ],
+      createdAt: new Date(Date.now() - 48 * 3600000).toISOString(),
+      updatedAt: new Date(Date.now() - 12 * 3600000).toISOString(),
+    };
+
+    const quote4: QuotationRequest = {
+      id: 'qt-b2b-04',
+      quotationNumber: 'RPS-QT-2026-0107',
+      companyName: 'Care Diagnostics & Scanning Center',
+      customerName: 'Dr. K. Ramesh',
+      customerPhone: '9876543210',
+      cityOrDistrict: 'Secunderabad Hub',
+      fullAddress: 'Sector: Healthcare & Hospitals | Vijaya Nagar Colony, Secunderabad',
+      category: 'Commercial Turnkey Setup',
+      productName: '10kVA Online UPS with SMF Battery Rack',
+      quantity: 1,
+      assignedVendorIds: ['ven-rps-primary'],
+      status: 'submitted',
+      notes: 'Need 10kVA online UPS for CT scan and laboratory diagnostic instruments. Include quotation for SMF battery rack.',
+      statusHistory: [
+        {
+          status: 'submitted',
+          timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
+          note: 'On-site power audit request submitted via RPS engineering portal.',
+          updatedBy: 'customer',
+          updatedByName: 'Dr. K. Ramesh',
+        },
+      ],
+      createdAt: new Date(Date.now() - 2 * 3600000).toISOString(),
+      updatedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
+    };
+
     devQuotations.set(quote1.id, quote1);
     devQuotations.set(quote2.id, quote2);
+    devQuotations.set(quote3.id, quote3);
+    devQuotations.set(quote4.id, quote4);
   }
 }
 
@@ -682,6 +749,16 @@ registerDatabaseInitHook(async (db) => {
         updatedAt: new Date().toISOString(),
       },
     ]);
+  }
+
+  // 7. Seed Initial Commercial Quotations & Inquiries if empty
+  const quoteCount = await db.collection('quotations').countDocuments();
+  if (quoteCount === 0) {
+    initDevStore();
+    const initialQuotes = Array.from(devQuotations.values());
+    if (initialQuotes.length > 0) {
+      await db.collection('quotations').insertMany(initialQuotes);
+    }
   }
 });
 
@@ -1365,32 +1442,49 @@ export async function updateOrderItemFulfilment(
 
 export async function listQuotations(filter?: { vendorId?: string }): Promise<QuotationRequest[]> {
   if (isMongoConfigured()) {
-    const db = await getDatabase();
-    const query: Record<string, unknown> = {};
-    if (filter?.vendorId) {
-      query.assignedVendorIds = filter.vendorId;
+    try {
+      const db = await getDatabase();
+      const query: Record<string, unknown> = {};
+      if (filter?.vendorId) {
+        query.assignedVendorIds = filter.vendorId;
+      }
+      const docs = await db.collection<QuotationRequest>('quotations').find(query).sort({ createdAt: -1 }).toArray();
+      if (docs && docs.length > 0) {
+        return docs.map((doc) => toPlainObject<QuotationRequest>(doc));
+      }
+    } catch (err) {
+      console.warn('MongoDB listQuotations failed, falling back to local memory store:', err);
     }
-    const docs = await db.collection<QuotationRequest>('quotations').find(query).sort({ createdAt: -1 }).toArray();
-    return docs.map((doc) => toPlainObject<QuotationRequest>(doc));
   }
 
   assertStorageMode('listQuotations');
+  initDevStore();
   let list = Array.from(devQuotations.values());
   if (filter?.vendorId) {
     list = list.filter((q) => q.assignedVendorIds.includes(filter.vendorId!));
   }
-  return list;
+  return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function createQuotationRecord(quote: QuotationRequest): Promise<QuotationRequest> {
+  initDevStore();
+  devQuotations.set(quote.id, quote);
+
   if (isMongoConfigured()) {
-    const db = await getDatabase();
-    await db.collection('quotations').insertOne(quote);
-    return quote;
+    try {
+      const db = await getDatabase();
+      await db.collection('quotations').updateOne(
+        { id: quote.id },
+        { $set: quote },
+        { upsert: true }
+      );
+      return quote;
+    } catch (err) {
+      console.warn('MongoDB createQuotationRecord failed:', err);
+    }
   }
 
   assertStorageMode('createQuotationRecord');
-  devQuotations.set(quote.id, quote);
   return quote;
 }
 
@@ -1403,31 +1497,42 @@ export async function updateQuotationStatus(
   quotedAmount?: number,
   commercialDetails?: Partial<QuotationRequest>
 ): Promise<QuotationRequest | null> {
+  let quote: QuotationRequest | null = null;
+
   if (isMongoConfigured()) {
-    const db = await getDatabase();
-    const quote = await db.collection<QuotationRequest>('quotations').findOne({ id: quoteId });
-    if (!quote) return null;
+    try {
+      const db = await getDatabase();
+      const doc = await db.collection<QuotationRequest>('quotations').findOne({ id: quoteId });
+      if (doc) {
+        quote = toPlainObject<QuotationRequest>(doc);
+        quote.status = status;
+        if (quotedAmount !== undefined) quote.quotedAmount = quotedAmount;
+        if (commercialDetails) {
+          Object.assign(quote, commercialDetails);
+        }
+        if (!quote.statusHistory) quote.statusHistory = [];
+        quote.statusHistory.push({
+          status,
+          timestamp: new Date().toISOString(),
+          note,
+          updatedBy: userId,
+          updatedByName: userName,
+        });
+        quote.updatedAt = new Date().toISOString();
 
-    quote.status = status;
-    if (quotedAmount !== undefined) quote.quotedAmount = quotedAmount;
-    if (commercialDetails) {
-      Object.assign(quote, commercialDetails);
+        await db.collection('quotations').updateOne({ id: quoteId }, { $set: quote });
+        initDevStore();
+        devQuotations.set(quoteId, quote);
+        return quote;
+      }
+    } catch (err) {
+      console.warn('MongoDB updateQuotationStatus failed, updating local store:', err);
     }
-    quote.statusHistory.push({
-      status,
-      timestamp: new Date().toISOString(),
-      note,
-      updatedBy: userId,
-      updatedByName: userName,
-    });
-    quote.updatedAt = new Date().toISOString();
-
-    await db.collection('quotations').updateOne({ id: quoteId }, { $set: quote });
-    return quote;
   }
 
   assertStorageMode('updateQuotationStatus');
-  const quote = devQuotations.get(quoteId);
+  initDevStore();
+  quote = devQuotations.get(quoteId) || null;
   if (!quote) return null;
 
   quote.status = status;
@@ -1435,6 +1540,7 @@ export async function updateQuotationStatus(
   if (commercialDetails) {
     Object.assign(quote, commercialDetails);
   }
+  if (!quote.statusHistory) quote.statusHistory = [];
   quote.statusHistory.push({
     status,
     timestamp: new Date().toISOString(),
@@ -1446,6 +1552,24 @@ export async function updateQuotationStatus(
 
   devQuotations.set(quoteId, quote);
   return quote;
+}
+
+export async function deleteQuotationRecord(quoteId: string): Promise<boolean> {
+  initDevStore();
+  devQuotations.delete(quoteId);
+
+  if (isMongoConfigured()) {
+    try {
+      const db = await getDatabase();
+      await db.collection('quotations').deleteOne({ id: quoteId });
+      return true;
+    } catch (err) {
+      console.warn('MongoDB deleteQuotationRecord failed:', err);
+    }
+  }
+
+  assertStorageMode('deleteQuotationRecord');
+  return true;
 }
 
 // ==========================================

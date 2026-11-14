@@ -64,7 +64,7 @@ import { SessionUser } from '@/types/auth';
 import { Vendor } from '@/types/vendor';
 import { Product, SolutionCategoryItem, CategorySortConfig } from '@/types/product';
 import { Order, OverallOrderStatus, OrderPaymentStatus } from '@/types/order';
-import { QuotationRequest } from '@/types/quotation';
+import { QuotationRequest, QuotationStatus } from '@/types/quotation';
 import { PlatformSettings, EligiblePincodeRule } from '@/types/settings';
 import { Certification } from '@/types/certification';
 import { ClientProject, ClientSector } from '@/types/client-project';
@@ -138,22 +138,17 @@ export default function AdminDashboardPage() {
     name: '',
     brand: '',
     category: 'inverters' as string,
-    price: 15000,
-    comparePrice: 18000,
-    stock: 10,
+    price: '' as unknown as number,
+    comparePrice: '' as unknown as number,
+    stock: '' as unknown as number,
     shortDescription: '',
-    imageUrl: '/products/inverter-demo-1.jpg',
+    imageUrl: '',
     sku: '',
-    capacity: '1100VA / 900W',
-    warrantyPeriod: '36 Months',
+    capacity: '',
+    warrantyPeriod: '',
     sortOrder: 10,
-    features: 'Pure Sine Wave Output, Heavy Duty Inverter Support, Smart Battery Charging',
-    keySpecs: [
-      { label: 'Capacity', value: '1100VA / 900W' },
-      { label: 'Technology', value: 'Pure Sine Wave' },
-      { label: 'Nominal Voltage', value: '12V DC' },
-      { label: 'Warranty', value: '36 Months' },
-    ] as { label: string; value: string }[],
+    features: '',
+    keySpecs: [] as { label: string; value: string }[],
   });
 
   const [sessionTimeoutMinutes, setSessionTimeoutMinutes] = useState<number>(15);
@@ -232,10 +227,11 @@ export default function AdminDashboardPage() {
   // Quotations Routing View States & Pagination
   const [selectedQuoteForPrint, setSelectedQuoteForPrint] = useState<QuotationRequest | null>(null);
   const [quoteSearchQuery, setQuoteSearchQuery] = useState('');
-  const [quoteStatusFilter, setQuoteStatusFilter] = useState<'all' | 'submitted' | 'under_review' | 'quoted' | 'accepted'>('all');
+  const [quoteStatusFilter, setQuoteStatusFilter] = useState<'all' | 'submitted' | 'under_review' | 'quoted' | 'accepted' | 'rejected'>('all');
   const [expandedQuoteIds, setExpandedQuoteIds] = useState<Record<string, boolean>>({});
   const [quotesPage, setQuotesPage] = useState<number>(1);
   const quotesPerPage = 6;
+  const [quotePriceInputs, setQuotePriceInputs] = useState<Record<string, string>>({});
 
   // Branded In-App Deletion Confirmation Modal State
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -256,12 +252,12 @@ export default function AdminDashboardPage() {
     phone: '',
     password: '',
     commissionRate: '' as unknown as number,
-    allowedCategories: ['inverters', 'batteries'] as string[],
+    allowedCategories: [] as string[],
     address: {
       line1: '',
       city: 'Secunderabad',
       district: 'Hyderabad',
-      state: 'India',
+      state: 'Telangana',
       pincode: '500009',
     },
   });
@@ -484,23 +480,18 @@ export default function AdminDashboardPage() {
       setProductForm({
         name: '',
         brand: '',
-        category: 'inverters',
-        price: 15000,
-        comparePrice: 18000,
-        stock: 10,
+        category: categories[0]?.id || 'inverters',
+        price: '' as unknown as number,
+        comparePrice: '' as unknown as number,
+        stock: '' as unknown as number,
         shortDescription: '',
-        imageUrl: '/products/inverter-demo-1.jpg',
+        imageUrl: '',
         sku: '',
-        capacity: '1100VA / 900W',
-        warrantyPeriod: '36 Months',
+        capacity: '',
+        warrantyPeriod: '',
         sortOrder: 10,
-        features: 'Pure Sine Wave Output, Heavy Duty Inverter Support, Smart Battery Charging',
-        keySpecs: [
-          { label: 'Capacity', value: '1100VA / 900W' },
-          { label: 'Technology', value: 'Pure Sine Wave' },
-          { label: 'Nominal Voltage', value: '12V DC' },
-          { label: 'Warranty', value: '36 Months' },
-        ],
+        features: '',
+        keySpecs: [],
       });
       reloadData();
     } catch (err) {
@@ -1067,6 +1058,62 @@ export default function AdminDashboardPage() {
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to update order status' });
     }
+  };
+
+  // Quotation status & price update
+  const handleUpdateQuotationStatus = async (
+    quotationId: string,
+    status: QuotationStatus,
+    note?: string,
+    quotedAmount?: number
+  ) => {
+    try {
+      const res = await fetch('/api/quotations', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quotationId,
+          status,
+          note: note || `Status updated to ${status.replace('_', ' ').toUpperCase()} by admin desk`,
+          quotedAmount: quotedAmount !== undefined ? quotedAmount : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setMessage({
+        type: 'success',
+        text: `Quotation updated: ${status.toUpperCase()}${quotedAmount ? ` (Quoted: ₹${quotedAmount.toLocaleString('en-IN')})` : ''}`,
+      });
+      reloadData();
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to update quotation' });
+    }
+  };
+
+  // Quotation deletion with branded confirmation
+  const handleDeleteQuotation = (quotationId: string, quotationNumber: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      title: 'Delete Customer Inquiry & Quotation',
+      description: `Are you sure you want to delete quotation request ${quotationNumber}? This action will permanently remove it from the system and database.`,
+      confirmLabel: 'Delete Quotation',
+      onConfirm: async () => {
+        try {
+          setDeleteConfirmation((prev) => (prev ? { ...prev, isProcessing: true } : null));
+          const res = await fetch(`/api/quotations?id=${encodeURIComponent(quotationId)}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          setMessage({ type: 'success', text: `Quotation ${quotationNumber} deleted successfully!` });
+          setDeleteConfirmation(null);
+          reloadData();
+        } catch (err) {
+          setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to delete quotation' });
+          setDeleteConfirmation(null);
+        }
+      },
+    });
   };
 
 
@@ -1753,7 +1800,7 @@ export default function AdminDashboardPage() {
                         <span className="text-xs text-slate-500">Products</span>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
-                        Inverters, Batteries &amp; Online UPS
+                        Across {categories.length} store categories
                       </p>
                     </div>
                     <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -1781,7 +1828,7 @@ export default function AdminDashboardPage() {
                         <span className="text-xs text-slate-500">Verified OEM</span>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
-                        Exide Gold Dealer &amp; BPE Partner
+                        Verified OEM &amp; Partner credentials
                       </p>
                     </div>
                     <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -2043,11 +2090,11 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
-                        variant="white"
+                        variant="navy"
                         size="sm"
                         onClick={() => setShowNewCategoryModal(true)}
-                        icon={<Plus className="w-4 h-4 text-[#142B55]" />}
-                        className="cursor-pointer font-semibold"
+                        icon={<Plus className="w-4 h-4 text-white" />}
+                        className="bg-[#142B55] hover:bg-[#0B172F] text-white cursor-pointer font-bold whitespace-nowrap shadow-xs"
                       >
                         Create Category
                       </Button>
@@ -2057,7 +2104,7 @@ export default function AdminDashboardPage() {
                         size="sm"
                         onClick={() => setShowAddProductModal(true)}
                         icon={<Plus className="w-4 h-4" />}
-                        className="bg-[#D52B30] hover:bg-[#B51E22] text-white cursor-pointer font-semibold"
+                        className="bg-[#D52B30] hover:bg-[#B51E22] text-white cursor-pointer font-semibold whitespace-nowrap shadow-xs"
                       >
                         Add Product
                       </Button>
@@ -2527,6 +2574,16 @@ export default function AdminDashboardPage() {
           );
           const paidOrdersCount = orders.filter((o) => o.paymentStatus === 'paid').length;
 
+          const pendingOrdersCount = orders.filter((o) =>
+            o.items?.some((i) => i.fulfilmentStatus === 'pending' || i.fulfilmentStatus === 'allocated')
+          ).length;
+          const inTransitOrdersCount = orders.filter((o) =>
+            o.items?.some((i) => i.fulfilmentStatus === 'dispatched')
+          ).length;
+          const deliveredOrdersCount = orders.filter((o) =>
+            o.items?.every((i) => i.fulfilmentStatus === 'delivered')
+          ).length;
+
           const q = orderSearchQuery.toLowerCase().trim();
           const filteredOrders = orders.filter((ord) => {
             const matchesSearch =
@@ -2557,182 +2614,226 @@ export default function AdminDashboardPage() {
           });
 
           return (
-            <div className="space-y-5">
+            <div className="space-y-6">
 
               {/* Top Operational Metrics KPI Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
-                  <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Total Customer Orders</span>
-                    <ShoppingBag className="w-4 h-4 text-[#142B55]" />
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Orders</span>
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#142B55]">
+                      <ShoppingBag className="w-4 h-4" />
+                    </div>
                   </div>
-                  <p className="text-2xl font-extrabold text-[#142B55]">{totalOrdersCount}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    {paidOrdersCount} Paid &bull; {totalOrdersCount - paidOrdersCount} Pending COD
-                  </p>
+                  <div>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-[#142B55] tracking-tight">{totalOrdersCount}</p>
+                    <p className="text-[11px] text-slate-500 font-medium mt-1">
+                      <strong className="text-emerald-700">{paidOrdersCount} Paid</strong> &bull; {totalOrdersCount - paidOrdersCount} Pending COD
+                    </p>
+                  </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
-                  <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Total Order Revenue</span>
-                    <TrendingUp className="w-4 h-4 text-emerald-600" />
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Order Revenue</span>
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                      <TrendingUp className="w-4 h-4" />
+                    </div>
                   </div>
-                  <p className="text-2xl font-extrabold text-slate-900">₹{totalGrossVolume.toLocaleString('en-IN')}</p>
-                  <p className="text-[11px] text-emerald-700 font-semibold">Total sales value from customer orders</p>
+                  <div>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">₹{totalGrossVolume.toLocaleString('en-IN')}</p>
+                    <p className="text-[11px] text-emerald-700 font-semibold mt-1">Total sales value from customer orders</p>
+                  </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
-                  <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Pending Fulfillment</span>
-                    <Clock className="w-4 h-4 text-[#D52B30]" />
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Pending Fulfillment</span>
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+                      <Clock className="w-4 h-4" />
+                    </div>
                   </div>
-                  <p className="text-2xl font-extrabold text-[#D52B30]">{pendingItemsCount}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">Items awaiting dispatch or delivery</p>
+                  <div>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-amber-700 tracking-tight">{pendingItemsCount}</p>
+                    <p className="text-[11px] text-slate-500 font-medium mt-1">Items awaiting dispatch or delivery</p>
+                  </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
-                  <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Total Dispatches</span>
-                    <Truck className="w-4 h-4 text-blue-600" />
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Dispatches</span>
+                    <div className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600">
+                      <Truck className="w-4 h-4" />
+                    </div>
                   </div>
-                  <p className="text-2xl font-extrabold text-blue-900">{dispatchedItemsCount + deliveredItemsCount}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    {deliveredItemsCount} Delivered &bull; {pendingItemsCount} Awaiting Dispatch
-                  </p>
+                  <div>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{dispatchedItemsCount + deliveredItemsCount}</p>
+                    <p className="text-[11px] text-slate-500 font-medium mt-1">
+                      <strong className="text-sky-700">{deliveredItemsCount} Delivered</strong> &bull; {pendingItemsCount} Awaiting Dispatch
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Search & Filter Toolbar */}
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-                <div className="relative flex-1">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={orderSearchQuery}
-                    onChange={(e) => {
-                      setOrderSearchQuery(e.target.value);
-                      setOrdersPage(1);
-                    }}
-                    placeholder="Search by Order #, Customer Name, Phone, City, or Product..."
-                    className="w-full pl-10 pr-4 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#142B55] transition-all"
-                  />
-                  {orderSearchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOrderSearchQuery('');
+              {/* Two-Tier Search & Status Filter Toolbar */}
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3.5">
+                {/* Tier 1: Search Input + View Controls */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="relative flex-1 max-w-2xl">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={orderSearchQuery}
+                      onChange={(e) => {
+                        setOrderSearchQuery(e.target.value);
                         setOrdersPage(1);
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold p-1 cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap md:flex-nowrap overflow-x-auto pb-1 md:pb-0 text-xs font-semibold">
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOrderStatusFilter('all');
-                        setOrdersPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                        orderStatusFilter === 'all'
-                          ? 'bg-[#142B55] text-white shadow-xs font-bold'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOrderStatusFilter('pending');
-                        setOrdersPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                        orderStatusFilter === 'pending'
-                          ? 'bg-amber-600 text-white shadow-xs font-bold'
-                          : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
-                      }`}
-                    >
-                      Pending Action
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOrderStatusFilter('dispatched');
-                        setOrdersPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                        orderStatusFilter === 'dispatched'
-                          ? 'bg-indigo-600 text-white shadow-xs font-bold'
-                          : 'bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-200'
-                      }`}
-                    >
-                      In Transit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOrderStatusFilter('delivered');
-                        setOrdersPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                        orderStatusFilter === 'delivered'
-                          ? 'bg-emerald-600 text-white shadow-xs font-bold'
-                          : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
-                      }`}
-                    >
-                      Delivered
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOrderStatusFilter('paid');
-                        setOrdersPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                        orderStatusFilter === 'paid'
-                          ? 'bg-slate-900 text-white shadow-xs font-bold'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      }`}
-                    >
-                      Paid
-                    </button>
+                      placeholder="Search by order #, customer name, phone, city, or product..."
+                      className="w-full pl-10 pr-9 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#142B55] transition-all"
+                    />
+                    {orderSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOrderSearchQuery('');
+                          setOrdersPage(1);
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold p-1 cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
 
-                  {filteredOrders.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const allExpanded = filteredOrders.every((o) => expandedOrderIds[o.id]);
-                        const next: Record<string, boolean> = {};
-                        if (!allExpanded) {
-                          filteredOrders.forEach((o) => {
-                            next[o.id] = true;
-                          });
-                        }
-                        setExpandedOrderIds(next);
-                      }}
-                      className="text-xs font-semibold text-slate-600 hover:text-[#142B55] px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors flex items-center gap-1 cursor-pointer shrink-0 ml-auto"
-                      title={filteredOrders.every((o) => expandedOrderIds[o.id]) ? 'Collapse all orders' : 'Expand all orders'}
-                    >
-                      {filteredOrders.every((o) => expandedOrderIds[o.id]) ? (
-                        <>
-                          <ChevronUp className="w-3.5 h-3.5" />
-                          <span>Collapse All</span>
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDown className="w-3.5 h-3.5" />
-                          <span>Expand All</span>
-                        </>
-                      )}
-                    </button>
-                  )}
+                  {/* Right Actions: Showing Count & Expand/Collapse Toggle */}
+                  <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                    <span className="text-xs font-semibold text-slate-500 hidden md:inline">
+                      Showing <strong className="text-slate-800">{filteredOrders.length}</strong> of {orders.length} orders
+                    </span>
+
+                    {filteredOrders.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const allExpanded = filteredOrders.every((o) => expandedOrderIds[o.id]);
+                          const next: Record<string, boolean> = {};
+                          if (!allExpanded) {
+                            filteredOrders.forEach((o) => {
+                              next[o.id] = true;
+                            });
+                          }
+                          setExpandedOrderIds(next);
+                        }}
+                        className="text-xs font-semibold text-slate-700 hover:text-[#142B55] px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs whitespace-nowrap"
+                        title={filteredOrders.every((o) => expandedOrderIds[o.id]) ? 'Collapse all orders' : 'Expand all orders'}
+                      >
+                        {filteredOrders.every((o) => expandedOrderIds[o.id]) ? (
+                          <>
+                            <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Collapse All</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Expand All</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tier 2: Status Filter Tabs with Counts */}
+                <div className="flex items-center gap-2 overflow-x-auto pt-2 border-t border-slate-100 text-xs font-semibold [scrollbar-width:thin]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrderStatusFilter('all');
+                      setOrdersPage(1);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      orderStatusFilter === 'all'
+                        ? 'bg-[#142B55] text-white shadow-xs font-bold'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>All</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${orderStatusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
+                      {orders.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrderStatusFilter('pending');
+                      setOrdersPage(1);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      orderStatusFilter === 'pending'
+                        ? 'bg-amber-600 text-white shadow-xs font-bold'
+                        : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                    }`}
+                  >
+                    <span>Pending Action</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${orderStatusFilter === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-200/80 text-amber-900'}`}>
+                      {pendingOrdersCount}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrderStatusFilter('dispatched');
+                      setOrdersPage(1);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      orderStatusFilter === 'dispatched'
+                        ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                        : 'bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-200'
+                    }`}
+                  >
+                    <span>In Transit</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${orderStatusFilter === 'dispatched' ? 'bg-white/20 text-white' : 'bg-indigo-200/80 text-indigo-900'}`}>
+                      {inTransitOrdersCount}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrderStatusFilter('delivered');
+                      setOrdersPage(1);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      orderStatusFilter === 'delivered'
+                        ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                        : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+                    }`}
+                  >
+                    <span>Delivered</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${orderStatusFilter === 'delivered' ? 'bg-white/20 text-white' : 'bg-emerald-200/80 text-emerald-900'}`}>
+                      {deliveredOrdersCount}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrderStatusFilter('paid');
+                      setOrdersPage(1);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      orderStatusFilter === 'paid'
+                        ? 'bg-slate-900 text-white shadow-xs font-bold'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>Paid</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${orderStatusFilter === 'paid' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-800'}`}>
+                      {paidOrdersCount}
+                    </span>
+                  </button>
                 </div>
               </div>
 
@@ -2783,11 +2884,11 @@ export default function AdminDashboardPage() {
                         key={ord.id}
                         className={`bg-white rounded-2xl border transition-all duration-200 overflow-hidden ${
                           isExpanded
-                            ? 'border-[#142B55]/40 shadow-md ring-1 ring-[#142B55]/10'
+                            ? 'border-[#142B55] shadow-md ring-2 ring-[#142B55]/10'
                             : 'border-slate-200/90 shadow-2xs hover:border-slate-300 hover:shadow-xs'
                         }`}
                       >
-                        {/* Compact Single-Line Order Header Row */}
+                        {/* Precision Grid Order Header Row */}
                         <div
                           onClick={() => {
                             setExpandedOrderIds((prev) => ({
@@ -2795,124 +2896,106 @@ export default function AdminDashboardPage() {
                               [ord.id]: !prev[ord.id],
                             }));
                           }}
-                          className={`p-3 sm:p-3.5 flex flex-wrap lg:flex-nowrap items-center justify-between gap-2.5 sm:gap-3 cursor-pointer select-none transition-colors ${
-                            isExpanded ? 'bg-slate-50/80 border-b border-slate-200/80' : 'hover:bg-slate-50/60'
+                          className={`p-3.5 sm:p-4 transition-colors cursor-pointer select-none ${
+                            isExpanded ? 'bg-slate-50/80 border-b border-slate-200/80' : 'hover:bg-slate-50/50'
                           }`}
                         >
-                            {/* Col 1: Order Number, Copy & Date */}
-                            <div className="flex items-center gap-2 min-w-[175px] shrink-0">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setExpandedOrderIds((prev) => ({
-                                    ...prev,
-                                    [ord.id]: !prev[ord.id],
-                                  }));
-                                }}
-                                className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
-                                  isExpanded
-                                    ? 'bg-[#142B55] text-white shadow-2xs rotate-180'
-                                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900'
-                                }`}
-                                aria-label={isExpanded ? 'Collapse order details' : 'Expand order details'}
-                              >
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              </button>
-
-                              <div>
-                                <div className="flex items-center gap-1">
-                                  <span className="font-extrabold text-xs sm:text-sm text-[#142B55] tracking-tight">
-                                    {ord.orderNumber}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      navigator.clipboard.writeText(ord.orderNumber);
-                                      setMessage({ type: 'success', text: `Order number ${ord.orderNumber} copied!` });
-                                    }}
-                                    title="Copy Order Number"
-                                    className="text-slate-400 hover:text-[#142B55] p-0.5 rounded hover:bg-slate-200/60 transition-colors cursor-pointer"
-                                  >
-                                    <Copy className="w-3 h-3" />
-                                  </button>
-                                </div>
-                                <span className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1">
-                                  <Clock className="w-3 h-3 text-slate-400" />
-                                  <span>{new Date(ord.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 lg:gap-4 items-center">
+                            {/* Col 1: Order Number, Copy & Date (lg:col-span-3) */}
+                            <div className="lg:col-span-3 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-extrabold text-xs sm:text-sm text-[#142B55] tracking-tight">
+                                  {ord.orderNumber}
                                 </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(ord.orderNumber);
+                                    setMessage({ type: 'success', text: `Order number ${ord.orderNumber} copied!` });
+                                  }}
+                                  title="Copy Order Number"
+                                  className="text-slate-400 hover:text-[#142B55] p-1 rounded-md hover:bg-slate-200/60 transition-colors cursor-pointer"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
                               </div>
+                              <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 font-medium">
+                                <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                                <span>{new Date(ord.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                              </p>
                             </div>
 
-                            {/* Col 2: Customer Name & Destination City */}
-                            <div className="flex items-center gap-1.5 min-w-[150px] shrink-0">
-                              <div className="w-6 h-6 rounded-full bg-[#142B55] text-white flex items-center justify-center font-bold text-[9px] shrink-0">
+                            {/* Col 2: Customer Name & Destination (lg:col-span-3) */}
+                            <div className="lg:col-span-3 min-w-0 flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-[#142B55] text-white flex items-center justify-center font-bold text-[11px] shrink-0 shadow-2xs">
                                 {ord.customer.fullName.slice(0, 2).toUpperCase()}
                               </div>
-                              <div className="truncate max-w-[140px]">
-                                <p className="text-xs font-bold text-slate-900 truncate">{ord.customer.fullName}</p>
-                                <p className="text-[10px] text-slate-500 flex items-center gap-0.5 truncate">
-                                  <MapPin className="w-2.5 h-2.5 text-[#D52B30] shrink-0" />
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-bold text-slate-900 truncate capitalize">
+                                  {ord.customer.fullName}
+                                </p>
+                                <p className="text-[11px] text-slate-500 flex items-center gap-1 truncate capitalize mt-0.5">
+                                  <MapPin className="w-3 h-3 text-[#D52B30] shrink-0" />
                                   <span className="truncate">{ord.customer.city}, {ord.customer.state}</span>
                                 </p>
                               </div>
                             </div>
 
-                            {/* Col 3: Items Count */}
-                            <div className="hidden xl:flex items-center gap-1 min-w-[90px] shrink-0 text-xs text-slate-600">
-                              <Package className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span className="font-medium whitespace-nowrap text-[11px]">
-                                {ord.items.length} {ord.items.length === 1 ? 'Product' : 'Products'}
-                              </span>
-                            </div>
-
-                            {/* Col 4: Total Amount */}
-                            <div className="text-right min-w-[80px] shrink-0">
-                              <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400">Total</p>
-                              <p className="text-xs sm:text-sm font-extrabold text-[#D52B30] whitespace-nowrap">
-                                ₹{ord.totalAmount.toLocaleString('en-IN')}
+                            {/* Col 3: Items Count & Total Price (lg:col-span-2) */}
+                            <div className="lg:col-span-2 min-w-0">
+                              <div className="flex items-baseline gap-1.5">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total</span>
+                                <span className="text-xs sm:text-sm font-extrabold text-[#142B55]">
+                                  ₹{ord.totalAmount.toLocaleString('en-IN')}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                <Package className="w-3 h-3 text-slate-400 shrink-0" />
+                                <span>{ord.items.length} {ord.items.length === 1 ? 'Product' : 'Products'}</span>
                               </p>
                             </div>
 
-                            {/* Col 5: Payment & Fulfillment Badges */}
-                            <div className="flex items-center gap-1.5 shrink-0">
+                            {/* Col 4: Payment & Fulfillment Status Badges (lg:col-span-2) */}
+                            <div className="lg:col-span-2 flex flex-wrap items-center gap-1.5">
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold whitespace-nowrap ${
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold whitespace-nowrap shadow-2xs ${
                                   ord.paymentStatus === 'paid'
-                                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
-                                    : 'bg-amber-50 text-amber-800 border border-amber-300'
+                                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                    : 'bg-amber-50 text-amber-800 border border-amber-200'
                                 }`}
                               >
                                 {ord.paymentStatus === 'paid' ? (
-                                  <CheckCircle className="w-2.5 h-2.5 text-emerald-600" />
+                                  <CheckCircle className="w-3 h-3 text-emerald-600" />
                                 ) : (
-                                  <Clock className="w-2.5 h-2.5 text-amber-600" />
+                                  <Clock className="w-3 h-3 text-amber-600" />
                                 )}
                                 <span>{ord.paymentStatus === 'paid' ? 'PAID' : 'COD PENDING'}</span>
                               </span>
 
                               <span
-                                className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider whitespace-nowrap ${
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider whitespace-nowrap shadow-2xs ${
                                   ord.orderStatus === 'fulfilled' || isFullyDelivered
-                                    ? 'bg-emerald-100 text-emerald-800'
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                                     : ord.orderStatus === 'partially_fulfilled' || hasDispatched
-                                    ? 'bg-indigo-100 text-indigo-800'
+                                    ? 'bg-indigo-100 text-indigo-800 border border-indigo-200'
                                     : ord.orderStatus === 'cancelled'
-                                    ? 'bg-rose-100 text-rose-800'
-                                    : 'bg-blue-100 text-blue-800'
+                                    ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                    : 'bg-sky-100 text-sky-800 border border-sky-200'
                                 }`}
                               >
-                                {ord.orderStatus === 'fulfilled' || isFullyDelivered
-                                  ? 'DELIVERED'
-                                  : ord.orderStatus === 'partially_fulfilled' || hasDispatched
-                                  ? 'IN TRANSIT'
-                                  : ord.orderStatus.toUpperCase()}
+                                <span>
+                                  {ord.orderStatus === 'fulfilled' || isFullyDelivered
+                                    ? 'DELIVERED'
+                                    : ord.orderStatus === 'partially_fulfilled' || hasDispatched
+                                    ? 'IN TRANSIT'
+                                    : ord.orderStatus.toUpperCase()}
+                                </span>
                               </span>
                             </div>
 
-                            {/* Col 6: Manage & Details Button */}
-                            <div className="shrink-0 flex items-center pl-1 sm:pl-2 pr-3 sm:pr-4">
+                            {/* Col 5: Manage & Details Button (lg:col-span-2 text-right) */}
+                            <div className="lg:col-span-2 flex items-center justify-end">
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -2922,7 +3005,7 @@ export default function AdminDashboardPage() {
                                     [ord.id]: !prev[ord.id],
                                   }));
                                 }}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap ${
+                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs whitespace-nowrap ${
                                   isExpanded
                                     ? 'bg-slate-200 hover:bg-slate-300 text-slate-800'
                                     : 'bg-[#142B55] hover:bg-[#0B172F] text-white hover:shadow-xs'
@@ -2933,6 +3016,7 @@ export default function AdminDashboardPage() {
                               </button>
                             </div>
                           </div>
+                        </div>
 
                         {/* Expanded Full Order Dossier & Multi-Vendor Execution */}
                         {isExpanded && (
@@ -3307,12 +3391,15 @@ export default function AdminDashboardPage() {
         );
       })()}
 
-        {/* TAB 4: QUOTATIONS ROUTING */}
+        {/* TAB 4: INQUIRIES & QUOTATIONS MANAGEMENT */}
         {activeTab === 'quotations' && (() => {
           const totalQuotes = quotations.length;
-          const pendingQuotes = quotations.filter((q) => q.status === 'submitted' || q.status === 'under_review').length;
+          const submittedQuotesCount = quotations.filter((q) => q.status === 'submitted').length;
+          const underReviewQuotesCount = quotations.filter((q) => q.status === 'under_review').length;
+          const awaitingQuotesCount = submittedQuotesCount + underReviewQuotesCount;
           const officialQuoted = quotations.filter((q) => q.status === 'quoted').length;
           const acceptedQuotes = quotations.filter((q) => q.status === 'accepted').length;
+          const rejectedQuotes = quotations.filter((q) => q.status === 'rejected' || q.status === 'declined').length;
 
           const query = quoteSearchQuery.toLowerCase().trim();
           const filteredQuotes = quotations.filter((q) => {
@@ -3321,6 +3408,7 @@ export default function AdminDashboardPage() {
               q.quotationNumber.toLowerCase().includes(query) ||
               q.customerName.toLowerCase().includes(query) ||
               q.customerPhone.includes(query) ||
+              (q.companyName && q.companyName.toLowerCase().includes(query)) ||
               q.cityOrDistrict.toLowerCase().includes(query) ||
               (q.productName && q.productName.toLowerCase().includes(query)) ||
               q.category.toLowerCase().includes(query);
@@ -3331,6 +3419,7 @@ export default function AdminDashboardPage() {
             if (quoteStatusFilter === 'under_review') return q.status === 'under_review';
             if (quoteStatusFilter === 'quoted') return q.status === 'quoted';
             if (quoteStatusFilter === 'accepted') return q.status === 'accepted';
+            if (quoteStatusFilter === 'rejected') return q.status === 'rejected' || q.status === 'declined';
             return true;
           });
 
@@ -3352,144 +3441,206 @@ export default function AdminDashboardPage() {
                     <span className="text-[11px] font-bold uppercase tracking-wider">Awaiting Quote</span>
                     <Clock className="w-4 h-4 text-amber-600" />
                   </div>
-                  <p className="text-2xl font-extrabold text-amber-700">{pendingQuotes}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">Pending review &amp; pricing</p>
+                  <p className="text-2xl font-extrabold text-amber-700">{awaitingQuotesCount}</p>
+                  <p className="text-[11px] text-slate-500 font-medium">{submittedQuotesCount} New &bull; {underReviewQuotesCount} Reviewing</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Quoted</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Quoted Proposals</span>
                     <CheckCircle2 className="w-4 h-4 text-blue-600" />
                   </div>
                   <p className="text-2xl font-extrabold text-blue-900">{officialQuoted}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">Proposal sent to customer</p>
+                  <p className="text-[11px] text-slate-500 font-medium">Proposals sent to clients</p>
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-1">
                   <div className="flex items-center justify-between text-slate-400">
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Accepted</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Accepted Deals</span>
                     <Award className="w-4 h-4 text-emerald-600" />
                   </div>
                   <p className="text-2xl font-extrabold text-emerald-700">{acceptedQuotes}</p>
-                  <p className="text-[11px] text-emerald-700 font-semibold">Converted customers</p>
+                  <p className="text-[11px] text-emerald-700 font-semibold">Converted commercial orders</p>
                 </div>
               </div>
 
-              {/* Search & Filter Toolbar */}
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-                <div className="relative flex-1">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={quoteSearchQuery}
-                    onChange={(e) => {
-                      setQuoteSearchQuery(e.target.value);
-                      setQuotesPage(1);
-                    }}
-                    placeholder="Search by Quote #, Customer Name, Phone, City, Category, or Product..."
-                    className="w-full pl-10 pr-4 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#142B55] transition-all"
-                  />
-                  {quoteSearchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuoteSearchQuery('');
+              {/* Two-Tier Search & Filter Toolbar */}
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                {/* Tier 1: Search Bar & Actions */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="relative flex-1 max-w-2xl">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={quoteSearchQuery}
+                      onChange={(e) => {
+                        setQuoteSearchQuery(e.target.value);
                         setQuotesPage(1);
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold p-1 cursor-pointer"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap md:flex-nowrap overflow-x-auto pb-1 md:pb-0 text-xs font-semibold">
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuoteStatusFilter('all');
-                        setQuotesPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                        quoteStatusFilter === 'all'
-                          ? 'bg-[#142B55] text-white shadow-xs font-bold'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuoteStatusFilter('submitted');
-                        setQuotesPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                        quoteStatusFilter === 'submitted'
-                          ? 'bg-amber-600 text-white shadow-xs font-bold'
-                          : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
-                      }`}
-                    >
-                      New Inquiries
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuoteStatusFilter('quoted');
-                        setQuotesPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                        quoteStatusFilter === 'quoted'
-                          ? 'bg-blue-600 text-white shadow-xs font-bold'
-                          : 'bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200'
-                      }`}
-                    >
-                      Quoted
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuoteStatusFilter('accepted');
-                        setQuotesPage(1);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
-                        quoteStatusFilter === 'accepted'
-                          ? 'bg-emerald-600 text-white shadow-xs font-bold'
-                          : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
-                      }`}
-                    >
-                      Accepted
-                    </button>
+                      placeholder="Search by Quote #, Customer Name, Company, Phone, City, Category, or Product..."
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#142B55] transition-all"
+                    />
+                    {quoteSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuoteSearchQuery('');
+                          setQuotesPage(1);
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold p-1 cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
 
-                  {filteredQuotes.length > 0 && (
+                  {/* Right Actions: Showing Count & Expand/Collapse Toggle */}
+                  <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                    <span className="text-xs font-semibold text-slate-500 hidden md:inline">
+                      Showing <strong className="text-slate-800">{filteredQuotes.length}</strong> of {quotations.length} inquiries
+                    </span>
+
+                    {filteredQuotes.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const allExpanded = filteredQuotes.every((q) => expandedQuoteIds[q.id]);
+                          const next: Record<string, boolean> = {};
+                          if (!allExpanded) {
+                            filteredQuotes.forEach((q) => {
+                              next[q.id] = true;
+                            });
+                          }
+                          setExpandedQuoteIds(next);
+                        }}
+                        className="text-xs font-semibold text-slate-700 hover:text-[#142B55] px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs whitespace-nowrap"
+                        title={filteredQuotes.every((q) => expandedQuoteIds[q.id]) ? 'Collapse all inquiries' : 'Expand all inquiries'}
+                      >
+                        {filteredQuotes.every((q) => expandedQuoteIds[q.id]) ? (
+                          <>
+                            <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Collapse All</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Expand All</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tier 2: Status Filter Tabs with Counts */}
+                <div className="flex items-center gap-2 overflow-x-auto pt-2 border-t border-slate-100 text-xs font-semibold [scrollbar-width:thin]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuoteStatusFilter('all');
+                      setQuotesPage(1);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      quoteStatusFilter === 'all'
+                        ? 'bg-[#142B55] text-white shadow-xs font-bold'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>All</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${quoteStatusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
+                      {quotations.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuoteStatusFilter('submitted');
+                      setQuotesPage(1);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      quoteStatusFilter === 'submitted'
+                        ? 'bg-amber-600 text-white shadow-xs font-bold'
+                        : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                    }`}
+                  >
+                    <span>New Inquiries</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${quoteStatusFilter === 'submitted' ? 'bg-white/20 text-white' : 'bg-amber-200/80 text-amber-900'}`}>
+                      {submittedQuotesCount}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuoteStatusFilter('under_review');
+                      setQuotesPage(1);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      quoteStatusFilter === 'under_review'
+                        ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                        : 'bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-200'
+                    }`}
+                  >
+                    <span>Under Review</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${quoteStatusFilter === 'under_review' ? 'bg-white/20 text-white' : 'bg-indigo-200/80 text-indigo-900'}`}>
+                      {underReviewQuotesCount}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuoteStatusFilter('quoted');
+                      setQuotesPage(1);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      quoteStatusFilter === 'quoted'
+                        ? 'bg-blue-600 text-white shadow-xs font-bold'
+                        : 'bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200'
+                    }`}
+                  >
+                    <span>Quoted</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${quoteStatusFilter === 'quoted' ? 'bg-white/20 text-white' : 'bg-blue-200/80 text-blue-900'}`}>
+                      {officialQuoted}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuoteStatusFilter('accepted');
+                      setQuotesPage(1);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                      quoteStatusFilter === 'accepted'
+                        ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                        : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200'
+                    }`}
+                  >
+                    <span>Accepted</span>
+                    <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${quoteStatusFilter === 'accepted' ? 'bg-white/20 text-white' : 'bg-emerald-200/80 text-emerald-900'}`}>
+                      {acceptedQuotes}
+                    </span>
+                  </button>
+
+                  {rejectedQuotes > 0 && (
                     <button
                       type="button"
                       onClick={() => {
-                        const allExpanded = filteredQuotes.every((q) => expandedQuoteIds[q.id]);
-                        const next: Record<string, boolean> = {};
-                        if (!allExpanded) {
-                          filteredQuotes.forEach((q) => {
-                            next[q.id] = true;
-                          });
-                        }
-                        setExpandedQuoteIds(next);
+                        setQuoteStatusFilter('rejected');
+                        setQuotesPage(1);
                       }}
-                      className="text-xs font-semibold text-slate-600 hover:text-[#142B55] px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors flex items-center gap-1 cursor-pointer shrink-0 ml-auto"
-                      title={filteredQuotes.every((q) => expandedQuoteIds[q.id]) ? 'Collapse all quotations' : 'Expand all quotations'}
+                      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                        quoteStatusFilter === 'rejected'
+                          ? 'bg-rose-600 text-white shadow-xs font-bold'
+                          : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200'
+                      }`}
                     >
-                      {filteredQuotes.every((q) => expandedQuoteIds[q.id]) ? (
-                        <>
-                          <ChevronUp className="w-3.5 h-3.5" />
-                          <span>Collapse All</span>
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDown className="w-3.5 h-3.5" />
-                          <span>Expand All</span>
-                        </>
-                      )}
+                      <span>Declined</span>
+                      <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-mono ${quoteStatusFilter === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-200/80 text-rose-900'}`}>
+                        {rejectedQuotes}
+                      </span>
                     </button>
                   )}
                 </div>
@@ -3533,221 +3684,331 @@ export default function AdminDashboardPage() {
                   <div className="space-y-4">
                     <div className="space-y-3">
                       {paginatedQuotes.map((q) => {
-                    const isExpanded = !!expandedQuoteIds[q.id];
-                    const assignedVendorsList = vendors.filter((v) => q.assignedVendorIds.includes(v.id));
+                        const isExpanded = !!expandedQuoteIds[q.id];
+                        const assignedVendorsList = vendors.filter((v) => q.assignedVendorIds?.includes(v.id));
 
-                    return (
-                      <div
-                        key={q.id}
-                        className={`bg-white rounded-2xl border transition-all duration-200 overflow-hidden ${
-                          isExpanded
-                            ? 'border-[#142B55]/40 shadow-md ring-1 ring-[#142B55]/10'
-                            : 'border-slate-200/90 shadow-2xs hover:border-slate-300 hover:shadow-xs'
-                        }`}
-                      >
-                        {/* Compact Quotation Header Row */}
-                        <div
-                          onClick={() => {
-                            setExpandedQuoteIds((prev) => ({
-                              ...prev,
-                              [q.id]: !prev[q.id],
-                            }));
-                          }}
-                          className={`p-3 sm:p-3.5 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 cursor-pointer select-none transition-colors ${
-                            isExpanded ? 'bg-slate-50/80 border-b border-slate-200/80' : 'hover:bg-slate-50/60'
-                          }`}
-                        >
-                          {/* Col 1: Quotation Number & Date */}
-                          <div className="flex items-center gap-2 min-w-[140px] shrink-0">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
+                        return (
+                          <div
+                            key={q.id}
+                            className={`bg-white rounded-2xl border transition-all duration-200 overflow-hidden ${
+                              isExpanded
+                                ? 'border-[#142B55] shadow-md ring-2 ring-[#142B55]/10'
+                                : 'border-slate-200/90 shadow-2xs hover:border-slate-300 hover:shadow-xs'
+                            }`}
+                          >
+                            {/* Precision Grid Quotation Header Row matching Customer Orders layout */}
+                            <div
+                              onClick={() => {
                                 setExpandedQuoteIds((prev) => ({
                                   ...prev,
                                   [q.id]: !prev[q.id],
                                 }));
                               }}
-                              className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
-                                isExpanded
-                                  ? 'bg-[#142B55] text-white'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                              }`}
-                              title={isExpanded ? 'Collapse' : 'Expand full details'}
-                            >
-                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                            </button>
-                            <div className="min-w-0">
-                              <span className="font-extrabold text-xs text-[#142B55] tracking-tight block truncate">
-                                {q.quotationNumber}
-                              </span>
-                              <span className="text-[10px] text-slate-400 font-medium block">
-                                {new Date(q.createdAt).toLocaleDateString('en-IN', {
-                                  day: 'numeric',
-                                  month: 'short',
-                                  year: 'numeric',
-                                })}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Col 2: Business & Customer Dossier */}
-                          <div className="min-w-[150px] max-w-[240px] flex-1">
-                            {q.companyName ? (
-                              <p className="font-extrabold text-xs text-[#142B55] truncate" title={q.companyName}>
-                                {q.companyName}
-                              </p>
-                            ) : null}
-                            <p className={`font-bold text-xs truncate ${q.companyName ? 'text-slate-600 font-medium text-[11px]' : 'text-slate-900'}`}>
-                              {q.customerName}
-                            </p>
-                            <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                              <span className="font-mono text-slate-600">{q.customerPhone}</span>
-                              <span>&bull;</span>
-                              <span className="truncate">{q.cityOrDistrict}</span>
-                              {q.gstin && (
-                                <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100 px-1 rounded">GST</span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Col 3: Product Scope & Quantity */}
-                          <div className="min-w-[150px] max-w-[260px] flex-1">
-                            <p className="font-extrabold text-xs text-slate-900 truncate" title={q.productName}>
-                              {q.productName || `${q.category.toUpperCase()} Commercial Solution`}
-                            </p>
-                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                              <span className="font-extrabold text-[#D52B30] bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">
-                                {q.quantity || 1} Units
-                              </span>
-                              <span>&bull;</span>
-                              <span className="uppercase text-[10px] font-bold text-slate-600">{q.category}</span>
-                            </div>
-                          </div>
-
-                          {/* Col 4: Quotation Status & Quoted Price */}
-                          <div className="flex items-center gap-2 shrink-0 min-w-[120px] justify-end">
-                            {q.quotedAmount ? (
-                              <div className="text-right">
-                                <span className="text-[10px] uppercase font-bold text-emerald-800 block">Quoted Price</span>
-                                <span className="font-extrabold text-xs text-emerald-900">
-                                  ₹{q.quotedAmount.toLocaleString('en-IN')}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-[11px] text-slate-400 font-medium italic">
-                                Pending Quote
-                              </span>
-                            )}
-
-                            <Badge
-                              variant={
-                                q.status === 'quoted'
-                                  ? 'navy'
-                                  : q.status === 'accepted'
-                                  ? 'success'
-                                  : q.status === 'under_review'
-                                  ? 'navy'
-                                  : 'warning'
-                              }
-                            >
-                              {q.status.toUpperCase()}
-                            </Badge>
-                          </div>
-
-                          {/* Col 5: Details Button */}
-                          <div className="shrink-0 flex items-center">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setExpandedQuoteIds((prev) => ({
-                                  ...prev,
-                                  [q.id]: !prev[q.id],
-                                }));
-                              }}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap ${
-                                isExpanded
-                                  ? 'bg-slate-200 hover:bg-slate-300 text-slate-800'
-                                  : 'bg-[#142B55] hover:bg-[#0B172F] text-white hover:shadow-xs'
+                              className={`p-3.5 sm:p-4 transition-colors cursor-pointer select-none ${
+                                isExpanded ? 'bg-slate-50/80 border-b border-slate-200/80' : 'hover:bg-slate-50/50'
                               }`}
                             >
-                              <span>{isExpanded ? 'Hide' : 'Details & Actions'}</span>
-                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Expanded Full Quotation Dossier */}
-                        {isExpanded && (
-                          <div className="p-5 sm:p-7 space-y-6 bg-white animate-in fade-in-50 duration-200 text-xs">
-                            {/* Customer Dossier & Sizing Details */}
-                            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-50/90 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
-                              {/* Customer Contact */}
-                              <div className="md:col-span-5 space-y-2 border-b md:border-b-0 md:border-r border-slate-200/80 pb-3 md:pb-0 md:pr-4">
-                                <span className="font-bold uppercase tracking-wider text-[10px] text-slate-400 flex items-center gap-1.5">
-                                  <Building2 className="w-3.5 h-3.5 text-[#142B55]" />
-                                  <span>Client &amp; Organization Details</span>
-                                </span>
-                                {q.companyName && (
-                                  <p className="font-extrabold text-sm text-[#142B55]">
-                                    {q.companyName}
-                                  </p>
-                                )}
-                                <div className="space-y-1">
-                                  <p className="font-bold text-slate-800">
-                                    Contact: {q.customerName}
-                                    {q.gstin && (
-                                      <span className="ml-2 font-mono text-[10px] font-semibold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-300">
-                                        GSTIN: {q.gstin}
-                                      </span>
-                                    )}
-                                  </p>
-                                  <div className="flex items-center gap-3 flex-wrap">
-                                    <a
-                                      href={`tel:${q.customerPhone}`}
-                                      className="inline-flex items-center gap-1 text-[#142B55] hover:underline font-bold"
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 lg:gap-4 items-center">
+                                {/* Col 1: Quotation Number, Copy & Date (lg:col-span-3) */}
+                                <div className="lg:col-span-3 min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-extrabold text-xs sm:text-sm text-[#142B55] tracking-tight">
+                                      {q.quotationNumber}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigator.clipboard.writeText(q.quotationNumber);
+                                        setMessage({ type: 'success', text: `Quotation number ${q.quotationNumber} copied!` });
+                                      }}
+                                      title="Copy Quotation Number"
+                                      className="text-slate-400 hover:text-[#142B55] p-1 rounded-md hover:bg-slate-200/60 transition-colors cursor-pointer"
                                     >
-                                      <Phone className="w-3 h-3 text-[#D52B30]" />
-                                      <span>{q.customerPhone}</span>
-                                    </a>
-                                    {q.customerEmail && (
-                                      <a
-                                        href={`mailto:${q.customerEmail}`}
-                                        className="inline-flex items-center gap-1 text-slate-500 hover:text-[#142B55]"
-                                      >
-                                        <Mail className="w-3 h-3 text-slate-400" />
-                                        <span>{q.customerEmail}</span>
-                                      </a>
-                                    )}
+                                      <Copy className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                  <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 font-medium">
+                                    <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                                    <span>
+                                      {new Date(q.createdAt).toLocaleDateString('en-IN', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric',
+                                      })}
+                                    </span>
+                                  </p>
+                                </div>
+
+                                {/* Col 2: Customer / Organization & Destination (lg:col-span-3) */}
+                                <div className="lg:col-span-3 min-w-0 flex items-center gap-2.5">
+                                  <div className="w-8 h-8 rounded-full bg-[#142B55] text-white flex items-center justify-center font-bold text-[11px] shrink-0 shadow-2xs">
+                                    {q.customerName.slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    {q.companyName ? (
+                                      <p className="text-xs font-bold text-[#142B55] truncate" title={q.companyName}>
+                                        {q.companyName}
+                                      </p>
+                                    ) : null}
+                                    <p className={`text-xs truncate ${q.companyName ? 'text-slate-600 font-medium text-[11px]' : 'font-bold text-slate-900'}`}>
+                                      {q.customerName}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 flex items-center gap-1 truncate capitalize mt-0.5">
+                                      <MapPin className="w-3 h-3 text-[#D52B30] shrink-0" />
+                                      <span className="truncate">{q.cityOrDistrict}</span>
+                                      {q.gstin && (
+                                        <span className="text-[9px] font-bold text-emerald-800 bg-emerald-100 px-1 py-0.2 rounded border border-emerald-200 ml-1">
+                                          GST
+                                        </span>
+                                      )}
+                                    </p>
                                   </div>
                                 </div>
 
-                                <div className="pt-2 flex items-center gap-2 flex-wrap">
-                                  <a
-                                    href={`https://wa.me/91${q.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(
-                                      `Hello ${q.customerName}, this is Raj Power Tech Services regarding your commercial quotation inquiry #${q.quotationNumber} for ${q.quantity || 1} units of ${q.productName || q.category.toUpperCase()}. We are happy to assist you with equipment sizing and warranty-backed setup.`
-                                    )}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200 transition-colors shadow-2xs"
-                                  >
-                                    <MessageSquare className="w-3.5 h-3.5 text-emerald-700" />
-                                    <span>WhatsApp Client</span>
-                                  </a>
+                                {/* Col 3: Product Scope & Quantity (lg:col-span-2) */}
+                                <div className="lg:col-span-2 min-w-0">
+                                  <div className="flex items-baseline gap-1.5">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Scope</span>
+                                    <span className="text-xs font-extrabold text-slate-900 truncate" title={q.productName}>
+                                      {q.productName || `${q.category.toUpperCase()} Commercial Solution`}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                    <span className="font-extrabold text-[#D52B30] bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200 text-[10px]">
+                                      {q.quantity || 1} Units
+                                    </span>
+                                    <span>&bull;</span>
+                                    <span className="uppercase text-[10px] font-bold text-slate-600 truncate">{q.category}</span>
+                                  </p>
+                                </div>
 
-                                  {q.quotedAmount && (
-                                    <button
-                                      type="button"
-                                      onClick={() => setSelectedQuoteForPrint(q)}
-                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-[#142B55] text-white hover:bg-[#0B172F] transition-colors shadow-2xs cursor-pointer"
+                                {/* Col 4: Quoted Price & Status Badge (lg:col-span-2) */}
+                                <div className="lg:col-span-2 flex flex-col justify-center">
+                                  <div className="flex items-center gap-1.5">
+                                    {q.quotedAmount ? (
+                                      <div>
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Quoted Price</span>
+                                        <span className="text-xs sm:text-sm font-extrabold text-emerald-900">
+                                          ₹{q.quotedAmount.toLocaleString('en-IN')}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-[11px] text-amber-700 font-semibold italic bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                        Awaiting Price
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="mt-1">
+                                    <span
+                                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider whitespace-nowrap shadow-2xs ${
+                                        q.status === 'accepted'
+                                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                          : q.status === 'quoted'
+                                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                          : q.status === 'under_review'
+                                          ? 'bg-indigo-100 text-indigo-800 border border-indigo-200'
+                                          : q.status === 'rejected' || q.status === 'declined' || q.status === 'closed'
+                                          ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                          : 'bg-amber-100 text-amber-800 border border-amber-200'
+                                      }`}
                                     >
-                                      <Printer className="w-3.5 h-3.5" />
-                                      <span>Print Official Quotation</span>
-                                    </button>
-                                  )}
+                                      {q.status === 'accepted' ? (
+                                        <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                      ) : q.status === 'quoted' ? (
+                                        <CheckCircle2 className="w-3 h-3 text-blue-600" />
+                                      ) : q.status === 'under_review' ? (
+                                        <RefreshCw className="w-3 h-3 text-indigo-600" />
+                                      ) : (
+                                        <Clock className="w-3 h-3 text-amber-600" />
+                                      )}
+                                      <span>{q.status.replace('_', ' ').toUpperCase()}</span>
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Col 5: Manage & Details Button (lg:col-span-2 text-right) */}
+                                <div className="lg:col-span-2 flex items-center justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedQuoteIds((prev) => ({
+                                        ...prev,
+                                        [q.id]: !prev[q.id],
+                                      }));
+                                    }}
+                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs whitespace-nowrap ${
+                                      isExpanded
+                                        ? 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                                        : 'bg-[#142B55] hover:bg-[#0B172F] text-white hover:shadow-xs'
+                                    }`}
+                                  >
+                                    <span>{isExpanded ? 'Hide Details' : 'Details & Manage'}</span>
+                                    {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                  </button>
                                 </div>
                               </div>
+                            </div>
+
+                            {/* Expanded Full Quotation Dossier */}
+                            {isExpanded && (
+                              <div className="p-5 sm:p-7 space-y-6 bg-white animate-in fade-in-50 duration-200 text-xs">
+                                {/* Action Toolbar Inside Expanded Inquiry: Live Status, Quoted Pricing & Admin Delete */}
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/90 text-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                  {/* Left Controls: Status & Quoted Price */}
+                                  <div className="flex flex-wrap items-center gap-4 flex-1">
+                                    {/* Status Selector */}
+                                    <div className="min-w-[180px]">
+                                      <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
+                                        Quotation Status
+                                      </label>
+                                      <select
+                                        value={q.status}
+                                        onChange={(e) => {
+                                          const nextStatus = e.target.value as QuotationStatus;
+                                          handleUpdateQuotationStatus(
+                                            q.id,
+                                            nextStatus,
+                                            `Status changed to ${nextStatus.replace('_', ' ').toUpperCase()} by administrator`,
+                                            q.quotedAmount
+                                          );
+                                        }}
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#142B55] transition-all cursor-pointer shadow-2xs"
+                                      >
+                                        <option value="submitted">New / Awaiting Review</option>
+                                        <option value="under_review">Under Engineering Review</option>
+                                        <option value="quoted">Proposal / Quoted</option>
+                                        <option value="accepted">Accepted by Client</option>
+                                        <option value="rejected">Declined / Closed</option>
+                                      </select>
+                                    </div>
+
+                                    {/* Quoted Pricing Input */}
+                                    <div className="min-w-[220px]">
+                                      <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
+                                        Official Quoted Price (₹)
+                                      </label>
+                                      <div className="flex items-center gap-1.5">
+                                        <div className="relative flex-1">
+                                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">₹</span>
+                                          <input
+                                            type="number"
+                                            min="0"
+                                            placeholder="e.g. 85000"
+                                            value={quotePriceInputs[q.id] ?? (q.quotedAmount ? String(q.quotedAmount) : '')}
+                                            onChange={(e) =>
+                                              setQuotePriceInputs((prev) => ({
+                                                ...prev,
+                                                [q.id]: e.target.value,
+                                              }))
+                                            }
+                                            className="w-full pl-7 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#142B55] transition-all shadow-2xs"
+                                          />
+                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const rawVal = quotePriceInputs[q.id] ?? (q.quotedAmount ? String(q.quotedAmount) : '');
+                                            const amount = Number(rawVal);
+                                            if (isNaN(amount) || amount <= 0) {
+                                              setMessage({ type: 'error', text: 'Please enter a valid quoted amount in ₹ INR' });
+                                              return;
+                                            }
+                                            handleUpdateQuotationStatus(
+                                              q.id,
+                                              q.status === 'submitted' || q.status === 'under_review' ? 'quoted' : q.status,
+                                              `Commercial quotation submitted with official price of ₹${amount.toLocaleString('en-IN')}`,
+                                              amount
+                                            );
+                                          }}
+                                          className="px-3 py-2 rounded-xl text-xs font-bold bg-[#142B55] hover:bg-[#0B172F] text-white transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                                        >
+                                          Save Price
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Right Controls: WhatsApp, Print, and Delete */}
+                                  <div className="flex items-center gap-2 flex-wrap shrink-0">
+                                    <a
+                                      href={`https://wa.me/91${q.customerPhone.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(
+                                        `Hello ${q.customerName}, this is Mr. Raja Shekar Reddy from RAJ POWER TECH SERVICES regarding your inquiry #${q.quotationNumber} for ${q.quantity || 1} units of ${q.productName || q.category.toUpperCase()}. We are happy to assist you with equipment sizing, official GST pricing, and prompt on-site commissioning.`
+                                      )}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200 transition-colors shadow-2xs whitespace-nowrap"
+                                    >
+                                      <MessageSquare className="w-3.5 h-3.5 text-emerald-700" />
+                                      <span>WhatsApp Client</span>
+                                    </a>
+
+                                    {q.quotedAmount ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedQuoteForPrint(q)}
+                                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-[#142B55] text-white hover:bg-[#0B172F] transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+                                      >
+                                        <Printer className="w-3.5 h-3.5" />
+                                        <span>Print Quotation</span>
+                                      </button>
+                                    ) : null}
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteQuotation(q.id, q.quotationNumber)}
+                                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-700 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+                                      title="Delete this inquiry permanently"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                      <span>Delete Inquiry</span>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Customer Dossier & Sizing Details */}
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 bg-slate-50/90 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+                                  {/* Customer Contact */}
+                                  <div className="md:col-span-5 space-y-2 border-b md:border-b-0 md:border-r border-slate-200/80 pb-3 md:pb-0 md:pr-4">
+                                    <span className="font-bold uppercase tracking-wider text-[10px] text-slate-400 flex items-center gap-1.5">
+                                      <Building2 className="w-3.5 h-3.5 text-[#142B55]" />
+                                      <span>Client &amp; Organization Details</span>
+                                    </span>
+                                    {q.companyName && (
+                                      <p className="font-extrabold text-sm text-[#142B55]">
+                                        {q.companyName}
+                                      </p>
+                                    )}
+                                    <div className="space-y-1">
+                                      <p className="font-bold text-slate-800">
+                                        Contact: {q.customerName}
+                                        {q.gstin && (
+                                          <span className="ml-2 font-mono text-[10px] font-semibold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-300">
+                                            GSTIN: {q.gstin}
+                                          </span>
+                                        )}
+                                      </p>
+                                      <div className="flex items-center gap-3 flex-wrap">
+                                        <a
+                                          href={`tel:${q.customerPhone}`}
+                                          className="inline-flex items-center gap-1 text-[#142B55] hover:underline font-bold"
+                                        >
+                                          <Phone className="w-3 h-3 text-[#D52B30]" />
+                                          <span>{q.customerPhone}</span>
+                                        </a>
+                                        {q.customerEmail && (
+                                          <a
+                                            href={`mailto:${q.customerEmail}`}
+                                            className="inline-flex items-center gap-1 text-slate-500 hover:text-[#142B55]"
+                                          >
+                                            <Mail className="w-3 h-3 text-slate-400" />
+                                            <span>{q.customerEmail}</span>
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
 
                               {/* Destination & Location */}
                               <div className="md:col-span-4 space-y-1.5 border-b md:border-b-0 md:border-r border-slate-200/80 pb-3 md:pb-0 md:pr-4">
@@ -3788,7 +4049,7 @@ export default function AdminDashboardPage() {
                                   ) : (
                                     <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800">
                                       <span className="text-[10px] uppercase font-bold block">Awaiting Proposal</span>
-                                      <p className="text-xs font-medium mt-0.5">Assigned branch engineer has not yet submitted an official price.</p>
+                                      <p className="text-xs font-medium mt-0.5">No price quoted yet. Set the official quote amount in the action bar above to issue a formal proposal.</p>
                                     </div>
                                   )}
                                 </div>
@@ -3963,7 +4224,7 @@ export default function AdminDashboardPage() {
                       type={showCurrentPassword ? 'text' : 'password'}
                       value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                      placeholder="Enter current password (e.g. Admin@2026)"
+                      placeholder="Enter current password"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-hidden focus:ring-2 focus:ring-[#142B55] pr-10"
                     />
                     <button
@@ -5699,47 +5960,7 @@ export default function AdminDashboardPage() {
                           setShowNewCategoryModal(true);
                           return;
                         }
-                        let img = '/products/inverter-demo-1.jpg';
-                        let specs = [
-                          { label: 'Capacity', value: '1100VA / 900W' },
-                          { label: 'Technology', value: 'Pure Sine Wave' },
-                          { label: 'Nominal Voltage', value: '12V DC' },
-                          { label: 'Warranty', value: '36 Months' },
-                        ];
-                        if (cat === 'batteries') {
-                          img = '/products/battery-demo-1.jpg';
-                          specs = [
-                            { label: 'Capacity', value: '150Ah' },
-                            { label: 'Technology', value: 'Tall Tubular' },
-                            { label: 'Nominal Voltage', value: '12V' },
-                            { label: 'Warranty', value: '36 Months' },
-                          ];
-                        } else if (cat === 'ups') {
-                          img = '/products/ups-demo-1.jpg';
-                          specs = [
-                            { label: 'Topology', value: 'Online Double Conversion' },
-                            { label: 'Capacity', value: '1kVA / 800W' },
-                            { label: 'Transfer Time', value: '0ms (Instant)' },
-                            { label: 'Warranty', value: '24 Months' },
-                          ];
-                        } else if (cat === 'lithium') {
-                          img = 'https://cms.microtek.in/uploads/product/thumb/24v-60ah-wall-mounted.png';
-                          specs = [
-                            { label: 'Technology', value: 'LiFePO4 (Lithium Iron Phosphate)' },
-                            { label: 'Capacity', value: '100Ah / 2.56kWh' },
-                            { label: 'Nominal Voltage', value: '25.6V' },
-                            { label: 'Warranty', value: '5 Years' },
-                          ];
-                        } else if (cat === 'high-capacity-ups') {
-                          img = 'https://cms.microtek.in/uploads/product/thumb/jumbo-ups-super-power-10kva-180v.png';
-                          specs = [
-                            { label: 'Topology', value: 'High Capacity Pure Sine Wave' },
-                            { label: 'Capacity', value: '10kVA / 8000W' },
-                            { label: 'DC Bus Voltage', value: '180V' },
-                            { label: 'Warranty', value: '24 Months' },
-                          ];
-                        }
-                        setProductForm({ ...productForm, category: cat, imageUrl: img, keySpecs: specs });
+                        setProductForm({ ...productForm, category: cat });
                       }}
                       className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-[#142B55] bg-white capitalize"
                     >

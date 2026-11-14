@@ -4,6 +4,7 @@ export type QuotationStatus =
   | 'quoted'
   | 'accepted'
   | 'declined'
+  | 'rejected'
   | 'closed';
 
 export interface QuotationStatusHistoryItem {
@@ -24,7 +25,7 @@ export interface QuotationRequest {
   gstin?: string; // Client GSTIN for commercial tax invoice
   cityOrDistrict: string; // Customer City / District
   fullAddress?: string;
-  category: 'inverters' | 'batteries' | 'ups' | 'combo' | 'service' | 'custom';
+  category: 'inverters' | 'batteries' | 'ups' | 'combo' | 'solar' | 'service' | 'custom' | string;
   productId?: string;
   productName?: string;
   quantity?: number; // Commercial / Bulk units required
@@ -49,7 +50,7 @@ export interface QuotationRequest {
   deliveryLeadTime?: string; // e.g. "2 to 3 Business Days"
   validUntil?: string; // Quote Expiry Date
   validityDays?: number; // e.g. 15 or 30 days
-  statusHistory: QuotationStatusHistoryItem[];
+  statusHistory?: QuotationStatusHistoryItem[];
   createdAt: string;
   updatedAt: string;
 }

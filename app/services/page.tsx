@@ -194,8 +194,10 @@ export default function ServicesPage() {
         body: JSON.stringify({
           customerName: auditName.trim(),
           customerPhone: cleanPhone,
+          companyName: auditCompany.trim() || undefined,
           cityOrDistrict: 'Secunderabad / Hyderabad Hub',
           category: 'Commercial Turnkey Setup',
+          productName: `Turnkey On-Site Power Audit (${auditSector})`,
           quantity: 1,
           notes,
         }),
@@ -848,10 +850,10 @@ Please confirm a site engineer visit. Thank you!`;
                   <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
                     <Button
                       type="submit"
-                      variant="primary"
+                      variant="navy"
                       size="md"
                       disabled={auditSubmitting}
-                      className="w-full bg-[#142B55] hover:bg-[#0B172F] text-white font-bold py-3.5 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer inline-flex items-center justify-center gap-2.5 group/btn whitespace-nowrap"
+                      className="w-full font-bold py-3.5 px-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer inline-flex flex-row flex-nowrap items-center justify-center gap-2.5 group/btn whitespace-nowrap"
                     >
                       {auditSubmitting ? (
                         <>

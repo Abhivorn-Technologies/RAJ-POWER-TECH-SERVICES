@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/auth/server-guard';
-import { listQuotations, createQuotationRecord, updateQuotationStatus, findProductById, saveOrderNotification } from '@/lib/db/data-store';
+import { listQuotations, createQuotationRecord, updateQuotationStatus, deleteQuotationRecord, findProductById, saveOrderNotification } from '@/lib/db/data-store';
 import { QuotationRequest, QuotationStatus } from '@/types/quotation';
 import { OrderNotificationEvent } from '@/types/notification';
 
@@ -331,5 +331,35 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
     }
     return NextResponse.json({ error: 'Failed to update quotation' }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE: Remove a quotation request (admin only)
+ */
+export async function DELETE(request: Request) {
+  try {
+    const user = await requireAuth(request);
+    if (user.role !== 'super_admin' && user.role !== 'admin') {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'id parameter is required' }, { status: 400 });
+    }
+
+    const deleted = await deleteQuotationRecord(id);
+    if (!deleted) {
+      return NextResponse.json({ error: 'Quotation not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Quotation inquiry removed successfully' });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    return NextResponse.json({ error: 'Failed to delete quotation' }, { status: 500 });
   }
 }

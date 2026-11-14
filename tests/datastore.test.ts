@@ -157,3 +157,56 @@ test('DATASTORE: Category and Brand sorting configuration integrity', async () =
   // First product must be BPE
   assert.strictEqual(sortedUpsProducts[0].brand.toLowerCase(), 'bpe', 'First product in UPS category must be BPE');
 });
+
+test('DATASTORE: Quotations CRUD and lifecycle integrity', async () => {
+  const {
+    listQuotations,
+    createQuotationRecord,
+    updateQuotationStatus,
+    deleteQuotationRecord,
+  } = await import('../lib/db/data-store');
+
+  const initialQuotes = await listQuotations();
+  assert.ok(Array.isArray(initialQuotes), 'Should list quotations array');
+  assert.ok(initialQuotes.length >= 1, 'Initial seed quotations should exist');
+
+  // Test creating a quotation
+  const newQuote = {
+    id: `test-qt-${Date.now()}`,
+    quotationNumber: `RPS-QT-2026-TEST`,
+    customerName: 'Test Commercial Facility',
+    customerPhone: '9876543210',
+    cityOrDistrict: 'Secunderabad',
+    category: 'Commercial Turnkey Setup' as const,
+    quantity: 2,
+    status: 'submitted' as const,
+    assignedVendorIds: ['ven-rps-primary'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const created = await createQuotationRecord(newQuote);
+  assert.ok(created, 'Quotation record should be created');
+  assert.strictEqual(created.id, newQuote.id);
+
+  // Test updating quotation status & quoted amount
+  const updated = await updateQuotationStatus(
+    created.id,
+    'quoted',
+    'Official proposal submitted by test suite',
+    'admin-1',
+    'Admin User',
+    175000
+  );
+  assert.ok(updated, 'Quotation status should be updated');
+  assert.strictEqual(updated?.status, 'quoted');
+  assert.strictEqual(updated?.quotedAmount, 175000);
+  assert.ok(updated?.statusHistory && updated.statusHistory.length >= 1);
+
+  // Test deleting quotation
+  const deleted = await deleteQuotationRecord(created.id);
+  assert.strictEqual(deleted, true, 'Quotation should be deleted');
+
+  const remaining = await listQuotations();
+  assert.ok(!remaining.some((q) => q.id === created.id), 'Deleted quotation should no longer exist in listing');
+});
