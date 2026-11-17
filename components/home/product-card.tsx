@@ -4,13 +4,15 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
-import { FileText, ShoppingCart, Check, ShieldCheck, AlertCircle } from 'lucide-react';
+import { FileText, ShoppingCart, Check, ShieldCheck, AlertCircle, Mail, Phone } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, buildProductWhatsAppUrl, buildProductContactUrl } from '@/lib/utils';
+import { WhatsAppIcon } from '@/components/ui/social-icons';
 import { addToGuestCart, openCartDrawer } from '@/lib/cart-store';
 import { CARD_VIEWPORT, PREMIUM_EASE } from '@/lib/animations';
 import { ProductQuoteModal } from '@/components/quotations/product-quote-modal';
+import { BUSINESS_INFO } from '@/lib/constants';
 
 interface ProductCardProps {
   product: Product;
@@ -29,6 +31,22 @@ export function ProductCard({ product, index, delay }: ProductCardProps) {
   const isOutOfStock = product.stock !== undefined && product.stock <= 0;
   const isLowStock = product.stock !== undefined && product.stock > 0 && product.stock <= 5;
   const availableStock = product.stock !== undefined ? product.stock : 12;
+
+  const productWhatsAppUrl = buildProductWhatsAppUrl({
+    id: product.id,
+    name: product.name,
+    brand: product.brand,
+    price: priceValue,
+    category: product.categoryName || product.category,
+    sku: product.sku,
+  });
+
+  const productContactUrl = buildProductContactUrl({
+    id: product.id,
+    name: product.name,
+    category: product.category,
+    brand: product.brand,
+  });
 
   const calculatedDelay = delay !== undefined ? delay : index !== undefined ? (index % 3) * 0.08 : 0;
 
@@ -210,17 +228,43 @@ export function ProductCard({ product, index, delay }: ProductCardProps) {
               </button>
             )}
 
+            {/* Request Official Quotation - Full Button */}
             <button
               suppressHydrationWarning
               type="button"
               onClick={() => setQuoteOpen(true)}
               title={`Request Official Quotation for ${product.name}`}
               aria-label={`Request Official Quotation for ${product.name}`}
-              className="w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-[#142B55] border border-slate-200/90 cursor-pointer shadow-2xs hover:border-slate-300 whitespace-nowrap group/quote-btn"
+              className="w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-[#142B55] border border-slate-200 cursor-pointer shadow-2xs hover:border-slate-300 whitespace-nowrap group/quote-btn"
             >
               <FileText className="w-3.5 h-3.5 text-[#D52B30] group-hover/quote-btn:scale-110 transition-transform shrink-0" />
-              <span>Request Quote</span>
+              <span>Request Official Quotation</span>
             </button>
+
+            {/* Direct Instant Channels: WhatsApp Us & Call Us */}
+            <div className="grid grid-cols-2 gap-2 pt-0.5">
+              <a
+                href={productWhatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`WhatsApp Us regarding ${product.name}`}
+                aria-label={`WhatsApp Us regarding ${product.name}`}
+                className="py-2 px-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-[#25D366] text-[#075E54] hover:text-white border border-emerald-300/80 hover:border-[#25D366] shadow-2xs hover:shadow-xs cursor-pointer whitespace-nowrap group/wa"
+              >
+                <WhatsAppIcon className="w-4 h-4 shrink-0 transition-transform group-hover/wa:scale-110" />
+                <span>WhatsApp Us</span>
+              </a>
+
+              <a
+                href={`tel:${BUSINESS_INFO.phoneTel}`}
+                title={`Call RPS regarding ${product.name}: ${BUSINESS_INFO.phoneFormatted}`}
+                aria-label={`Call RPS regarding ${product.name} at ${BUSINESS_INFO.phoneFormatted}`}
+                className="py-2 px-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 bg-blue-50/80 hover:bg-[#142B55] text-[#142B55] hover:text-white border border-blue-200 hover:border-[#142B55] shadow-2xs hover:shadow-xs cursor-pointer whitespace-nowrap group/call"
+              >
+                <Phone className="w-3.5 h-3.5 text-[#142B55] group-hover/call:text-white transition-colors shrink-0" />
+                <span>Call Us</span>
+              </a>
+            </div>
           </div>
         </div>
       </motion.div>

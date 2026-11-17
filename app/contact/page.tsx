@@ -132,8 +132,10 @@ const FALLBACK_PRODUCTS_BY_CATEGORY: Record<string, string[]> = {
 function ContactPageContent() {
   const searchParams = useSearchParams();
 
-  const urlProductId = searchParams.get('productId') || '';
-  const urlProductName = searchParams.get('name') || '';
+  const urlProductId =
+    searchParams.get('productId') || searchParams.get('id') || searchParams.get('product_id') || '';
+  const urlProductName =
+    searchParams.get('product') || searchParams.get('name') || searchParams.get('productName') || '';
   const urlCategory = searchParams.get('category')?.toLowerCase() || '';
 
   // Determine initial inquiry type from URL if provided
@@ -144,6 +146,8 @@ function ContactPageContent() {
       ? 'batteries'
       : urlCategory === 'ups' || urlCategory === 'online-ups'
       ? 'ups'
+      : urlCategory === 'solar' || urlCategory.includes('solar')
+      ? 'combo'
       : urlCategory === 'service' || urlCategory === 'services' || urlCategory === 'audit'
       ? 'service'
       : 'combo';
@@ -584,6 +588,32 @@ function ContactPageContent() {
                   Choose your requirement below. Products from our live catalogue automatically appear in the list.
                 </p>
               </div>
+
+              {urlProductName && (
+                <div className="p-4 bg-gradient-to-r from-blue-50/90 to-slate-50 border border-blue-200/80 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <span className="w-9 h-9 rounded-xl bg-[#142B55] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                      ⚡
+                    </span>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block">
+                        Product Inquired From Store
+                      </span>
+                      <strong className="text-slate-900 font-extrabold text-xs sm:text-sm block">
+                        {urlProductName}
+                      </strong>
+                    </div>
+                  </div>
+                  {urlProductId && (
+                    <Link
+                      href={`/products/${urlProductId}`}
+                      className="text-[11px] font-bold text-[#142B55] hover:text-[#D52B30] hover:underline whitespace-nowrap px-3 py-1.5 rounded-lg bg-white border border-slate-200 shadow-2xs"
+                    >
+                      View Specs &rarr;
+                    </Link>
+                  )}
+                </div>
+              )}
 
               {submissionSuccess ? (
                 <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 space-y-4">

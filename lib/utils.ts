@@ -100,3 +100,52 @@ export function buildDetailedQuotationWhatsAppUrl(details: {
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`;
 }
+
+export function buildProductWhatsAppUrl(product: {
+  id?: string;
+  name: string;
+  brand?: string;
+  price?: number;
+  category?: string;
+  sku?: string;
+}): string {
+  const phone = process.env.NEXT_PUBLIC_WHATSAPP_PHONE || '919346021289';
+  const priceText = product.price && product.price > 0 ? `₹${product.price.toLocaleString('en-IN')}` : 'Price on request';
+
+  const lines = [
+    '⚡ *RAJ POWER TECH SERVICES (RPS) - PRODUCT INQUIRY*',
+    `📦 *Product:* ${product.name}`,
+    `🏷️ *Brand:* ${product.brand || 'RPS Certified'}`,
+    `💰 *Price:* ${priceText}`,
+  ];
+
+  if (product.category) {
+    lines.push(`📂 *Category:* ${product.category.toUpperCase()}`);
+  }
+
+  if (product.sku) {
+    lines.push(`🔢 *Model / SKU:* ${product.sku}`);
+  }
+
+  lines.push('');
+  lines.push('Hello RPS Team, I would like to inquire about availability, delivery schedule, and installation details for this model. Please share details. Thank you!');
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`;
+}
+
+export function buildProductContactUrl(product: {
+  id?: string;
+  name: string;
+  category?: string;
+  brand?: string;
+}): string {
+  const params = new URLSearchParams();
+  if (product.id) params.set('productId', product.id);
+  if (product.name) {
+    params.set('name', product.name);
+    params.set('product', product.name);
+  }
+  if (product.category) params.set('category', product.category);
+  if (product.brand) params.set('brand', product.brand);
+  return `/contact?${params.toString()}`;
+}

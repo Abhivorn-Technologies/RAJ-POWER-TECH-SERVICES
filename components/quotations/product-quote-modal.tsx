@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import {
   X,
   MessageSquare,
@@ -15,10 +16,17 @@ import {
   FileText,
   Clock,
   Sparkles,
+  Mail,
+  Phone,
 } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
-import { buildDetailedQuotationWhatsAppUrl } from '@/lib/utils';
+import {
+  buildDetailedQuotationWhatsAppUrl,
+  buildProductWhatsAppUrl,
+  buildProductContactUrl,
+} from '@/lib/utils';
+import { WhatsAppIcon } from '@/components/ui/social-icons';
 import { BUSINESS_INFO } from '@/lib/constants';
 
 interface ProductQuoteModalProps {
@@ -87,6 +95,22 @@ export function ProductQuoteModal({
 
   const priceValue = product.price || 0;
   const totalEstimatedPrice = priceValue * quantity;
+
+  const directWhatsAppUrl = buildProductWhatsAppUrl({
+    id: product.id,
+    name: product.name,
+    brand: product.brand,
+    price: priceValue,
+    category: product.categoryName || product.category,
+    sku: product.sku,
+  });
+
+  const directContactUrl = buildProductContactUrl({
+    id: product.id,
+    name: product.name,
+    category: product.category,
+    brand: product.brand,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -418,6 +442,45 @@ export function ProductQuoteModal({
                     <div className="flex items-center gap-1.5">
                       <Building2 className="w-3.5 h-3.5 text-[#142B55] shrink-0" />
                       <span>GST Invoices for Personal &amp; Corporate Purchasing</span>
+                    </div>
+
+                    {/* Instant Direct Channel Options */}
+                    <div className="pt-3 border-t border-slate-100 space-y-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Prefer Direct Chat or Call?
+                      </span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <a
+                          href={directWhatsAppUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`WhatsApp Us regarding ${product?.name ?? 'product'}`}
+                          className="py-1.5 px-2 rounded-xl bg-emerald-50 hover:bg-[#25D366] text-[#075E54] hover:text-white border border-emerald-300 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap shadow-2xs group/wa"
+                        >
+                          <WhatsAppIcon className="w-3.5 h-3.5 shrink-0 transition-transform group-hover/wa:scale-110" />
+                          <span>WhatsApp Us</span>
+                        </a>
+
+                        <a
+                          href={`tel:${BUSINESS_INFO.phoneTel}`}
+                          title={`Call RPS: ${BUSINESS_INFO.phoneFormatted}`}
+                          className="py-1.5 px-2 rounded-xl bg-blue-50/80 hover:bg-[#142B55] text-[#142B55] hover:text-white border border-blue-200 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap shadow-2xs group/call"
+                        >
+                          <Phone className="w-3.5 h-3.5 text-[#142B55] group-hover/call:text-white transition-colors shrink-0" />
+                          <span>Call Us</span>
+                        </a>
+                      </div>
+
+                      <div className="pt-0.5 text-center">
+                        <Link
+                          href={directContactUrl}
+                          onClick={onClose}
+                          className="text-[10px] text-slate-500 hover:text-[#142B55] hover:underline inline-flex items-center gap-1 font-semibold"
+                        >
+                          <Mail className="w-3 h-3 text-slate-400" />
+                          <span>Or send inquiry via Contact Form &rarr;</span>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>

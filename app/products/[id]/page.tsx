@@ -16,13 +16,17 @@ import {
   RefreshCw,
   AlertCircle,
   FileText,
+  Mail,
+  Phone,
 } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { addToGuestCart } from '@/lib/cart-store';
-import { buildWhatsAppInquiryUrl, cn } from '@/lib/utils';
+import { buildWhatsAppInquiryUrl, buildProductWhatsAppUrl, buildProductContactUrl, cn } from '@/lib/utils';
+import { WhatsAppIcon } from '@/components/ui/social-icons';
 import { ProductQuoteModal } from '@/components/quotations/product-quote-modal';
+import { BUSINESS_INFO } from '@/lib/constants';
 
 function ProductDetailView() {
   const params = useParams();
@@ -157,7 +161,20 @@ function ProductDetailView() {
   }
 
   const priceValue = product.price || 0;
-  const whatsappUrl = buildWhatsAppInquiryUrl(product.name, product.categoryName);
+  const whatsappUrl = buildProductWhatsAppUrl({
+    id: product.id,
+    name: product.name,
+    brand: product.brand,
+    price: priceValue,
+    category: product.categoryName || product.category,
+    sku: product.sku,
+  });
+  const contactUrl = buildProductContactUrl({
+    id: product.id,
+    name: product.name,
+    category: product.category,
+    brand: product.brand,
+  });
   const images = [product.imageUrl, ...(product.additionalImages || [])].filter(Boolean);
 
   return (
@@ -454,37 +471,69 @@ function ProductDetailView() {
                 </div>
               )}
 
-              {/* Consultation & Commercial Quote Row */}
+              {/* Request Official Quotation - Prominent Commercial Action */}
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                fullWidth
+                onClick={() => setQuoteModalOpen(true)}
+                className="text-sm text-[#142B55] hover:bg-slate-50 border-slate-300 hover:border-[#142B55] font-extrabold rounded-xl py-3 cursor-pointer whitespace-nowrap transition-all shadow-xs group/quote-btn"
+                icon={<FileText className="w-4 h-4 text-[#D52B30] group-hover/quote-btn:scale-110 transition-transform shrink-0" />}
+              >
+                Request Official Quotation
+              </Button>
+
+              {/* Direct Instant Channels: WhatsApp Us & Call Us */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-block"
+                  title={`WhatsApp Us regarding ${product.name}`}
+                  aria-label={`WhatsApp Us regarding ${product.name}`}
                 >
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     fullWidth
-                    className="text-xs text-emerald-700 border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 font-bold rounded-xl py-2.5 whitespace-nowrap"
-                    icon={<MessageSquare className="w-4 h-4 text-emerald-600" />}
+                    className="text-xs bg-emerald-50 hover:bg-[#25D366] text-[#075E54] hover:text-white border-emerald-300 hover:border-[#25D366] font-bold rounded-xl py-2.5 whitespace-nowrap transition-all shadow-2xs group/wa"
+                    icon={<WhatsAppIcon className="w-4 h-4 shrink-0 transition-transform group-hover/wa:scale-110" />}
                   >
-                    WhatsApp Inquiry
+                    WhatsApp Us
                   </Button>
                 </a>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  fullWidth
-                  onClick={() => setQuoteModalOpen(true)}
-                  className="text-xs text-[#142B55] border-slate-200 hover:bg-slate-50 font-bold rounded-xl py-2.5 cursor-pointer whitespace-nowrap"
-                  icon={<FileText className="w-4 h-4 text-[#D52B30]" />}
+                <a
+                  href={`tel:${BUSINESS_INFO.phoneTel}`}
+                  className="w-full inline-block"
+                  title={`Call RPS: ${BUSINESS_INFO.phoneFormatted}`}
+                  aria-label={`Call RPS: ${BUSINESS_INFO.phoneFormatted}`}
                 >
-                  Request Quotation
-                </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    fullWidth
+                    className="text-xs text-[#142B55] hover:text-white bg-blue-50/80 hover:bg-[#142B55] border-blue-200 hover:border-[#142B55] font-bold rounded-xl py-2.5 cursor-pointer whitespace-nowrap transition-all shadow-2xs group/call"
+                    icon={<Phone className="w-4 h-4 text-[#142B55] group-hover/call:text-white transition-colors shrink-0" />}
+                  >
+                    Call Us ({BUSINESS_INFO.phone})
+                  </Button>
+                </a>
+              </div>
+
+              {/* Secondary Link to Online Contact Form */}
+              <div className="text-center pt-1">
+                <Link
+                  href={contactUrl}
+                  className="text-xs font-semibold text-slate-500 hover:text-[#142B55] hover:underline inline-flex items-center gap-1.5"
+                >
+                  <Mail className="w-3.5 h-3.5 text-[#D52B30]" />
+                  <span>Have custom project specifications? Submit via Contact Form &rarr;</span>
+                </Link>
               </div>
             </div>
           </div>

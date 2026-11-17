@@ -5,6 +5,8 @@ import {
   formatPriceINR,
   buildWhatsAppInquiryUrl,
   buildDetailedQuotationWhatsAppUrl,
+  buildProductWhatsAppUrl,
+  buildProductContactUrl,
 } from '../lib/utils';
 
 test('UTILS: cn correctly merges Tailwind classes and resolves conflicts', () => {
@@ -111,4 +113,38 @@ test('UTILS: buildDetailedQuotationWhatsAppUrl formats service scope and battery
   const decodedBattery = decodeURIComponent(batteryUrl);
   assert.ok(decodedBattery.includes('Old Battery Scrap Trade-in'));
   assert.ok(decodedBattery.includes('Exide 150Ah old tubular'));
+});
+
+test('UTILS: buildProductWhatsAppUrl generates product-specific wa.me link with model details', () => {
+  const url = buildProductWhatsAppUrl({
+    id: 'prod-bpe-1kva',
+    name: 'BPE True Online UPS 1kVA',
+    brand: 'BPE',
+    price: 18500,
+    category: 'ups',
+    sku: 'BPE-MF-1KVA',
+  });
+
+  assert.ok(url.startsWith('https://wa.me/'));
+  assert.ok(url.includes('text='));
+  const decoded = decodeURIComponent(url);
+  assert.ok(decoded.includes('BPE True Online UPS 1kVA'));
+  assert.ok(decoded.includes('BPE'));
+  assert.ok(decoded.includes('18,500'));
+  assert.ok(decoded.includes('BPE-MF-1KVA'));
+});
+
+test('UTILS: buildProductContactUrl formats query parameters for /contact route', () => {
+  const contactUrl = buildProductContactUrl({
+    id: 'prod-exide-150',
+    name: 'Exide Powersafe Plus EP 150',
+    category: 'batteries',
+    brand: 'Exide',
+  });
+
+  assert.ok(contactUrl.startsWith('/contact?'));
+  assert.ok(contactUrl.includes('productId=prod-exide-150'));
+  assert.ok(contactUrl.includes('product=Exide'));
+  assert.ok(contactUrl.includes('category=batteries'));
+  assert.ok(contactUrl.includes('brand=Exide'));
 });
